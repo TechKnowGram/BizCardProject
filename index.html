@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Employee Visiting Card Generation System</title>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f5f8fc;
+        color: #172033;
+        line-height: 1.6;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    /* -----------Navbar ---------- */
+
+    .navbar {
+        width: 100%;
+        background: #ffffff;
+        border-bottom: 1px solid #e5eaf1;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .nav-container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 21px;
+        font-weight: 700;
+        color: #123b78;
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #123b78;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        list-style: none;
+    }
+
+    .nav-links a {
+        color: #526071;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .nav-links a:hover {
+        color: #1468d8;
+    }
+
+    .nav-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        border: none;
+        cursor: pointer;
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .btn-outline {
+        background: white;
+        border: 1px solid #d6deea;
+        color: #123b78;
+    }
+
+    .btn-primary {
+        background: #1468d8;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0e55b5;
+    }
+
+    /* -------hero section----- */
+
+    .hero {
+        max-width: 1200px;
+        margin: auto;
+        padding: 90px 24px;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 60px;
+        align-items: center;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(38px, 5vw, 62px);
+        line-height: 1.08;
+        color: #102f61;
+        margin-bottom: 24px;
+    }
+
+    .hero-content h1 span {
+        color: #1468d8;
+    }
+
+    .hero-content p {
+        max-width: 580px;
+        color: #68768a;
+        font-size: 17px;
+        margin-bottom: 30px;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* -----------Card Preview---------- */
+
+    .hero-preview {
+        position: relative;
+        display: flex;
+        justify-content: center;
+    }
+
+    .visiting-card {
+        width: min(430px, 100%);
+        min-height: 260px;
+        border-radius: 20px;
+        padding: 28px;
+        color: white;
+        background: linear-gradient(135deg, #092c61, #1468d8);
+        box-shadow: 0 25px 55px rgba(16, 53, 105, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .visiting-card::before {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        right: -70px;
+        top: -80px;
+    }
+
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+    }
+
+    .company-name {
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    .card-label {
+        font-size: 11px;
+        opacity: 0.75;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .employee-name {
+        font-size: 27px;
+        font-weight: 700;
+    }
+
+    .employee-role {
+        color: #c9dcff;
+        margin-bottom: 22px;
+    }
+
+    .employee-info {
+        font-size: 12px;
+        line-height: 1.9;
+        color: #e8f0ff;
+    }
+
+    .qr {
+        width: 75px;
+        height: 75px;
+        background: white;
+        position: absolute;
+        right: 26px;
+        bottom: 26px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #123b78;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    /* -------Feature----------*/
+
+    .section {
+        max-width: 1200px;
+        margin: auto;
+        padding: 80px 24px;
+    }
+
+    .section-heading {
+        text-align: center;
+        margin-bottom: 45px;
+    }
+
+    .section-heading h2 {
+        font-size: 34px;
+        color: #102f61;
+        margin-bottom: 10px;
+    }
+
+    .section-heading p {
+        color: #718096;
+    }
+
+    .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .feature-card {
+        background: white;
+        border: 1px solid #e6ebf2;
+        border-radius: 14px;
+        padding: 28px;
+        transition: 0.2s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(30, 65, 110, 0.08);
+    }
+
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: #eaf3ff;
+        color: #1468d8;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 21px;
+        margin-bottom: 18px;
+    }
+
+    .feature-card h3 {
+        color: #1d355d;
+        margin-bottom: 8px;
+    }
+
+    .feature-card p {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    /* -------------Work Flow-------------- */
+
+    .workflow {
+        background: white;
+    }
+
+    .workflow-container {
+        max-width: 1200px;
+        margin: auto;
+        padding: 80px 24px;
+    }
+
+    .steps {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+    }
+
+    .step {
+        text-align: center;
+        padding: 20px 10px;
+    }
+
+    .step-number {
+        width: 48px;
+        height: 48px;
+        margin: auto auto 15px;
+        border-radius: 50%;
+        background: #1468d8;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .step h4 {
+        color: #1c355d;
+        margin-bottom: 5px;
+    }
+
+    .step p {
+        color: #778398;
+        font-size: 13px;
+    }
+
+    /* ------------CTA--------------- */
+
+    .cta {
+        max-width: 1150px;
+        margin: 60px auto;
+        padding: 60px 30px;
+        border-radius: 20px;
+        background: #102f61;
+        color: white;
+        text-align: center;
+    }
+
+    .cta h2 {
+        font-size: 36px;
+        margin-bottom: 12px;
+    }
+
+    .cta p {
+        color: #c9d8ef;
+        max-width: 650px;
+        margin: 0 auto 25px;
+    }
+
+    /* ------------Footer-------------------------------- */
+
+    footer {
+        background: #0a1e3c;
+        color: white;
+        padding: 45px 24px;
+    }
+
+    .footer-container {
+        max-width: 1200px;
+        margin: auto;
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .footer-brand p {
+        color: #aebed5;
+        max-width: 350px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .footer-links {
+        display: flex;
+        gap: 25px;
+        color: #b9c7da;
+        font-size: 14px;
+    }
+
+    .copyright {
+        max-width: 1200px;
+        margin: 35px auto 0;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        color: #93a6c0;
+        font-size: 13px;
+    }
+
+    /* ------------------Responsive-----------------*/
+
+    @media (max-width: 900px) {
+
+        .nav-links {
+            display: none;
+        }
+
+        .hero {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .hero-content p {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-actions {
+            justify-content: center;
+        }
+
+        .features {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .steps {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+
+        .nav-container {
+            padding: 12px 16px;
+        }
+
+        .logo {
+            font-size: 17px;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+        }
+
+        .nav-buttons .btn-outline {
+            display: none;
+        }
+
+        .hero {
+            padding: 55px 18px;
+        }
+
+        .hero-content h1 {
+            font-size: 38px;
+        }
+
+        .hero-content p {
+            font-size: 15px;
+        }
+
+        .visiting-card {
+            min-height: 230px;
+            padding: 22px;
+        }
+
+        .employee-name {
+            font-size: 22px;
+        }
+
+        .qr {
+            width: 62px;
+            height: 62px;
+            right: 20px;
+            bottom: 20px;
+        }
+
+        .section {
+            padding: 60px 18px;
+        }
+
+        .section-heading h2 {
+            font-size: 28px;
+        }
+
+        .features {
+            grid-template-columns: 1fr;
+        }
+
+        .steps {
+            grid-template-columns: 1fr;
+        }
+
+        .cta {
+            margin: 30px 18px;
+            padding: 45px 20px;
+        }
+
+        .cta h2 {
+            font-size: 28px;
+        }
+
+        .footer-container {
+            flex-direction: column;
+        }
+
+        .footer-links {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+</head>
+
+<body>
+
+
+<!-- ---------Navbar-------------- -->
+
+<header class="navbar">
+    <div class="nav-container">
+
+        <a href="#" class="logo">
+            <div class="logo-icon">VC</div>
+            VisCard
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#workflow">How It Works</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+
+        <div class="nav-buttons">
+            <a href="login.html" class="btn btn-outline">Login</a>
+            <a href="register.html" class="btn btn-primary">Get Started</a>
+        </div>
+
+    </div>
+</header>
+
+
+<!-- ---------------hero----------------- -->
+
+<main>
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <h1>
+                Professional Employee Visiting Cards
+                <span>for Your Organization</span>
+            </h1>
+
+            <p>
+                Create, manage and verify professional employee
+                visiting cards with a secure and intelligent
+                card generation platform.
+            </p>
+
+            <div class="hero-actions">
+                <a href="register.html" class="btn btn-primary">
+                    Get Started
+                </a>
+
+                <a href="#features" class="btn btn-outline">
+                    Explore Features
+                </a>
+            </div>
+
+        </div>
+
+
+        <div class="hero-preview">
+
+            <div class="visiting-card">
+
+                <div class="card-top">
+                    <div>
+                        <div class="company-name">
+                            Your Organization
+                        </div>
+
+                        <div class="card-label">
+                            Employee Visiting Card
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-name">
+                    John Doe
+                </div>
+
+                <div class="employee-role">
+                    Software Engineer
+                </div>
+
+                <div class="employee-info">
+                    +880 1234 567890<br>
+                    john@example.com<br>
+                    www.organization.com
+                </div>
+
+                <div class="qr">
+                    QR
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- -------------Features----------------- -->
+
+    <section class="section" id="features">
+
+        <div class="section-heading">
+            <h2>Everything You Need</h2>
+            <p>
+                A complete platform for managing employee visiting cards.
+            </p>
+        </div>
+
+        <div class="features">
+
+            <div class="feature-card">
+                <div class="feature-icon">👤</div>
+                <h3>Employee Management</h3>
+                <p>
+                    Add, update and manage employee information
+                    from one centralized platform.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Smart Templates</h3>
+                <p>
+                    Choose professional templates and customize
+                    them for your organization.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Instant Generation</h3>
+                <p>
+                    Generate professional visiting cards in
+                    PNG, JPG and PDF formats.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">✓</div>
+                <h3>Approval Workflow</h3>
+                <p>
+                    Submit card requests and manage approval
+                    workflows securely.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">▣</div>
+                <h3>QR Verification</h3>
+                <p>
+                    Verify employee cards instantly using a
+                    unique QR code.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">AI</div>
+                <h3>AI Design Assistant</h3>
+                <p>
+                    Get intelligent suggestions for colors,
+                    typography and card layouts.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- --------------- WorkFlow----------------------------->
+
+    <section class="workflow" id="workflow">
+
+        <div class="workflow-container">
+
+            <div class="section-heading">
+                <h2>How It Works</h2>
+                <p>
+                    A simple workflow from employee registration
+                    to verified digital identity.
+                </p>
+            </div>
+
+            <div class="steps">
+
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Register</h4>
+                    <p>
+                        Create your organization account.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Add Employees</h4>
+                    <p>
+                        Add employee information and photos.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Select Template</h4>
+                    <p>
+                        Choose or customize a card template.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>Get Approval</h4>
+                    <p>
+                        Submit the card for approval.
+                    </p>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h4>Generate & Verify</h4>
+                    <p>
+                        Generate the card and verify using QR.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ----------------cta----------------- -->
+
+    <section class="cta" id="about">
+
+        <h2>Build Professional Employee Identity</h2>
+
+        <p>
+            Manage employees, design cards, control approvals
+            and generate secure verified visiting cards from
+            one platform.
+        </p>
+
+        <a href="register.html" class="btn btn-primary">
+            Create Your Organization
+        </a>
+
+    </section>
+
+</main>
+
+
+<!-- ------------------Footer------------------ -->
+
+<footer>
+
+    <div class="footer-container">
+
+        <div class="footer-brand">
+
+            <div class="logo">
+                <div class="logo-icon">VC</div>
+                VisCard
+            </div>
+
+            <p>
+                Employee Visiting Card Generation System —
+                smart, secure and scalable employee identity management.
+            </p>
+
+        </div>
+
+        <div class="footer-links">
+            <a href="#features">Features</a>
+            <a href="#workflow">How It Works</a>
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+        </div>
+
+    </div>
+
+    <div class="copyright">
+        © 2026 Employee Visiting Card Generation System.
+        All rights reserved.
+    </div>
+
+</footer>
+
+</body>
+</html>
