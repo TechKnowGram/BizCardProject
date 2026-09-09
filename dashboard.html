@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>Dashboard | VisCard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1468d8;
+            --primary-dark: #0b4da8;
+            --dark: #102f61;
+            --text: #25344d;
+            --muted: #718096;
+            --border: #e5eaf1;
+            --background: #f5f8fc;
+            --white: #ffffff;
+            --success: #249653;
+            --warning: #d98a16;
+            --danger: #d94b4b;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        /* Layout----------- */
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* --------------------sidebar-------*/
+
+        .sidebar {
+            width: 250px;
+            background: #ffffff;
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.25s ease;
+        }
+
+        .sidebar-header {
+            height: 76px;
+            display: flex;
+            align-items: center;
+            padding: 0 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            padding: 20px 13px;
+            overflow-y: auto;
+        }
+
+        .menu-title {
+            padding: 0 11px;
+            margin: 16px 0 9px;
+            color: #9aa5b5;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .menu-title:first-child {
+            margin-top: 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 12px;
+            border-radius: 8px;
+            color: #617087;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 3px;
+            transition: 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f0f6ff;
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: #eaf3ff;
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            width: 21px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border);
+            padding: 15px 13px;
+        }
+
+        .user-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #dceaff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            min-width: 0;
+        }
+
+        .user-info strong {
+            display: block;
+            color: var(--text);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-info span {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            margin-top: 2px;
+        }
+
+        /* -------------------main------------ */
+
+        .main {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+        /* ---------topbar------------- */
+
+        .topbar {
+            height: 76px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mobile-menu {
+            display: none;
+            width: 38px;
+            height: 38px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .page-title h2 {
+            color: var(--dark);
+            font-size: 20px;
+        }
+
+        .page-title p {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #64748b;
+            position: relative;
+        }
+
+        .notification-dot {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            background: #e14c4c;
+            border-radius: 50%;
+            right: 8px;
+            top: 7px;
+            border: 1px solid white;
+        }
+
+        /* -------------content------------- */
+
+        .content {
+            padding: 30px;
+            max-width: 1500px;
+            margin: auto;
+        }
+
+        .welcome {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .welcome h1 {
+            color: var(--dark);
+            font-size: 26px;
+            margin-bottom: 5px;
+        }
+
+        .welcome p {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .primary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 17px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* --------start cart------------- */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 17px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 19px;
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 17px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 9px;
+            background: #eaf3ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-value {
+            color: var(--dark);
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .stat-change {
+            font-size: 10px;
+            margin-top: 6px;
+            color: var(--success);
+        }
+
+        /* -----------------grid-------------- */
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 21px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 19px;
+        }
+
+        .panel-header h3 {
+            color: var(--dark);
+            font-size: 15px;
+        }
+
+        .panel-link {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* --------------------------------------Request Table------- */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 520px;
+        }
+
+        th {
+            text-align: left;
+            color: #8a96a7;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 13px 8px;
+            border-bottom: 1px solid #f0f2f6;
+            font-size: 11px;
+            color: #526071;
+        }
+
+        td strong {
+            color: var(--text);
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .status.pending {
+            background: #fff5df;
+            color: #b77512;
+        }
+
+        .status.approved {
+            background: #eaf8ef;
+            color: #26824b;
+        }
+
+        .status.rejected {
+            background: #fff0f0;
+            color: #c34343;
+        }
+
+        /* --------------Quick Action------------------------ */
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .quick-action {
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 15px 12px;
+            transition: 0.2s;
+        }
+
+        .quick-action:hover {
+            border-color: #bdd5f6;
+            background: #f8fbff;
+        }
+
+        .quick-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #eaf3ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .quick-action h4 {
+            color: var(--text);
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .quick-action p {
+            color: var(--muted);
+            font-size: 9px;
+            line-height: 1.5;
+        }
+
+        /* ------------------------------Activity----------------- */
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .activity {
+            display: flex;
+            gap: 11px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f2f6;
+        }
+
+        .activity:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 31px;
+            height: 31px;
+            border-radius: 50%;
+            background: #eaf3ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 11px;
+        }
+
+        .activity-content p {
+            color: #4f5e73;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .activity-content span {
+            display: block;
+            color: #9aa5b5;
+            font-size: 9px;
+            margin-top: 3px;
+        }
+
+        /* -------------Overlay---------------- */
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 25, 50, 0.35);
+            z-index: 900;
+        }
+
+        /* _----------------------Responsive------------------ */
+
+        @media (max-width: 1150px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 850px) {
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .overlay.open {
+                display: block;
+            }
+
+            .main {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .content {
+                padding: 22px 18px;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .topbar {
+                height: 68px;
+            }
+
+            .page-title p {
+                display: none;
+            }
+
+            .page-title h2 {
+                font-size: 17px;
+            }
+
+            .topbar-right .icon-btn:nth-child(1) {
+                display: none;
+            }
+
+            .content {
+                padding: 18px 14px;
+            }
+
+            .welcome {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .welcome h1 {
+                font-size: 22px;
+            }
+
+            .welcome .primary-btn {
+                width: 100%;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-value {
+                font-size: 21px;
+            }
+
+            .stat-icon {
+                width: 31px;
+                height: 31px;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 390px) {
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="app">
+
+
+        <!-- --------------Sidebar---------------- -->
+
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-header">
+
+                <a href="dashboard.html" class="logo">
+
+                    <div class="logo-icon">
+                        VC
+                    </div>
+
+                    VisCard
+
+                </a>
+
+            </div>
+
+
+            <div class="sidebar-content">
+
+                <div class="menu-title">
+                    Overview
+                </div>
+
+                <a href="dashboard.html" class="nav-item active">
+                    <span class="nav-icon">▦</span>
+                    Dashboard
+                </a>
+
+                <a href="notifications.html" class="nav-item">
+                    <span class="nav-icon">●</span>
+                    Notifications
+                </a>
+
+
+                <div class="menu-title">
+                    Organization
+                </div>
+
+                <a href="company.html" class="nav-item">
+                    <span class="nav-icon">▣</span>
+                    Company
+                </a>
+
+                <a href="branches.html" class="nav-item">
+                    <span class="nav-icon">⌂</span>
+                    Branches
+                </a>
+
+                <a href="departments.html" class="nav-item">
+                    <span class="nav-icon">☷</span>
+                    Departments
+                </a>
+
+
+                <div class="menu-title">
+                    Employees
+                </div>
+
+                <a href="employees.html" class="nav-item">
+                    <span class="nav-icon">♙</span>
+                    Employees
+                </a>
+
+
+                <div class="menu-title">
+                    Visiting Cards
+                </div>
+
+                <a href="templates.html" class="nav-item">
+                    <span class="nav-icon">▤</span>
+                    Templates
+                </a>
+
+                <a href="card-request.html" class="nav-item">
+                    <span class="nav-icon">＋</span>
+                    Card Requests
+                </a>
+
+                <a href="approval.html" class="nav-item">
+                    <span class="nav-icon">✓</span>
+                    Approvals
+                </a>
+
+                <a href="card-generation.html" class="nav-item">
+                    <span class="nav-icon">▧</span>
+                    Generated Cards
+                </a>
+
+                <a href="card-history.html" class="nav-item">
+                    <span class="nav-icon">◷</span>
+                    Card History
+                </a>
+
+
+                <div class="menu-title">
+                    Intelligence
+                </div>
+
+                <a href="ai-design.html" class="nav-item">
+                    <span class="nav-icon">✦</span>
+                    AI Design Assistant
+                </a>
+
+                <a href="verification.html" class="nav-item">
+                    <span class="nav-icon">⌗</span>
+                    Card Verification
+                </a>
+
+
+                <div class="menu-title">
+                    Administration
+                </div>
+
+                <a href="reports.html" class="nav-item">
+                    <span class="nav-icon">▥</span>
+                    Reports
+                </a>
+
+                <a href="users.html" class="nav-item">
+                    <span class="nav-icon">♟</span>
+                    Users
+                </a>
+
+                <a href="roles-permissions.html" class="nav-item">
+                    <span class="nav-icon">⚙</span>
+                    Roles & Permissions
+                </a>
+
+                <a href="audit-logs.html" class="nav-item">
+                    <span class="nav-icon">≡</span>
+                    Audit Logs
+                </a>
+
+
+                <div class="menu-title">
+                    Account
+                </div>
+
+                <a href="profile.html" class="nav-item">
+                    <span class="nav-icon">◯</span>
+                    Profile
+                </a>
+
+                <a href="settings.html" class="nav-item">
+                    <span class="nav-icon">⚙</span>
+                    Settings
+                </a>
+
+                <a href="login.html" class="nav-item" onclick="logout()">
+                    <span class="nav-icon">↪</span>
+                    Logout
+                </a>
+
+            </div>
+
+
+            <div class="sidebar-footer">
+
+                <div class="user-mini">
+
+                    <div class="avatar">
+                        JD
+                    </div>
+
+                    <div class="user-info">
+
+                        <strong>
+                            John Doe
+                        </strong>
+
+                        <span>
+                            Company Admin
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+
+        <!-- -------------------Mian---------------------- -->
+
+        <main class="main">
+
+            <!-- TOPBAR -->
+
+            <header class="topbar">
+
+                <div class="topbar-left">
+
+                    <button class="mobile-menu" onclick="toggleSidebar()">
+                        ☰
+                    </button>
+
+                    <div class="page-title">
+
+                        <h2>
+                            Dashboard
+                        </h2>
+
+                        <p>
+                            Employee Visiting Card Management
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="topbar-right">
+
+                    <button class="icon-btn" onclick="window.location.href='notifications.html'" title="Notifications">
+                        ♢
+                        <span class="notification-dot"></span>
+                    </button>
+
+                    <button class="icon-btn" onclick="window.location.href='profile.html'" title="Profile">
+                        ◯
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <!-- CONTENT -->
+
+            <div class="content">
+
+
+                <!-- WELCOME -->
+
+                <div class="welcome">
+
+                    <div>
+
+                        <h1>
+                            Welcome back!
+                        </h1>
+
+                        <p>
+                            Here's what's happening with your organization today.
+                        </p>
+
+                    </div>
+
+
+                    <a href="employee-add.html" class="primary-btn">
+                        + Add Employee
+                    </a>
+
+                </div>
+
+
+                <!-- STATISTICS -->
+
+                <section class="stats">
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <span class="stat-label">
+                                Total Employees
+                            </span>
+
+                            <div class="stat-icon">
+                                ♙
+                            </div>
+
+                        </div>
+
+                        <div class="stat-value">
+                            248
+                        </div>
+
+                        <div class="stat-change">
+                            ↑ 12% from last month
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <span class="stat-label">
+                                Active Cards
+                            </span>
+
+                            <div class="stat-icon">
+                                ▧
+                            </div>
+
+                        </div>
+
+                        <div class="stat-value">
+                            216
+                        </div>
+
+                        <div class="stat-change">
+                            ↑ 8% from last month
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <span class="stat-label">
+                                Pending Requests
+                            </span>
+
+                            <div class="stat-icon">
+                                ◷
+                            </div>
+
+                        </div>
+
+                        <div class="stat-value">
+                            18
+                        </div>
+
+                        <div class="stat-change" style="color:#d98a16;">
+                            Requires attention
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <span class="stat-label">
+                                Templates
+                            </span>
+
+                            <div class="stat-icon">
+                                ▤
+                            </div>
+
+                        </div>
+
+                        <div class="stat-value">
+                            12
+                        </div>
+
+                        <div class="stat-change">
+                            4 custom templates
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MAIN GRID -->
+
+                <section class="dashboard-grid">
+
+
+                    <!-- RECENT REQUESTS -->
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <h3>
+                                Recent Card Requests
+                            </h3>
+
+                            <a href="card-request.html" class="panel-link">
+                                View All
+                            </a>
+
+                        </div>
+
+
+                        <div class="table-wrapper">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Template</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <tr>
+                                        <td>
+                                            <strong>Sarah Ahmed</strong>
+                                        </td>
+
+                                        <td>
+                                            Corporate Blue
+                                        </td>
+
+                                        <td>
+                                            Sep 08, 2026
+                                        </td>
+
+                                        <td>
+                                            <span class="status pending">
+                                                Pending
+                                            </span>
+                                        </td>
+                                    </tr>
+
+
+                                    <tr>
+                                        <td>
+                                            <strong>Michael Chen</strong>
+                                        </td>
+
+                                        <td>
+                                            Executive Dark
+                                        </td>
+
+                                        <td>
+                                            Sep 07, 2026
+                                        </td>
+
+                                        <td>
+                                            <span class="status approved">
+                                                Approved
+                                            </span>
+                                        </td>
+                                    </tr>
+
+
+                                    <tr>
+                                        <td>
+                                            <strong>Emma Wilson</strong>
+                                        </td>
+
+                                        <td>
+                                            Minimal White
+                                        </td>
+
+                                        <td>
+                                            Sep 06, 2026
+                                        </td>
+
+                                        <td>
+                                            <span class="status pending">
+                                                Pending
+                                            </span>
+                                        </td>
+                                    </tr>
+
+
+                                    <tr>
+                                        <td>
+                                            <strong>David Martin</strong>
+                                        </td>
+
+                                        <td>
+                                            Corporate Blue
+                                        </td>
+
+                                        <td>
+                                            Sep 05, 2026
+                                        </td>
+
+                                        <td>
+                                            <span class="status rejected">
+                                                Rejected
+                                            </span>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- QUICK ACTIONS -->
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <h3>
+                                Quick Actions
+                            </h3>
+
+                        </div>
+
+
+                        <div class="quick-actions">
+
+
+                            <a href="employee-add.html" class="quick-action">
+
+                                <div class="quick-icon">
+                                    +
+                                </div>
+
+                                <h4>
+                                    Add Employee
+                                </h4>
+
+                                <p>
+                                    Add a new employee to your organization.
+                                </p>
+
+                            </a>
+
+
+                            <a href="templates.html" class="quick-action">
+
+                                <div class="quick-icon">
+                                    ▤
+                                </div>
+
+                                <h4>
+                                    Browse Templates
+                                </h4>
+
+                                <p>
+                                    Select a professional card design.
+                                </p>
+
+                            </a>
+
+
+                            <a href="card-request.html" class="quick-action">
+
+                                <div class="quick-icon">
+                                    +
+                                </div>
+
+                                <h4>
+                                    Create Card
+                                </h4>
+
+                                <p>
+                                    Create a new visiting card request.
+                                </p>
+
+                            </a>
+
+
+                            <a href="ai-design.html" class="quick-action">
+
+                                <div class="quick-icon">
+                                    ✦
+                                </div>
+
+                                <h4>
+                                    AI Designer
+                                </h4>
+
+                                <p>
+                                    Get intelligent design recommendations.
+                                </p>
+
+                            </a>
+
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- -------------Activity------------>
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <h3>
+                                Recent Activity
+                            </h3>
+
+                            <a href="audit-logs.html" class="panel-link">
+                                View Logs
+                            </a>
+
+                        </div>
+
+
+                        <div class="activity-list">
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ✓
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        Card request for
+                                        <strong>Michael Chen</strong>
+                                        was approved.
+                                    </p>
+
+                                    <span>
+                                        20 minutes ago
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    +
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        New employee
+                                        <strong>Sarah Ahmed</strong>
+                                        was added.
+                                    </p>
+
+                                    <span>
+                                        1 hour ago
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ▤
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        New custom template
+                                        <strong>Corporate Pro</strong>
+                                        was created.
+                                    </p>
+
+                                    <span>
+                                        3 hours ago
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ▧
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        12 employee cards were generated.
+                                    </p>
+
+                                    <span>
+                                        Yesterday
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- --------------------------Organization sum---------------->
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <h3>
+                                Organization Overview
+                            </h3>
+
+                            <a href="company.html" class="panel-link">
+                                Manage
+                            </a>
+
+                        </div>
+
+
+                        <div class="activity-list">
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ▣
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        <strong>
+                                            Company
+                                        </strong>
+                                    </p>
+
+                                    <span>
+                                        VisCard Technologies Ltd.
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ⌂
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        <strong>
+                                            Branches
+                                        </strong>
+                                    </p>
+
+                                    <span>
+                                        5 active branches
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ☷
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        <strong>
+                                            Departments
+                                        </strong>
+                                    </p>
+
+                                    <span>
+                                        14 departments
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="activity">
+
+                                <div class="activity-icon">
+                                    ♙
+                                </div>
+
+                                <div class="activity-content">
+
+                                    <p>
+                                        <strong>
+                                            Employees
+                                        </strong>
+                                    </p>
+
+                                    <span>
+                                        248 registered employees
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script>
+
+        /* ----------------Sidebar------------------ */
+
+        function toggleSidebar() {
+
+            const sidebar =
+                document.getElementById("sidebar");
+
+            const overlay =
+                document.getElementById("overlay");
+
+            sidebar.classList.toggle("open");
+            overlay.classList.toggle("open");
+        }
+
+
+        function closeSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("open");
+
+            document
+                .getElementById("overlay")
+                .classList.remove("open");
+
+        }
+
+
+        /* ------------------Logout------------------------ */
+
+        function logout() {
+
+            /*
+             * Later this will call:
+             *
+             * POST /api/auth/logout
+             *
+             * and remove the JWT/refresh token.
+             */
+
+            localStorage.removeItem("access_token");
+
+        }
+
+    </script>
+
+</body>
+
+</html>
