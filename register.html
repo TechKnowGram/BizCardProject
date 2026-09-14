@@ -1,415 +1,63 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Create Account | VisCard</title>
 
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f8fc;
-            color: #172033;
-            min-height: 100vh;
-        }
-
-        a {
-            text-decoration: none;
-        }
-
-        .page {
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: 45% 55%;
-        }
-
-
-        /* ================= LEFT PANEL ================= */
-
-        .left-panel {
-            background: linear-gradient(145deg, #092c61, #1468d8);
-            color: white;
-            padding: 55px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .left-panel::before {
-            content: "";
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 50%;
-            right: -180px;
-            top: -100px;
-        }
-
-        .left-panel::after {
-            content: "";
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            left: -180px;
-            bottom: -100px;
-        }
-
-
-        .brand {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 22px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .brand-icon {
-            width: 42px;
-            height: 42px;
-            background: white;
-            color: #123b78;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-
-        .left-content {
-            position: relative;
-            z-index: 2;
-            max-width: 480px;
-        }
-
-        .left-content h1 {
-            font-size: 45px;
-            line-height: 1.12;
-            margin-bottom: 20px;
-        }
-
-        .left-content p {
-            color: #d5e4fb;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-
-
-        .benefits {
-            position: relative;
-            z-index: 2;
-            margin-top: 35px;
-        }
-
-        .benefit {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 16px 0;
-            color: #e9f2ff;
-            font-size: 14px;
-        }
-
-        .check {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .copyright {
-            position: relative;
-            z-index: 2;
-            color: #b8ccec;
-            font-size: 12px;
-        }
-
-
-        /* ================= RIGHT PANEL ================= */
-
-        .right-panel {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 25px;
-        }
-
-        .register-box {
-            width: 100%;
-            max-width: 520px;
-        }
-
-        .register-header {
-            margin-bottom: 28px;
-        }
-
-        .register-header h2 {
-            font-size: 32px;
-            color: #102f61;
-            margin-bottom: 8px;
-        }
-
-        .register-header p {
-            color: #718096;
-            font-size: 14px;
-        }
-
-
-        /* ================= FORM ================= */
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #34445c;
-            margin-bottom: 7px;
-        }
-
-        .form-group input {
-            width: 100%;
-            height: 46px;
-            border: 1px solid #d8e0eb;
-            border-radius: 8px;
-            padding: 0 14px;
-            font-size: 14px;
-            outline: none;
-            background: white;
-            transition: 0.2s;
-        }
-
-        .form-group input:focus {
-            border-color: #1468d8;
-            box-shadow: 0 0 0 3px rgba(20, 104, 216, 0.08);
-        }
-
-
-        /* ================= PASSWORD ================= */
-
-        .password-wrapper {
-            position: relative;
-        }
-
-        .password-wrapper input {
-            padding-right: 55px;
-        }
-
-        .show-password {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: #64748b;
-            font-size: 12px;
-        }
-
-
-        /* ================= TERMS ================= */
-
-        .terms {
-            display: flex;
-            align-items: flex-start;
-            gap: 9px;
-            margin: 8px 0 20px;
-        }
-
-        .terms input {
-            margin-top: 4px;
-        }
-
-        .terms label {
-            color: #6b778a;
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .terms a {
-            color: #1468d8;
-            font-weight: 600;
-        }
-
-
-        /* ================= BUTTON ================= */
-
-        .register-btn {
-            width: 100%;
-            height: 48px;
-            border: none;
-            border-radius: 8px;
-            background: #1468d8;
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .register-btn:hover {
-            background: #0e55b5;
-        }
-
-        .register-btn:disabled {
-            background: #8db4e8;
-            cursor: not-allowed;
-        }
-
-
-        /* ================= MESSAGE ================= */
-
-        .message {
-            display: none;
-            margin-bottom: 18px;
-            padding: 12px;
-            border-radius: 7px;
-            font-size: 13px;
-        }
-
-        .message.success {
-            display: block;
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .message.error {
-            display: block;
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 25px 0;
-            color: #9aa6b7;
-            font-size: 12px;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: "";
-            height: 1px;
-            background: #e3e8ef;
-            flex: 1;
-        }
-
-
-        /* ================= LOGIN ================= */
-
-        .login-text {
-            text-align: center;
-            color: #718096;
-            font-size: 13px;
-        }
-
-        .login-text a {
-            color: #1468d8;
-            font-weight: 700;
-        }
-
-        .back-home {
-            display: block;
-            text-align: center;
-            margin-top: 18px;
-            color: #7b8798;
-            font-size: 12px;
-        }
-
-        .back-home:hover {
-            color: #1468d8;
-        }
-
-
-        /* ================= RESPONSIVE ================= */
-
-        @media (max-width: 900px) {
-
-            .page {
-                grid-template-columns: 1fr;
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Arial", "Helvetica", "sans-serif"]
+                    }
+                }
             }
-
-            .left-panel {
-                display: none;
-            }
-
-            .right-panel {
-                min-height: 100vh;
-                padding: 35px 20px;
-            }
-
-            .register-box {
-                max-width: 500px;
-            }
-        }
-
-
-        @media (max-width: 500px) {
-
-            .right-panel {
-                padding: 25px 16px;
-            }
-
-            .register-header h2 {
-                font-size: 27px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
-        }
-    </style>
-
+        };
+    </script>
 </head>
 
+<body class="min-h-screen bg-[#f5f8fc] font-sans text-[#172033]">
 
-<body>
-
-
-    <div class="page">
+    <div class="grid min-h-screen grid-cols-1 min-[901px]:grid-cols-[45%_55%]">
 
 
-        <!-- ================= LEFT PANEL ================= -->
+        <!-- =====================================================
+             LEFT PANEL
+        ====================================================== -->
 
-        <section class="left-panel">
+        <section
+            class="relative hidden min-h-screen flex-col justify-between overflow-hidden bg-gradient-to-br from-[#092c61] to-[#1468d8] p-[55px] text-white min-[901px]:flex"
+        >
 
-            <a href="index.html" class="brand">
+            <!-- Decorative Circle -->
+            <div
+                class="absolute -right-[180px] -top-[100px] h-[400px] w-[400px] rounded-full border border-white/[0.12]"
+            ></div>
 
-                <div class="brand-icon">
+            <!-- Decorative Circle -->
+            <div
+                class="absolute -bottom-[100px] -left-[180px] h-[300px] w-[300px] rounded-full border border-white/[0.08]"
+            ></div>
+
+
+            <!-- ================= BRAND ================= -->
+
+            <a
+                href="index.html"
+                class="relative z-10 flex items-center gap-[10px] text-[22px] font-bold text-white"
+            >
+
+                <div
+                    class="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-white text-[14px] text-[#123b78]"
+                >
                     VC
                 </div>
 
@@ -418,15 +66,21 @@
             </a>
 
 
-            <div class="left-content">
+            <!-- ================= LEFT CONTENT ================= -->
 
-                <h1>
+            <div class="relative z-10 max-w-[480px]">
+
+                <h1
+                    class="mb-5 text-[45px] font-bold leading-[1.12]"
+                >
                     Create your organization's
                     smart identity system.
                 </h1>
 
 
-                <p>
+                <p
+                    class="text-[16px] leading-[1.8] text-[#d5e4fb]"
+                >
                     Manage employees, design professional
                     visiting cards, control approvals and
                     verify employee identities from one
@@ -434,11 +88,19 @@
                 </p>
 
 
-                <div class="benefits">
+                <!-- ================= BENEFITS ================= -->
 
-                    <div class="benefit">
+                <div class="relative z-10 mt-[35px]">
 
-                        <div class="check">
+                    <!-- Benefit 1 -->
+
+                    <div
+                        class="my-4 flex items-center gap-3 text-[14px] text-[#e9f2ff]"
+                    >
+
+                        <div
+                            class="flex h-[25px] w-[25px] shrink-0 items-center justify-center rounded-full bg-white/[0.15]"
+                        >
                             ✓
                         </div>
 
@@ -447,9 +109,15 @@
                     </div>
 
 
-                    <div class="benefit">
+                    <!-- Benefit 2 -->
 
-                        <div class="check">
+                    <div
+                        class="my-4 flex items-center gap-3 text-[14px] text-[#e9f2ff]"
+                    >
+
+                        <div
+                            class="flex h-[25px] w-[25px] shrink-0 items-center justify-center rounded-full bg-white/[0.15]"
+                        >
                             ✓
                         </div>
 
@@ -458,9 +126,15 @@
                     </div>
 
 
-                    <div class="benefit">
+                    <!-- Benefit 3 -->
 
-                        <div class="check">
+                    <div
+                        class="my-4 flex items-center gap-3 text-[14px] text-[#e9f2ff]"
+                    >
+
+                        <div
+                            class="flex h-[25px] w-[25px] shrink-0 items-center justify-center rounded-full bg-white/[0.15]"
+                        >
                             ✓
                         </div>
 
@@ -469,9 +143,15 @@
                     </div>
 
 
-                    <div class="benefit">
+                    <!-- Benefit 4 -->
 
-                        <div class="check">
+                    <div
+                        class="my-4 flex items-center gap-3 text-[14px] text-[#e9f2ff]"
+                    >
+
+                        <div
+                            class="flex h-[25px] w-[25px] shrink-0 items-center justify-center rounded-full bg-white/[0.15]"
+                        >
                             ✓
                         </div>
 
@@ -484,28 +164,43 @@
             </div>
 
 
-            <div class="copyright">
+            <!-- ================= COPYRIGHT ================= -->
+
+            <div
+                class="relative z-10 text-[12px] text-[#b8ccec]"
+            >
                 © 2026 VisCard. All rights reserved.
             </div>
 
         </section>
 
 
+        <!-- =====================================================
+             RIGHT PANEL
+        ====================================================== -->
 
-        <!-- ================= RIGHT PANEL ================= -->
+        <section
+            class="flex min-h-screen items-center justify-center px-4 py-[25px] min-[501px]:px-5 min-[501px]:py-[35px] min-[901px]:px-[25px] min-[901px]:py-10"
+        >
 
-        <section class="right-panel">
+            <div
+                class="w-full max-w-[500px] min-[901px]:max-w-[520px]"
+            >
 
-            <div class="register-box">
 
+                <!-- ================= HEADER ================= -->
 
-                <div class="register-header">
+                <div class="mb-7">
 
-                    <h2>
+                    <h2
+                        class="mb-2 text-[27px] font-bold text-[#102f61] min-[501px]:text-[32px]"
+                    >
                         Create Account
                     </h2>
 
-                    <p>
+                    <p
+                        class="text-[14px] text-[#718096]"
+                    >
                         Register your organization and start
                         managing employee visiting cards.
                     </p>
@@ -513,12 +208,12 @@
                 </div>
 
 
+                <!-- ================= MESSAGE ================= -->
 
-                <!-- MESSAGE -->
-
-                <div id="message" class="message">
-                </div>
-
+                <div
+                    id="message"
+                    class="mb-[18px] hidden rounded-[7px] p-3 text-[13px]"
+                ></div>
 
 
                 <!-- ================= REGISTER FORM ================= -->
@@ -526,86 +221,157 @@
                 <form id="registerForm">
 
 
-                    <div class="form-row">
+                    <!-- ================= FIRST + LAST NAME ================= -->
 
+                    <div
+                        class="grid grid-cols-1 gap-0 min-[501px]:grid-cols-2 min-[501px]:gap-4"
+                    >
 
-                        <div class="form-group">
+                        <!-- First Name -->
 
-                            <label for="firstName">
+                        <div class="mb-[18px]">
+
+                            <label
+                                for="firstName"
+                                class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                            >
                                 First Name
                             </label>
 
-                            <input type="text" id="firstName" name="firstName" placeholder="Shifat" required>
+                            <input
+                                type="text"
+                                id="firstName"
+                                name="firstName"
+                                placeholder="Shifat"
+                                required
+                                class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                            >
 
                         </div>
 
 
+                        <!-- Last Name -->
 
-                        <div class="form-group">
+                        <div class="mb-[18px]">
 
-                            <label for="lastName">
+                            <label
+                                for="lastName"
+                                class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                            >
                                 Last Name
                             </label>
 
-                            <input type="text" id="lastName" name="lastName" placeholder="Rahman" required>
+                            <input
+                                type="text"
+                                id="lastName"
+                                name="lastName"
+                                placeholder="Rahman"
+                                required
+                                class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                            >
 
                         </div>
 
                     </div>
 
 
+                    <!-- ================= COMPANY ================= -->
 
-                    <div class="form-group">
+                    <div class="mb-[18px]">
 
-                        <label for="company">
+                        <label
+                            for="company"
+                            class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                        >
                             Company Name
                         </label>
 
-                        <input type="text" id="company" name="company" placeholder="Your Company Ltd." required>
+                        <input
+                            type="text"
+                            id="company"
+                            name="company"
+                            placeholder="Your Company Ltd."
+                            required
+                            class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                        >
 
                     </div>
 
 
+                    <!-- ================= EMAIL ================= -->
 
-                    <div class="form-group">
+                    <div class="mb-[18px]">
 
-                        <label for="email">
+                        <label
+                            for="email"
+                            class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                        >
                             Work Email
                         </label>
 
-                        <input type="email" id="email" name="email" placeholder="name@gmail.com" required>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="name@gmail.com"
+                            required
+                            class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                        >
 
                     </div>
 
 
+                    <!-- ================= PHONE ================= -->
 
-                    <div class="form-group">
+                    <div class="mb-[18px]">
 
-                        <label for="phone">
+                        <label
+                            for="phone"
+                            class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                        >
                             Phone Number
                         </label>
 
-                        <input type="tel" id="phone" name="phone" placeholder="+880 1XXXXXXXXX" required>
+                        <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            placeholder="+880 1XXXXXXXXX"
+                            required
+                            class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                        >
 
                     </div>
 
 
+                    <!-- ================= PASSWORD ================= -->
 
-                    <div class="form-group">
+                    <div class="mb-[18px]">
 
-                        <label for="password">
+                        <label
+                            for="password"
+                            class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                        >
                             Password
                         </label>
 
-                        <div class="password-wrapper">
+                        <div class="relative">
 
-                            <input type="password" id="password" name="password" placeholder="Create a strong password"
-                                minlength="8" required>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Create a strong password"
+                                minlength="8"
+                                required
+                                class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] pr-[55px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                            >
 
-                            <button type="button" class="show-password" onclick="togglePassword(
-                                'password',
-                                this
-                            )">
+                            <button
+                                type="button"
+                                onclick="togglePassword('password', this)"
+                                class="absolute right-[14px] top-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent text-[12px] text-[#64748b] transition hover:text-[#1468d8]"
+                            >
                                 Show
                             </button>
 
@@ -614,22 +380,34 @@
                     </div>
 
 
+                    <!-- ================= CONFIRM PASSWORD ================= -->
 
-                    <div class="form-group">
+                    <div class="mb-[18px]">
 
-                        <label for="confirmPassword">
+                        <label
+                            for="confirmPassword"
+                            class="mb-[7px] block text-[13px] font-semibold text-[#34445c]"
+                        >
                             Confirm Password
                         </label>
 
-                        <div class="password-wrapper">
+                        <div class="relative">
 
-                            <input type="password" id="confirmPassword" name="confirmPassword"
-                                placeholder="Confirm your password" minlength="8" required>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                placeholder="Confirm your password"
+                                minlength="8"
+                                required
+                                class="h-[46px] w-full rounded-lg border border-[#d8e0eb] bg-white px-[14px] pr-[55px] text-[14px] outline-none transition duration-200 placeholder:text-gray-400 focus:border-[#1468d8] focus:ring-[3px] focus:ring-[#1468d8]/[0.08]"
+                            >
 
-                            <button type="button" class="show-password" onclick="togglePassword(
-                                'confirmPassword',
-                                this
-                            )">
+                            <button
+                                type="button"
+                                onclick="togglePassword('confirmPassword', this)"
+                                class="absolute right-[14px] top-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent text-[12px] text-[#64748b] transition hover:text-[#1468d8]"
+                            >
                                 Show
                             </button>
 
@@ -638,21 +416,39 @@
                     </div>
 
 
+                    <!-- ================= TERMS ================= -->
 
-                    <div class="terms">
+                    <div
+                        class="mb-5 mt-2 flex items-start gap-[9px]"
+                    >
 
-                        <input type="checkbox" id="terms" required>
+                        <input
+                            type="checkbox"
+                            id="terms"
+                            required
+                            class="mt-1 h-4 w-4 accent-[#1468d8]"
+                        >
 
-                        <label for="terms">
+                        <label
+                            for="terms"
+                            class="text-[12px] leading-[1.5] text-[#6b778a]"
+                        >
 
                             I agree to the
-                            <a href="#">
+
+                            <a
+                                href="#"
+                                class="font-semibold text-[#1468d8] hover:underline"
+                            >
                                 Terms of Service
                             </a>
 
                             and
 
-                            <a href="#">
+                            <a
+                                href="#"
+                                class="font-semibold text-[#1468d8] hover:underline"
+                            >
                                 Privacy Policy
                             </a>.
 
@@ -661,40 +457,60 @@
                     </div>
 
 
+                    <!-- ================= REGISTER BUTTON ================= -->
 
-                    <button type="submit" class="register-btn" id="registerButton">
+                    <button
+                        type="submit"
+                        id="registerButton"
+                        class="h-12 w-full cursor-pointer rounded-lg border-0 bg-[#1468d8] text-[14px] font-bold text-white transition duration-200 hover:bg-[#0e55b5] focus:outline-none focus:ring-4 focus:ring-[#1468d8]/20 disabled:cursor-not-allowed disabled:bg-[#8db4e8]"
+                    >
                         Create Account
                     </button>
-
 
                 </form>
 
 
+                <!-- ================= DIVIDER ================= -->
 
-                <div class="divider">
+                <div
+                    class="my-[25px] flex items-center gap-3 text-[12px] text-[#9aa6b7]"
+                >
+
+                    <div class="h-px flex-1 bg-[#e3e8ef]"></div>
+
                     OR
+
+                    <div class="h-px flex-1 bg-[#e3e8ef]"></div>
+
                 </div>
 
 
+                <!-- ================= LOGIN ================= -->
 
-                <div class="login-text">
+                <div
+                    class="text-center text-[13px] text-[#718096]"
+                >
 
                     Already have an account?
 
-                    <a href="login.html">
+                    <a
+                        href="login.html"
+                        class="font-bold text-[#1468d8] hover:underline"
+                    >
                         Login
                     </a>
 
                 </div>
 
 
+                <!-- ================= BACK HOME ================= -->
 
-                <a href="index.html" class="back-home">
-
+                <a
+                    href="index.html"
+                    class="mt-[18px] block text-center text-[12px] text-[#7b8798] transition hover:text-[#1468d8]"
+                >
                     ← Back to Homepage
-
                 </a>
-
 
             </div>
 
@@ -703,13 +519,16 @@
     </div>
 
 
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
 
     <script>
 
         // ================= API URL =================
 
         const API_URL =
-            "https://dhakashoping.xyz/register.php";
+            "http://127.0.0.1:8000/api/auth/register";
 
 
         // ================= PASSWORD TOGGLE =================
@@ -722,19 +541,14 @@
             if (input.type === "password") {
 
                 input.type = "text";
-
                 button.textContent = "Hide";
 
-            }
-
-            else {
+            } else {
 
                 input.type = "password";
-
                 button.textContent = "Show";
 
             }
-
         }
 
 
@@ -747,9 +561,18 @@
 
             messageBox.textContent = message;
 
-            messageBox.className =
-                "message " + type;
 
+            if (type === "success") {
+
+                messageBox.className =
+                    "mb-[18px] block rounded-[7px] bg-[#dcfce7] p-3 text-[13px] text-[#166534]";
+
+            } else {
+
+                messageBox.className =
+                    "mb-[18px] block rounded-[7px] bg-[#fee2e2] p-3 text-[13px] text-[#991b1b]";
+
+            }
         }
 
 
@@ -763,47 +586,59 @@
 
                     event.preventDefault();
 
-                    var firstName =
+
+                    // ================= GET VALUES =================
+
+                    const firstName =
                         document
                             .getElementById("firstName")
                             .value
                             .trim();
 
-                    var lastName =
+
+                    const lastName =
                         document
                             .getElementById("lastName")
                             .value
                             .trim();
 
-                    var company =
+
+                    const company =
                         document
                             .getElementById("company")
                             .value
                             .trim();
 
-                    var email =
+
+                    const email =
                         document
                             .getElementById("email")
                             .value
                             .trim();
 
-                    var phone =
+
+                    const phone =
                         document
                             .getElementById("phone")
                             .value
                             .trim();
 
-                    var password =
+
+                    const password =
                         document
                             .getElementById("password")
                             .value
                             .trim();
 
-                    var confirmPassword =
+
+                    const confirmPassword =
                         document
                             .getElementById("confirmPassword")
                             .value
                             .trim();
+
+
+                    // ================= PASSWORD CHECK =================
 
                     if (password !== confirmPassword) {
 
@@ -815,62 +650,47 @@
                         return;
                     }
 
-                    const formData =
-                        new FormData();
 
-                    formData.append(
-                        "first_name",
-                        firstName
-                    );
+                    // ================= USER DATA =================
 
-                    formData.append(
-                        "last_name",
-                        lastName
-                    );
+                    const userData = {
 
-                    formData.append(
-                        "company_name",
-                        company
-                    );
+                        first_name: firstName,
 
-                    formData.append(
-                        "email",
-                        email
-                    );
+                        last_name: lastName,
 
-                    formData.append(
-                        "phone",
-                        phone
-                    );
+                        company_name: company,
 
-                    formData.append(
-                        "password",
-                        password
-                    );
+                        email: email,
+
+                        phone: phone,
+
+                        password: password
+
+                    };
+
 
                     console.log(
                         "User Data:",
-                        {
-                            first_name: firstName,
-                            last_name: lastName,
-                            company_name: company,
-                            email: email,
-                            phone: phone,
-                            password: password
-                        }
+                        userData
                     );
 
-                    const registerButton =
-                        document
-                            .getElementById(
-                                "registerButton"
-                            );
 
-                    registerButton.disabled =
-                        true;
+                    // ================= BUTTON =================
+
+                    const registerButton =
+                        document.getElementById(
+                            "registerButton"
+                        );
+
+
+                    registerButton.disabled = true;
 
                     registerButton.textContent =
                         "Creating Account...";
+
+
+                    // ================= API REQUEST =================
 
                     try {
 
@@ -880,39 +700,78 @@
                                 {
                                     method: "POST",
 
-                                    body: formData
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify(
+                                            userData
+                                        )
                                 }
                             );
+
 
                         const data =
                             await response.json();
 
 
-                        console.log(
-                            "API Response:",
-                            data
-                        );
+                        // ================= API ERROR =================
 
-                        if (
-                            !response.ok ||
-                            data.status === false
-                        ) {
+                        if (!response.ok) {
+
+                            let errorMessage =
+                                "Registration failed.";
+
+
+                            if (data.detail) {
+
+                                if (
+                                    Array.isArray(
+                                        data.detail
+                                    )
+                                ) {
+
+                                    errorMessage =
+                                        data.detail
+                                            .map(
+                                                function (error) {
+                                                    return error.msg;
+                                                }
+                                            )
+                                            .join(", ");
+
+                                } else {
+
+                                    errorMessage =
+                                        data.detail;
+
+                                }
+
+                            }
+
 
                             showMessage(
-                                data.message ||
-                                data.error ||
-                                "Registration failed.",
+                                errorMessage,
                                 "error"
                             );
+
 
                             registerButton.disabled =
                                 false;
 
+
                             registerButton.textContent =
                                 "Create Account";
 
+
                             return;
+
                         }
+
+
+                        // ================= SUCCESS =================
 
                         showMessage(
                             data.message ||
@@ -920,8 +779,12 @@
                             "success"
                         );
 
+
                         registerButton.textContent =
                             "Account Created";
+
+
+                        // Redirect to login
 
                         setTimeout(
                             function () {
@@ -934,6 +797,10 @@
                         );
 
                     }
+
+
+                    // ================= CONNECTION ERROR =================
+
                     catch (error) {
 
                         console.error(
@@ -941,16 +808,35 @@
                             error
                         );
 
+
                         showMessage(
-                            error.message,
+                            "Unable to connect to server. Please try again.",
                             "error"
                         );
+
 
                         registerButton.disabled =
                             false;
 
+
                         registerButton.textContent =
                             "Create Account";
+
+
+                        /*
+                         * Temporary fallback.
+                         * Backend connect না হলেও login page-এ যাবে।
+                         */
+
+                        setTimeout(
+                            function () {
+
+                                window.location.href =
+                                    "login.html";
+
+                            },
+                            1000
+                        );
 
                     }
 
@@ -958,6 +844,7 @@
             );
 
     </script>
+
 </body>
 
 </html>
