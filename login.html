@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -10,1035 +9,718 @@
 
     <title>Login | VisCard</title>
 
-
-    <style>
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f8fc;
-            color: #172033;
-            min-height: 100vh;
-        }
-
-        a {
-            text-decoration: none;
-        }
-
-
-        /* ================= PAGE ================= */
-
-        .page {
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: 45% 55%;
-        }
-
-
-        /* ================= LEFT PANEL ================= */
-
-        .left-panel {
-            background: linear-gradient(145deg, #092c61, #1468d8);
-            color: white;
-            padding: 55px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .left-panel::before {
-            content: "";
-            position: absolute;
-            width: 430px;
-            height: 430px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 50%;
-            right: -200px;
-            top: -110px;
-        }
-
-        .left-panel::after {
-            content: "";
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-            left: -190px;
-            bottom: -120px;
-        }
-
-
-        /* ================= BRAND ================= */
-
-        .brand {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .brand-icon {
-            width: 42px;
-            height: 42px;
-            background: white;
-            color: #123b78;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-
-        /* ================= LEFT CONTENT ================= */
-
-        .left-content {
-            position: relative;
-            z-index: 2;
-            max-width: 470px;
-        }
-
-        .left-content h1 {
-            font-size: 45px;
-            line-height: 1.12;
-            margin-bottom: 20px;
-        }
-
-        .left-content p {
-            color: #d5e4fb;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-
-        .benefits {
-            margin-top: 32px;
-        }
-
-        .benefit {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 15px 0;
-            color: #e9f2ff;
-            font-size: 14px;
-        }
-
-        .check {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .copyright {
-            position: relative;
-            z-index: 2;
-            color: #b8ccec;
-            font-size: 12px;
-        }
-
-
-        /* ================= RIGHT PANEL ================= */
-
-        .right-panel {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 25px;
-        }
-
-        .login-box {
-            width: 100%;
-            max-width: 430px;
-        }
-
-        .login-header {
-            margin-bottom: 30px;
-        }
-
-        .login-header h2 {
-            font-size: 32px;
-            color: #102f61;
-            margin-bottom: 8px;
-        }
-
-        .login-header p {
-            color: #718096;
-            font-size: 14px;
-        }
-
-
-        /* ================= MESSAGE ================= */
-
-        .message {
-            display: none;
-            padding: 12px;
-            border-radius: 7px;
-            margin-bottom: 18px;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .message.error {
-            display: block;
-            background: #fff1f1;
-            border: 1px solid #ffd1d1;
-            color: #c53030;
-        }
-
-        .message.success {
-            display: block;
-            background: #ecfdf3;
-            border: 1px solid #b7efcc;
-            color: #166534;
-        }
-
-
-        /* ================= FORM ================= */
-
-        .form-group {
-            margin-bottom: 19px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #34445c;
-            margin-bottom: 7px;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .form-group input {
-            width: 100%;
-            height: 48px;
-            border: 1px solid #d8e0eb;
-            border-radius: 8px;
-            padding: 0 14px;
-            font-size: 14px;
-            outline: none;
-            background: white;
-            transition: 0.2s;
-        }
-
-        .form-group input:focus {
-            border-color: #1468d8;
-            box-shadow: 0 0 0 3px rgba(20, 104, 216, 0.08);
-        }
-
-
-        /* ================= PASSWORD ================= */
-
-        .password-wrapper input {
-            padding-right: 65px;
-        }
-
-        .show-password {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            color: #64748b;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-
-        /* ================= OPTIONS ================= */
-
-        .form-options {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 4px 0 22px;
-        }
-
-        .remember {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            color: #68768a;
-            font-size: 12px;
-        }
-
-        .remember input {
-            cursor: pointer;
-        }
-
-        .forgot {
-            color: #1468d8;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .forgot:hover {
-            text-decoration: underline;
-        }
-
-
-        /* ================= LOGIN BUTTON ================= */
-
-        .login-btn {
-            width: 100%;
-            height: 48px;
-            border: none;
-            border-radius: 8px;
-            background: #1468d8;
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .login-btn:hover {
-            background: #0e55b5;
-        }
-
-        .login-btn:disabled {
-            background: #8db4e8;
-            cursor: not-allowed;
-        }
-
-
-        /* ================= DIVIDER ================= */
-
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 25px 0;
-            color: #9aa6b7;
-            font-size: 12px;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: "";
-            height: 1px;
-            background: #e3e8ef;
-            flex: 1;
-        }
-
-
-        /* ================= REGISTER ================= */
-
-        .register-text {
-            text-align: center;
-            color: #718096;
-            font-size: 13px;
-        }
-
-        .register-text a {
-            color: #1468d8;
-            font-weight: 700;
-        }
-
-        .register-text a:hover {
-            text-decoration: underline;
-        }
-
-
-        /* ================= HOME ================= */
-
-        .back-home {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #7b8798;
-            font-size: 12px;
-        }
-
-        .back-home:hover {
-            color: #1468d8;
-        }
-
-
-        /* ================= RESPONSIVE ================= */
-
-        @media (max-width: 900px) {
-
-            .page {
-                grid-template-columns: 1fr;
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Arial", "Helvetica", "sans-serif"]
+                    }
+                }
             }
-
-            .left-panel {
-                display: none;
-            }
-
-            .right-panel {
-                min-height: 100vh;
-                padding: 35px 20px;
-            }
-
-            .login-box {
-                max-width: 450px;
-            }
-        }
-
-
-        @media (max-width: 500px) {
-
-            .right-panel {
-                padding: 25px 16px;
-            }
-
-            .login-header h2 {
-                font-size: 28px;
-            }
-
-            .form-options {
-                align-items: flex-start;
-            }
-        }
-
-    </style>
+        };
+    </script>
 
 </head>
 
 
-<body>
+<body class="min-h-screen bg-[#f5f8fc] text-[#172033] font-sans">
 
 
-<div class="page">
+    <div class="min-h-screen grid grid-cols-[45%_55%] max-[900px]:grid-cols-1">
 
 
-    <!-- ================= LEFT PANEL ================= -->
+        <!-- ================= LEFT PANEL ================= -->
 
-    <section class="left-panel">
+        <section
+            class="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-[#092c61] to-[#1468d8] p-[55px] text-white max-[900px]:hidden">
 
-        <a href="index.html" class="brand">
+            <!-- Decorative Circle -->
 
-            <div class="brand-icon">
-                VC
+            <div
+                class="absolute -right-[200px] -top-[110px] h-[430px] w-[430px] rounded-full border border-white/[0.12]">
             </div>
 
-            VisCard
 
-        </a>
-
-
-        <div class="left-content">
-
-            <h1>
-                Welcome back to your
-                smart identity platform.
-            </h1>
-
-            <p>
-                Access your organization dashboard to manage employees,
-                visiting cards, approvals, templates and verification
-                from one secure platform.
-            </p>
-
-
-            <div class="benefits">
-
-                <div class="benefit">
-                    <div class="check">✓</div>
-                    Manage your organization
-                </div>
-
-                <div class="benefit">
-                    <div class="check">✓</div>
-                    Create professional visiting cards
-                </div>
-
-                <div class="benefit">
-                    <div class="check">✓</div>
-                    Track card approvals
-                </div>
-
-                <div class="benefit">
-                    <div class="check">✓</div>
-                    Verify employee identity securely
-                </div>
-
+            <div
+                class="absolute -bottom-[120px] -left-[190px] h-[320px] w-[320px] rounded-full border border-white/[0.08]">
             </div>
 
-        </div>
+
+            <!-- ================= BRAND ================= -->
+
+            <a href="index.html"
+                class="relative z-[2] flex items-center gap-[10px] text-[22px] font-bold text-white no-underline">
+
+                <div
+                    class="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] bg-white text-[14px] text-[#123b78]">
+                    VC
+                </div>
+
+                VisCard
+
+            </a>
 
 
-        <div class="copyright">
-            © 2026 VisCard. All rights reserved.
-        </div>
+            <!-- ================= LEFT CONTENT ================= -->
 
-    </section>
+            <div class="relative z-[2] max-w-[470px]">
 
+                <h1 class="mb-[20px] text-[45px] font-bold leading-[1.12]">
 
+                    Welcome back to your
+                    smart identity platform.
 
-    <!-- ================= RIGHT PANEL ================= -->
-
-    <section class="right-panel">
-
-        <div class="login-box">
+                </h1>
 
 
-            <div class="login-header">
+                <p class="text-[16px] leading-[1.8] text-[#d5e4fb]">
 
-                <h2>
-                    Welcome Back
-                </h2>
+                    Access your organization dashboard to manage employees,
+                    visiting cards, approvals, templates and verification
+                    from one secure platform.
 
-                <p>
-                    Sign in to access your Employee Visiting Card
-                    Generation System.
                 </p>
 
+
+                <div class="mt-[32px]">
+
+                    <!-- Benefit 1 -->
+
+                    <div class="my-[15px] flex items-center gap-[12px] text-[14px] text-[#e9f2ff]">
+
+                        <div class="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white/[0.15]">
+                            ✓
+                        </div>
+
+                        Manage your organization
+
+                    </div>
+
+
+                    <!-- Benefit 2 -->
+
+                    <div class="my-[15px] flex items-center gap-[12px] text-[14px] text-[#e9f2ff]">
+
+                        <div class="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white/[0.15]">
+                            ✓
+                        </div>
+
+                        Create professional visiting cards
+
+                    </div>
+
+
+                    <!-- Benefit 3 -->
+
+                    <div class="my-[15px] flex items-center gap-[12px] text-[14px] text-[#e9f2ff]">
+
+                        <div class="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white/[0.15]">
+                            ✓
+                        </div>
+
+                        Track card approvals
+
+                    </div>
+
+
+                    <!-- Benefit 4 -->
+
+                    <div class="my-[15px] flex items-center gap-[12px] text-[14px] text-[#e9f2ff]">
+
+                        <div class="flex h-[25px] w-[25px] items-center justify-center rounded-full bg-white/[0.15]">
+                            ✓
+                        </div>
+
+                        Verify employee identity securely
+
+                    </div>
+
+                </div>
+
             </div>
 
 
-            <!-- ================= MESSAGE ================= -->
+            <!-- ================= COPYRIGHT ================= -->
 
-            <div id="message" class="message"></div>
+            <div class="relative z-[2] text-[12px] text-[#b8ccec]">
 
+                © 2026 VisCard. All rights reserved.
 
+            </div>
 
-            <!-- ================= LOGIN FORM ================= -->
-
-            <form id="loginForm">
-
-
-                <div class="form-group">
-
-                    <label for="email">
-                        Work Email
-                    </label>
-
-                    <div class="input-wrapper">
-
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            placeholder="you@company.com"
-                            autocomplete="email"
-                            required
-                        >
-
-                    </div>
-
-                </div>
+        </section>
 
 
+        <!-- ================= RIGHT PANEL ================= -->
 
-                <div class="form-group">
+        <section
+            class="flex items-center justify-center px-[25px] py-[40px] max-[900px]:min-h-screen max-[900px]:px-[20px] max-[900px]:py-[35px] max-[500px]:px-[16px] max-[500px]:py-[25px]">
 
-                    <label for="password">
-                        Password
-                    </label>
+            <div class="w-full max-w-[430px] max-[900px]:max-w-[450px]">
 
-                    <div class="input-wrapper password-wrapper">
 
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            required
-                        >
+                <!-- ================= LOGIN HEADER ================= -->
 
-                        <button
-                            type="button"
-                            class="show-password"
-                            onclick="togglePassword()"
-                        >
-                            Show
-                        </button>
+                <div class="mb-[30px]">
 
-                    </div>
+                    <h2 class="mb-[8px] text-[32px] font-bold text-[#102f61] max-[500px]:text-[28px]">
+
+                        Welcome Back
+
+                    </h2>
+
+
+                    <p class="text-[14px] text-[#718096]">
+
+                        Sign in to access your Employee Visiting Card
+                        Generation System.
+
+                    </p>
 
                 </div>
 
 
+                <!-- ================= MESSAGE ================= -->
 
-                <div class="form-options">
-
-                    <label class="remember">
-
-                        <input
-                            type="checkbox"
-                            id="remember"
-                        >
-
-                        Remember me
-
-                    </label>
+                <div id="message" class="hidden mb-[18px] rounded-[7px] p-[12px] text-[13px] leading-[1.5]">
+                </div>
 
 
-                    <a
-                        href="forgot-password.html"
-                        class="forgot"
-                    >
-                        Forgot Password?
+                <!-- ================= LOGIN FORM ================= -->
+
+                <form id="loginForm">
+
+
+                    <!-- ================= EMAIL ================= -->
+
+                    <div class="mb-[19px]">
+
+                        <label for="email" class="mb-[7px] block text-[13px] font-semibold text-[#34445c]">
+
+                            Work Email
+
+                        </label>
+
+
+                        <div class="relative">
+
+                            <input type="email" id="email" name="email" placeholder="you@company.com"
+                                autocomplete="email" required
+                                class="h-[48px] w-full rounded-[8px] border border-[#d8e0eb] bg-white px-[14px] text-[14px] text-[#172033] outline-none transition duration-200 focus:border-[#1468d8] focus:shadow-[0_0_0_3px_rgba(20,104,216,0.08)]">
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= PASSWORD ================= -->
+
+                    <div class="mb-[19px]">
+
+                        <label for="password" class="mb-[7px] block text-[13px] font-semibold text-[#34445c]">
+
+                            Password
+
+                        </label>
+
+
+                        <div class="relative">
+
+                            <input type="password" id="password" name="password" placeholder="Enter your password"
+                                autocomplete="current-password" required
+                                class="h-[48px] w-full rounded-[8px] border border-[#d8e0eb] bg-white px-[14px] pr-[65px] text-[14px] text-[#172033] outline-none transition duration-200 focus:border-[#1468d8] focus:shadow-[0_0_0_3px_rgba(20,104,216,0.08)]">
+
+
+                            <button type="button"
+                                class="absolute right-[14px] top-1/2 -translate-y-1/2 border-0 bg-transparent p-0 text-[12px] font-semibold text-[#64748b] cursor-pointer"
+                                onclick="togglePassword()">
+
+                                Show
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= OPTIONS ================= -->
+
+                    <div class="my-[4px] mb-[22px] flex items-center justify-between max-[500px]:items-start">
+
+                        <label class="flex items-center gap-[7px] text-[12px] text-[#68768a]">
+
+                            <input type="checkbox" id="remember" class="cursor-pointer">
+
+                            Remember me
+
+                        </label>
+
+
+                        <a href="forgot-password.html" class="text-[12px] font-semibold text-[#1468d8] hover:underline">
+
+                            Forgot Password?
+
+                        </a>
+
+                    </div>
+
+
+                    <!-- ================= LOGIN BUTTON ================= -->
+
+                    <button type="submit" id="loginButton"
+                        class="h-[48px] w-full rounded-[8px] border-0 bg-[#1468d8] text-[14px] font-bold text-white cursor-pointer transition duration-200 hover:bg-[#0e55b5] disabled:cursor-not-allowed disabled:bg-[#8db4e8]">
+
+                        Sign In
+
+                    </button>
+
+
+                </form>
+
+
+                <!-- ================= DIVIDER ================= -->
+
+                <div class="my-[25px] flex items-center gap-[12px] text-[12px] text-[#9aa6b7]">
+
+                    <div class="h-px flex-1 bg-[#e3e8ef]"></div>
+
+                    OR
+
+                    <div class="h-px flex-1 bg-[#e3e8ef]"></div>
+
+                </div>
+
+
+                <!-- ================= REGISTER ================= -->
+
+                <div class="text-center text-[13px] text-[#718096]">
+
+                    Don't have an account?
+
+                    <a href="register.html" class="font-bold text-[#1468d8] hover:underline">
+
+                        Register
+
                     </a>
 
                 </div>
 
 
+                <!-- ================= HOME ================= -->
 
-                <button
-                    type="submit"
-                    class="login-btn"
-                    id="loginButton"
-                >
-                    Sign In
-                </button>
+                <a href="index.html"
+                    class="mt-[20px] block text-center text-[12px] text-[#7b8798] transition-colors hover:text-[#1468d8]">
 
-            </form>
+                    ← Back to Homepage
 
-
-
-            <div class="divider">
-                OR
-            </div>
-
-
-
-            <div class="register-text">
-
-                Don't have an account?
-
-                <a href="register.html">
-                    Register
                 </a>
 
+
             </div>
 
+        </section>
+
+    </div>
 
 
-            <a
-                href="index.html"
-                class="back-home"
-            >
-                ← Back to Homepage
-            </a>
+    <script>
 
 
-        </div>
+        /* =========================================================
+           API URL
+           ========================================================= */
 
-    </section>
-
-</div>
-
-
-
-<script>
+        const API_URL =
+            "http://127.0.0.1:8000/api/auth/login";
 
 
-/* =========================================================
-   API URL
-   ========================================================= */
+        /* =========================================================
+           PASSWORD TOGGLE
+           ========================================================= */
 
-const API_URL =
-    "http://127.0.0.1:8000/api/auth/login";
-
-
-
-/* =========================================================
-   PASSWORD TOGGLE
-   ========================================================= */
-
-function togglePassword() {
-
-    const password =
-        document.getElementById("password");
-
-    const button =
-        document.querySelector(".show-password");
-
-
-    if (password.type === "password") {
-
-        password.type = "text";
-
-        button.textContent = "Hide";
-
-    }
-
-    else {
-
-        password.type = "password";
-
-        button.textContent = "Show";
-
-    }
-
-}
-
-
-
-/* =========================================================
-   SHOW MESSAGE
-   ========================================================= */
-
-function showMessage(message, type) {
-
-    const messageBox =
-        document.getElementById("message");
-
-
-    messageBox.textContent =
-        message;
-
-    messageBox.className =
-        "message " + type;
-
-}
-
-
-
-/* =========================================================
-   LOGIN
-   ========================================================= */
-
-document
-    .getElementById("loginForm")
-    .addEventListener(
-        "submit",
-        async function(event) {
-
-            event.preventDefault();
-
-
-            const email =
-                document
-                    .getElementById("email")
-                    .value
-                    .trim();
-
+        function togglePassword() {
 
             const password =
-                document
-                    .getElementById("password")
-                    .value;
+                document.getElementById("password");
+
+            const button =
+                document.querySelector(".show-password");
 
 
-            const remember =
-                document
-                    .getElementById("remember")
-                    .checked;
+            if (password.type === "password") {
 
+                password.type = "text";
 
-            const loginButton =
-                document
-                    .getElementById("loginButton");
-
-
-            /* ================= BASIC VALIDATION ================= */
-
-            if (!email || !password) {
-
-                showMessage(
-                    "Please enter your email and password.",
-                    "error"
-                );
-
-                return;
+                button.textContent = "Hide";
 
             }
 
+            else {
 
+                password.type = "password";
 
-            /* ================= BUTTON LOADING ================= */
-
-            loginButton.disabled = true;
-
-            loginButton.textContent =
-                "Signing In...";
-
-
-
-            /* ================= LOGIN DATA ================= */
-
-            const loginData = {
-
-                email: email,
-
-                password: password
-
-            };
-
-
-
-            try {
-
-
-                /* ================= SEND TO FASTAPI ================= */
-
-                const response =
-                    await fetch(
-                        API_URL,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify(
-                                    loginData
-                                )
-                        }
-                    );
-
-
-
-                /* ================= RESPONSE ================= */
-
-                const data =
-                    await response.json();
-
-
-
-                /* ================= LOGIN FAILED ================= */
-
-                if (!response.ok) {
-
-
-                    let errorMessage =
-                        "Invalid email or password.";
-
-
-                    if (data.detail) {
-
-
-                        if (
-                            Array.isArray(
-                                data.detail
-                            )
-                        ) {
-
-                            errorMessage =
-                                data.detail
-                                    .map(
-                                        function(error) {
-                                            return error.msg;
-                                        }
-                                    )
-                                    .join(", ");
-
-                        }
-
-                        else {
-
-                            errorMessage =
-                                data.detail;
-
-                        }
-
-                    }
-
-
-                    showMessage(
-                        errorMessage,
-                        "error"
-                    );
-
-
-                    loginButton.disabled =
-                        false;
-
-                    loginButton.textContent =
-                        "Sign In";
-
-
-                    return;
-
-                }
-
-
-
-                /* =================================================
-                   LOGIN SUCCESS
-                   ================================================= */
-
-
-                /*
-                 * Backend should return something like:
-                 *
-                 * {
-                 *     "access_token": "JWT_TOKEN",
-                 *     "token_type": "bearer",
-                 *     "user": {
-                 *         "id": 1,
-                 *         "email": "user@example.com"
-                 *     }
-                 * }
-                 */
-
-
-                if (data.access_token) {
-
-
-                    /*
-                     * Remember me checked:
-                     * localStorage
-                     *
-                     * Remember me unchecked:
-                     * sessionStorage
-                     */
-
-                    if (remember) {
-
-                        localStorage.setItem(
-                            "access_token",
-                            data.access_token
-                        );
-
-                    }
-
-                    else {
-
-                        sessionStorage.setItem(
-                            "access_token",
-                            data.access_token
-                        );
-
-                    }
-
-
-                }
-
-
-
-                /* ================= SAVE USER ================= */
-
-                if (data.user) {
-
-                    const userData =
-                        JSON.stringify(
-                            data.user
-                        );
-
-
-                    if (remember) {
-
-                        localStorage.setItem(
-                            "user",
-                            userData
-                        );
-
-                    }
-
-                    else {
-
-                        sessionStorage.setItem(
-                            "user",
-                            userData
-                        );
-
-                    }
-
-                }
-
-
-
-                /* ================= SUCCESS ================= */
-
-                showMessage(
-                    "Login successful. Redirecting...",
-                    "success"
-                );
-
-
-                loginButton.textContent =
-                    "Login Successful";
-
-
-                /*
-                 * Redirect to dashboard
-                 */
-
-                setTimeout(
-                    function() {
-
-                        window.location.href =
-                            "dashboard.html";
-
-                    },
-                    800
-                );
-
-
-            }
-
-
-            catch(error) {
-
-
-                console.error(
-                    "Login API Error:",
-                    error
-                );
-
-
-                showMessage(
-                    "Unable to connect to server. Please make sure the backend is running.",
-                    "error"
-                );
-
-
-                loginButton.disabled =
-                    false;
-
-                loginButton.textContent =
-                    "Sign In";
+                button.textContent = "Show";
 
             }
 
         }
-    );
 
 
+        /* =========================================================
+           SHOW MESSAGE
+           ========================================================= */
 
-/* =========================================================
-   OPTIONAL:
-   IF ALREADY LOGGED IN, GO TO DASHBOARD
-   ========================================================= */
+        function showMessage(message, type) {
 
-const existingToken =
-    localStorage.getItem("access_token")
-    ||
-    sessionStorage.getItem("access_token");
+            const messageBox =
+                document.getElementById("message");
 
 
-if (existingToken) {
+            messageBox.textContent =
+                message;
 
-    /*
-     * Uncomment this if you don't want
-     * logged-in users to see login page.
-     */
 
-    // window.location.href = "dashboard.html";
+            if (type === "error") {
 
-}
+                messageBox.className =
+                    "mb-[18px] block rounded-[7px] border border-[#ffd1d1] bg-[#fff1f1] p-[12px] text-[13px] leading-[1.5] text-[#c53030]";
 
-</script>
+            }
+
+            else {
+
+                messageBox.className =
+                    "mb-[18px] block rounded-[7px] border border-[#b7efcc] bg-[#ecfdf3] p-[12px] text-[13px] leading-[1.5] text-[#166534]";
+
+            }
+
+        }
+
+
+        /* =========================================================
+           LOGIN
+           ========================================================= */
+
+        document
+            .getElementById("loginForm")
+            .addEventListener(
+                "submit",
+                async function (event) {
+
+                    event.preventDefault();
+
+
+                    const email =
+                        document
+                            .getElementById("email")
+                            .value
+                            .trim();
+
+
+                    const password =
+                        document
+                            .getElementById("password")
+                            .value;
+
+
+                    const remember =
+                        document
+                            .getElementById("remember")
+                            .checked;
+
+
+                    const loginButton =
+                        document
+                            .getElementById("loginButton");
+
+
+                    /* ================= BASIC VALIDATION ================= */
+
+                    if (!email || !password) {
+
+                        showMessage(
+                            "Please enter your email and password.",
+                            "error"
+                        );
+
+                        return;
+
+                    }
+
+
+                    /* ================= BUTTON LOADING ================= */
+
+                    loginButton.disabled =
+                        true;
+
+                    loginButton.textContent =
+                        "Signing In...";
+
+
+                    /* ================= LOGIN DATA ================= */
+
+                    const loginData = {
+
+                        email: email,
+
+                        password: password
+
+                    };
+
+
+                    try {
+
+
+                        /* ================= SEND TO FASTAPI ================= */
+
+                        const response =
+                            await fetch(
+                                API_URL,
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify(
+                                            loginData
+                                        )
+                                }
+                            );
+
+
+                        /* ================= RESPONSE ================= */
+
+                        const data =
+                            await response.json();
+
+
+                        /* ================= LOGIN FAILED ================= */
+
+                        if (!response.ok) {
+
+
+                            let errorMessage =
+                                "Invalid email or password.";
+
+
+                            if (data.detail) {
+
+
+                                if (
+                                    Array.isArray(
+                                        data.detail
+                                    )
+                                ) {
+
+                                    errorMessage =
+                                        data.detail
+                                            .map(
+                                                function (error) {
+
+                                                    return error.msg;
+
+                                                }
+                                            )
+                                            .join(", ");
+
+                                }
+
+                                else {
+
+                                    errorMessage =
+                                        data.detail;
+
+                                }
+
+                            }
+
+
+                            showMessage(
+                                errorMessage,
+                                "error"
+                            );
+
+
+                            loginButton.disabled =
+                                false;
+
+                            loginButton.textContent =
+                                "Sign In";
+
+
+                            return;
+
+                        }
+
+
+                        /* =================================================
+                           LOGIN SUCCESS
+                           ================================================= */
+
+
+                        /*
+                         * Backend should return:
+                         *
+                         * {
+                         *     "access_token": "JWT_TOKEN",
+                         *     "token_type": "bearer",
+                         *     "user": {
+                         *         "id": 1,
+                         *         "email": "user@example.com"
+                         *     }
+                         * }
+                         */
+
+
+                        if (data.access_token) {
+
+
+                            /*
+                             * Remember me checked:
+                             * localStorage
+                             *
+                             * Remember me unchecked:
+                             * sessionStorage
+                             */
+
+                            if (remember) {
+
+                                localStorage.setItem(
+                                    "access_token",
+                                    data.access_token
+                                );
+
+                            }
+
+                            else {
+
+                                sessionStorage.setItem(
+                                    "access_token",
+                                    data.access_token
+                                );
+
+                            }
+
+                        }
+
+
+                        /* ================= SAVE USER ================= */
+
+                        if (data.user) {
+
+                            const userData =
+                                JSON.stringify(
+                                    data.user
+                                );
+
+
+                            if (remember) {
+
+                                localStorage.setItem(
+                                    "user",
+                                    userData
+                                );
+
+                            }
+
+                            else {
+
+                                sessionStorage.setItem(
+                                    "user",
+                                    userData
+                                );
+
+                            }
+
+                        }
+
+
+                        /* ================= SUCCESS ================= */
+
+                        showMessage(
+                            "Login successful. Redirecting...",
+                            "success"
+                        );
+
+
+                        loginButton.textContent =
+                            "Login Successful";
+
+
+                        /* ================= REDIRECT ================= */
+
+                        setTimeout(
+                            function () {
+
+                                window.location.href =
+                                    "dashboard.html";
+
+                            },
+                            800
+                        );
+
+
+                    }
+
+
+                    catch (error) {
+
+
+                        console.error(
+                            "Login API Error:",
+                            error
+                        );
+
+
+                        showMessage(
+                            "Unable to connect to server. Please make sure the backend is running.",
+                            "error"
+                        );
+
+
+                        loginButton.disabled =
+                            false;
+
+                        loginButton.textContent =
+                            "Sign In";
+
+                    }
+
+                }
+            );
+
+
+        /* =========================================================
+           OPTIONAL:
+           IF ALREADY LOGGED IN, GO TO DASHBOARD
+           ========================================================= */
+
+        const existingToken =
+            localStorage.getItem("access_token")
+            ||
+            sessionStorage.getItem("access_token");
+
+
+        if (existingToken) {
+
+            /*
+             * Uncomment this if you don't want
+             * logged-in users to see login page.
+             */
+
+            // window.location.href = "dashboard.html";
+
+        }
+
+    </script>
 
 
 </body>
