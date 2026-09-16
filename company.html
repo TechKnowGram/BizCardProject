@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Company | VisCard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Arial", "Helvetica", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="bg-[#f5f8fc] text-[#25344d] font-sans">
+
+    <div class="min-h-screen flex">
+
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside
+            id="sidebar"
+            class="w-[250px] bg-white border-r border-[#e5eaf1] fixed top-0 bottom-0 left-0 z-[1000] flex flex-col transition-transform duration-[250ms] ease-in-out max-[850px]:-translate-x-full"
+        >
+
+            <div class="h-[76px] flex items-center px-[22px] border-b border-[#e5eaf1]">
+                <a
+                    href="dashboard.html"
+                    class="flex items-center gap-[10px] text-[#102f61] text-[20px] font-bold"
+                >
+                    <div
+                        class="w-[38px] h-[38px] rounded-[9px] bg-[#1468d8] text-white flex items-center justify-center text-[12px] font-bold"
+                    >
+                        VC
+                    </div>
+
+                    VisCard
+                </a>
+            </div>
+
+            <div class="flex-1 px-[13px] py-5 overflow-y-auto">
+
+                <div
+                    class="px-[11px] mt-0 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Overview
+                </div>
+
+                <a
+                    href="dashboard.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">▦</span>
+                    Dashboard
+                </a>
+
+                <a
+                    href="notifications.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">●</span>
+                    Notifications
+                </a>
+
+
+                <div
+                    class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Organization
+                </div>
+
+                <a
+                    href="company.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] bg-[#eaf3ff] text-[#1468d8] text-[13px] font-semibold mb-[3px]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">▣</span>
+                    Company
+                </a>
+
+                <a
+                    href="branches.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">⌂</span>
+                    Branches
+                </a>
+
+                <a
+                    href="departments.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">☷</span>
+                    Departments
+                </a>
+
+
+                <div
+                    class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Employees
+                </div>
+
+                <a
+                    href="employees.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">♙</span>
+                    Employees
+                </a>
+
+
+                <div
+                    class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Visiting Cards
+                </div>
+
+                <a
+                    href="templates.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">▤</span>
+                    Templates
+                </a>
+
+                <a
+                    href="card-request.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">＋</span>
+                    Card Requests
+                </a>
+
+                <a
+                    href="approval.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">✓</span>
+                    Approvals
+                </a>
+
+                <a
+                    href="card-generation.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">▧</span>
+                    Generated Cards
+                </a>
+
+                <a
+                    href="card-history.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">◷</span>
+                    Card History
+                </a>
+
+
+                <div
+                    class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Intelligence
+                </div>
+
+                <a
+                    href="ai-design.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">✦</span>
+                    AI Design Assistant
+                </a>
+
+                <a
+                    href="verification.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">⌗</span>
+                    Card Verification
+                </a>
+
+
+                <div
+                    class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Administration
+                </div>
+
+                <a
+                    href="reports.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">▥</span>
+                    Reports
+                </a>
+
+                <a
+                    href="users.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">♟</span>
+                    Users
+                </a>
+
+                <a
+                    href="roles-permissions.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">⚙</span>
+                    Roles & Permissions
+                </a>
+
+                <a
+                    href="audit-logs.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">≡</span>
+                    Audit Logs
+                </a>
+
+
+                <div
+                    class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase"
+                >
+                    Account
+                </div>
+
+                <a
+                    href="profile.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">◯</span>
+                    Profile
+                </a>
+
+                <a
+                    href="settings.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">⚙</span>
+                    Settings
+                </a>
+
+                <a
+                    href="login.html"
+                    onclick="logout()"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-[8px] text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                >
+                    <span class="w-[21px] text-center text-[14px]">↪</span>
+                    Logout
+                </a>
+
+            </div>
+
+
+            <div class="border-t border-[#e5eaf1] px-[13px] py-[15px]">
+
+                <div class="flex items-center gap-[10px] p-2 rounded-[8px]">
+
+                    <div
+                        class="w-9 h-9 rounded-full bg-[#dceaff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold shrink-0"
+                    >
+                        JD
+                    </div>
+
+                    <div>
+                        <strong class="block text-[#25344d] text-[12px]">
+                            John Doe
+                        </strong>
+
+                        <span class="block text-[#718096] text-[10px] mt-[2px]">
+                            Company Admin
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <div
+            id="overlay"
+            onclick="closeSidebar()"
+            class="hidden fixed inset-0 bg-[rgba(10,25,50,0.35)] z-[900] max-[850px]:block [&.open]:block"
+        ></div>
+
+
+        <!-- ================= MAIN ================= -->
+
+        <main
+            class="w-[calc(100%-250px)] ml-[250px] min-h-screen max-[850px]:w-full max-[850px]:ml-0"
+        >
+
+            <!-- TOPBAR -->
+
+            <header
+                class="h-[76px] bg-white border-b border-[#e5eaf1] flex items-center justify-between px-[30px] max-[850px]:px-[18px]"
+            >
+
+                <div class="flex items-center gap-[15px]">
+
+                    <button
+                        onclick="toggleSidebar()"
+                        class="hidden w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-[8px] cursor-pointer text-[18px] max-[850px]:block"
+                    >
+                        ☰
+                    </button>
+
+                    <div>
+
+                        <h2 class="text-[#102f61] text-[20px]">
+                            Company
+                        </h2>
+
+                        <p class="text-[#718096] text-[11px] mt-[3px] max-[600px]:hidden">
+                            Organization profile and information
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="flex gap-[10px]">
+
+                    <button
+                        onclick="window.location.href='notifications.html'"
+                        class="w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-[8px] cursor-pointer text-[#64748b]"
+                    >
+                        ♢
+                    </button>
+
+                    <button
+                        onclick="window.location.href='profile.html'"
+                        class="w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-[8px] cursor-pointer text-[#64748b]"
+                    >
+                        ◯
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <!-- ================= CONTENT ================= -->
+
+            <div class="px-[30px] py-[30px] max-w-[1350px] mx-auto max-[850px]:px-[18px] max-[850px]:py-[22px] max-[600px]:px-[14px] max-[600px]:py-[18px]">
+
+                <!-- PAGE HEADING -->
+
+                <div
+                    class="flex justify-between items-center gap-5 mb-[25px] max-[600px]:flex-col max-[600px]:items-start"
+                >
+
+                    <div>
+
+                        <h1 class="text-[#102f61] text-[25px] mb-[5px]">
+                            Company Profile
+                        </h1>
+
+                        <p class="text-[#718096] text-[13px]">
+                            Manage your organization information and company settings.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        onclick="enableEditing()"
+                        class="border-0 rounded-[8px] px-[17px] py-[11px] text-[12px] font-bold cursor-pointer bg-[#1468d8] text-white hover:bg-[#0b4da8] max-[600px]:w-full"
+                    >
+                        Edit Company
+                    </button>
+
+                </div>
+
+
+                <!-- COMPANY HEADER -->
+
+                <div
+                    class="bg-white border border-[#e5eaf1] rounded-[12px] p-[25px] flex items-center justify-between gap-5 mb-5 max-[600px]:flex-col max-[600px]:items-start"
+                >
+
+                    <div class="flex items-center gap-[17px] max-[600px]:items-start">
+
+                        <div
+                            class="w-[72px] h-[72px] rounded-[12px] bg-[#eaf3ff] text-[#1468d8] flex items-center justify-center text-[22px] font-bold"
+                        >
+                            VT
+                        </div>
+
+                        <div>
+
+                            <h2 class="text-[#102f61] text-[20px] mb-[7px]">
+                                VisCard Technologies Ltd.
+                            </h2>
+
+                            <p class="text-[#718096] text-[12px] mb-[9px]">
+                                Technology & Software Solutions
+                            </p>
+
+                            <span
+                                class="inline-block px-[9px] py-[5px] rounded-full bg-[#eaf8ef] text-[#249653] text-[9px] font-bold"
+                            >
+                                ● Active
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <span
+                            class="text-[#8792a2] text-[10px] block mb-1 text-right"
+                        >
+                            Company ID
+                        </span>
+
+                        <strong class="text-[#25344d] text-[12px]">
+                            VC-CMP-2026-001
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MAIN GRID -->
+
+                <div
+                    class="grid grid-cols-[1.45fr_1fr] gap-5 max-[1050px]:grid-cols-1"
+                >
+
+                    <!-- LEFT -->
+
+                    <div>
+
+                        <!-- BASIC INFORMATION -->
+
+                        <div class="bg-white border border-[#e5eaf1] rounded-[12px] p-[22px] mb-5">
+
+                            <div class="flex justify-between items-center mb-5">
+
+                                <div>
+
+                                    <h3 class="text-[#102f61] text-[15px]">
+                                        Company Information
+                                    </h3>
+
+                                    <p class="text-[#718096] text-[10px] mt-1">
+                                        Basic organization details
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <form id="companyForm">
+
+                                <div class="grid grid-cols-2 gap-[17px] max-[600px]:grid-cols-1">
+
+                                    <div>
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Company Name
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="companyName"
+                                            value="VisCard Technologies Ltd."
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)] disabled:bg-white"
+                                        >
+                                    </div>
+
+
+                                    <div>
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Business Type
+                                        </label>
+
+                                        <select
+                                            id="businessType"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >
+                                            <option>Technology & Software</option>
+                                            <option>Financial Services</option>
+                                            <option>Healthcare</option>
+                                            <option>Education</option>
+                                            <option>Manufacturing</option>
+                                            <option>Other</option>
+                                        </select>
+                                    </div>
+
+
+                                    <div>
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Registration Number
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            value="REG-2026-VC-001"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >
+                                    </div>
+
+
+                                    <div>
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Tax / Business ID
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            value="TAX-VC-894321"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >
+                                    </div>
+
+
+                                    <div>
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Contact Email
+                                        </label>
+
+                                        <input
+                                            type="email"
+                                            id="companyEmail"
+                                            value="admin@viscard.com"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >
+                                    </div>
+
+
+                                    <div>
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Contact Phone
+                                        </label>
+
+                                        <input
+                                            type="tel"
+                                            value="+880 1XXX-XXXXXX"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >
+                                    </div>
+
+
+                                    <div class="col-span-full max-[600px]:col-auto">
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Company Website
+                                        </label>
+
+                                        <input
+                                            type="url"
+                                            value="https://www.viscard.com"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >
+                                    </div>
+
+
+                                    <div class="col-span-full max-[600px]:col-auto">
+                                        <label class="block text-[#47566b] text-[11px] font-bold mb-[7px]">
+                                            Company Address
+                                        </label>
+
+                                        <textarea
+                                            id="companyAddress"
+                                            disabled
+                                            class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white resize-y min-h-[90px] focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                        >Dhaka, Bangladesh</textarea>
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    id="formActions"
+                                    class="hidden justify-end gap-[10px] mt-5 max-[600px]:flex-col"
+                                >
+
+                                    <button
+                                        type="button"
+                                        onclick="cancelEditing()"
+                                        class="border border-[#e5eaf1] bg-white text-[#526071] rounded-[8px] px-[17px] py-[11px] text-[12px] font-bold cursor-pointer max-[600px]:w-full"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        class="border-0 rounded-[8px] px-[17px] py-[11px] text-[12px] font-bold cursor-pointer bg-[#1468d8] text-white hover:bg-[#0b4da8] max-[600px]:w-full"
+                                    >
+                                        Save Changes
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+
+                        <!-- COMPANY DESCRIPTION -->
+
+                        <div class="bg-white border border-[#e5eaf1] rounded-[12px] p-[22px]">
+
+                            <div class="flex justify-between items-center mb-5">
+
+                                <div>
+
+                                    <h3 class="text-[#102f61] text-[15px]">
+                                        About Organization
+                                    </h3>
+
+                                    <p class="text-[#718096] text-[10px] mt-1">
+                                        Public company description
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <textarea
+                                    id="description"
+                                    disabled
+                                    class="w-full border border-[#dce3ec] rounded-[7px] px-3 py-[11px] text-[12px] text-[#25344d] outline-none bg-white resize-y min-h-[120px] focus:border-[#1468d8] focus:ring-[3px] focus:ring-[rgba(20,104,216,0.07)]"
+                                >VisCard Technologies Ltd. provides modern digital identity and employee visiting card management solutions for organizations. The platform enables companies to manage employee identities, card templates, approvals, generation and verification through a centralized system.</textarea>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RIGHT -->
+
+                    <div>
+
+                        <!-- COMPANY OVERVIEW -->
+
+                        <div class="bg-white border border-[#e5eaf1] rounded-[12px] p-[22px] mb-5">
+
+                            <div class="flex justify-between items-center mb-5">
+
+                                <div>
+
+                                    <h3 class="text-[#102f61] text-[15px]">
+                                        Organization Overview
+                                    </h3>
+
+                                    <p class="text-[#718096] text-[10px] mt-1">
+                                        Current organization statistics
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="grid grid-cols-2 gap-[10px]">
+
+                                <div class="border border-[#e5eaf1] rounded-[9px] p-[15px]">
+                                    <span class="block text-[#718096] text-[10px] mb-[7px]">
+                                        Employees
+                                    </span>
+
+                                    <strong class="text-[#102f61] text-[21px]">
+                                        248
+                                    </strong>
+                                </div>
+
+
+                                <div class="border border-[#e5eaf1] rounded-[9px] p-[15px]">
+                                    <span class="block text-[#718096] text-[10px] mb-[7px]">
+                                        Branches
+                                    </span>
+
+                                    <strong class="text-[#102f61] text-[21px]">
+                                        5
+                                    </strong>
+                                </div>
+
+
+                                <div class="border border-[#e5eaf1] rounded-[9px] p-[15px]">
+                                    <span class="block text-[#718096] text-[10px] mb-[7px]">
+                                        Departments
+                                    </span>
+
+                                    <strong class="text-[#102f61] text-[21px]">
+                                        14
+                                    </strong>
+                                </div>
+
+
+                                <div class="border border-[#e5eaf1] rounded-[9px] p-[15px]">
+                                    <span class="block text-[#718096] text-[10px] mb-[7px]">
+                                        Active Cards
+                                    </span>
+
+                                    <strong class="text-[#102f61] text-[21px]">
+                                        216
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- COMPANY DETAILS -->
+
+                        <div class="bg-white border border-[#e5eaf1] rounded-[12px] p-[22px] mb-5">
+
+                            <div class="flex justify-between items-center mb-5">
+
+                                <div>
+
+                                    <h3 class="text-[#102f61] text-[15px]">
+                                        Company Details
+                                    </h3>
+
+                                    <p class="text-[#718096] text-[10px] mt-1">
+                                        Organization metadata
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="flex flex-col">
+
+                                <div class="flex justify-between gap-[15px] py-[14px] border-b border-[#f0f2f6]">
+                                    <span class="text-[#8792a2] text-[11px]">
+                                        Company ID
+                                    </span>
+
+                                    <span class="text-[#25344d] text-[11px] font-semibold text-right">
+                                        VC-CMP-2026-001
+                                    </span>
+                                </div>
+
+
+                                <div class="flex justify-between gap-[15px] py-[14px] border-b border-[#f0f2f6]">
+                                    <span class="text-[#8792a2] text-[11px]">
+                                        Account Status
+                                    </span>
+
+                                    <span class="text-[#249653] text-[11px] font-semibold text-right">
+                                        Active
+                                    </span>
+                                </div>
+
+
+                                <div class="flex justify-between gap-[15px] py-[14px] border-b border-[#f0f2f6]">
+                                    <span class="text-[#8792a2] text-[11px]">
+                                        Verification
+                                    </span>
+
+                                    <span class="text-[#249653] text-[11px] font-semibold text-right">
+                                        Verified
+                                    </span>
+                                </div>
+
+
+                                <div class="flex justify-between gap-[15px] py-[14px] border-b border-[#f0f2f6]">
+                                    <span class="text-[#8792a2] text-[11px]">
+                                        Created
+                                    </span>
+
+                                    <span class="text-[#25344d] text-[11px] font-semibold text-right">
+                                        January 12, 2026
+                                    </span>
+                                </div>
+
+
+                                <div class="flex justify-between gap-[15px] pt-[14px]">
+                                    <span class="text-[#8792a2] text-[11px]">
+                                        Last Updated
+                                    </span>
+
+                                    <span class="text-[#25344d] text-[11px] font-semibold text-right">
+                                        September 08, 2026
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- NOTICE -->
+
+                        <div
+                            class="bg-[#f5f9ff] border border-[#d9e8fb] rounded-[9px] p-[14px] text-[#58708f] text-[11px] leading-[1.6] mt-[18px]"
+                        >
+
+                            <strong>
+                                Security Notice
+                            </strong>
+
+                            <br>
+
+                            Changes to company identity information may
+                            require administrator approval before becoming
+                            publicly visible.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <script>
+
+        /* ================= SIDEBAR ================= */
+
+        function toggleSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("open");
+
+            document
+                .getElementById("overlay")
+                .classList.toggle("open");
+
+        }
+
+
+        function closeSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("open");
+
+            document
+                .getElementById("overlay")
+                .classList.remove("open");
+
+        }
+
+
+        /* ================= EDIT COMPANY ================= */
+
+        function enableEditing() {
+
+            const fields =
+                document.querySelectorAll(
+                    "#companyForm input:not([type='url']), #companyForm textarea, #companyForm select"
+                );
+
+            fields.forEach(function(field) {
+
+                field.disabled = false;
+
+            });
+
+
+            document
+                .getElementById("description")
+                .disabled = false;
+
+
+            const formActions =
+                document.getElementById("formActions");
+
+            formActions.classList.remove("hidden");
+            formActions.classList.add("flex");
+
+        }
+
+
+        /* ================= CANCEL ================= */
+
+        function cancelEditing() {
+
+            location.reload();
+
+        }
+
+
+        /* ================= SAVE ================= */
+
+        document
+            .getElementById("companyForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                alert(
+                    "Company information updated successfully."
+                );
+
+                cancelEditing();
+
+            });
+
+
+        /* ================= LOGOUT ================= */
+
+        function logout() {
+
+            localStorage.removeItem("access_token");
+
+        }
+
+    </script>
+
+</body>
+
+</html>
