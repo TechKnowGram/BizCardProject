@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Employee Details | VisCard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Arial', 'Helvetica', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="m-0 bg-[#f5f8fc] text-[#25344d] font-sans">
+
+    <div class="min-h-screen flex">
+
+        <!-- ----------- SIDEBAR ----------- -->
+
+        <aside
+            class="fixed left-0 top-0 bottom-0 z-[1000] flex w-[250px] flex-col border-r border-[#e5eaf1] bg-white transition-transform duration-[250ms] ease-in-out max-[850px]:-translate-x-full"
+            id="sidebar">
+
+            <div class="flex h-[76px] items-center border-b border-[#e5eaf1] px-[22px]">
+
+                <a href="dashboard.html"
+                    class="flex items-center gap-[10px] text-[20px] font-bold text-[#102f61] no-underline">
+
+                    <div
+                        class="flex h-[38px] w-[38px] items-center justify-center rounded-[9px] bg-[#1468d8] text-[12px] text-white">
+                        VC
+                    </div>
+
+                    VisCard
+
+                </a>
+
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-[13px] py-5">
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5] first:mt-0">
+                    Overview
+                </div>
+
+                <a href="dashboard.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">▦</span>
+                    Dashboard
+
+                </a>
+
+                <a href="notifications.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">●</span>
+                    Notifications
+
+                </a>
+
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                    Organization
+                </div>
+
+                <a href="company.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">▣</span>
+                    Company
+
+                </a>
+
+                <a href="branches.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">⌂</span>
+                    Branches
+
+                </a>
+
+                <a href="departments.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">☷</span>
+                    Departments
+
+                </a>
+
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                    Employees
+                </div>
+
+                <a href="employees.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] bg-[#eaf3ff] px-3 py-[11px] text-[13px] font-semibold text-[#1468d8] no-underline">
+
+                    <span class="w-[21px] text-center">♙</span>
+                    Employees
+
+                </a>
+
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                    Visiting Cards
+                </div>
+
+                <a href="templates.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">▤</span>
+                    Templates
+
+                </a>
+
+                <a href="card-request.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">＋</span>
+                    Card Requests
+
+                </a>
+
+                <a href="approval.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">✓</span>
+                    Approvals
+
+                </a>
+
+                <a href="card-generation.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">▧</span>
+                    Generated Cards
+
+                </a>
+
+                <a href="card-history.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">◷</span>
+                    Card History
+
+                </a>
+
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                    Intelligence
+                </div>
+
+                <a href="ai-design.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">✦</span>
+                    AI Design Assistant
+
+                </a>
+
+                <a href="verification.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">⌗</span>
+                    Card Verification
+
+                </a>
+
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                    Administration
+                </div>
+
+                <a href="reports.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">▥</span>
+                    Reports
+
+                </a>
+
+                <a href="users.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">♟</span>
+                    Users
+
+                </a>
+
+                <a href="roles-permissions.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">⚙</span>
+                    Roles & Permissions
+
+                </a>
+
+                <a href="audit-logs.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">≡</span>
+                    Audit Logs
+
+                </a>
+
+
+                <div
+                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                    Account
+                </div>
+
+                <a href="profile.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">◯</span>
+                    Profile
+
+                </a>
+
+                <a href="settings.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">⚙</span>
+                    Settings
+
+                </a>
+
+                <a href="login.html"
+                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] no-underline transition-colors hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+
+                    <span class="w-[21px] text-center">↪</span>
+                    Logout
+
+                </a>
+
+            </div>
+
+
+            <div class="border-t border-[#e5eaf1] px-[13px] py-[15px]">
+
+                <div class="flex items-center gap-[10px] p-2">
+
+                    <div
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-[#dceaff] text-[12px] font-bold text-[#1468d8]">
+                        JD
+                    </div>
+
+                    <div>
+
+                        <strong class="block text-[12px]">
+                            John Doe
+                        </strong>
+
+                        <span class="mt-0.5 block text-[10px] text-[#718096]">
+                            Company Admin
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <div
+            class="fixed inset-0 z-[900] hidden bg-[rgba(10,25,50,.35)]"
+            id="overlay"
+            onclick="closeSidebar()">
+        </div>
+
+
+        <!-- ----------- MAIN ----------- -->
+
+        <main class="ml-[250px] min-h-screen w-[calc(100%-250px)] max-[850px]:ml-0 max-[850px]:w-full">
+
+            <!-- ----------- TOPBAR ----------- -->
+
+            <header
+                class="flex h-[76px] items-center justify-between border-b border-[#e5eaf1] bg-white px-[30px] max-[850px]:px-[18px]">
+
+                <div class="flex items-center gap-[15px]">
+
+                    <button
+                        class="hidden h-[38px] w-[38px] cursor-pointer rounded-[8px] border border-[#e5eaf1] bg-white text-[18px] max-[850px]:block"
+                        onclick="toggleSidebar()">
+
+                        ☰
+
+                    </button>
+
+                    <div>
+
+                        <h2 class="text-[20px] text-[#102f61]">
+                            Employee Details
+                        </h2>
+
+                        <p class="mt-[3px] text-[11px] text-[#718096]">
+                            Employee profile and visiting card information
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="flex gap-[10px] max-[600px]:hidden">
+
+                    <button
+                        class="h-[38px] w-[38px] cursor-pointer rounded-[8px] border border-[#e5eaf1] bg-white text-[#64748b]"
+                        onclick="window.location.href='notifications.html'">
+
+                        ♢
+
+                    </button>
+
+                    <button
+                        class="h-[38px] w-[38px] cursor-pointer rounded-[8px] border border-[#e5eaf1] bg-white text-[#64748b]"
+                        onclick="window.location.href='profile.html'">
+
+                        ◯
+
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <div class="mx-auto max-w-[1400px] p-[30px] max-[850px]:px-[18px] max-[850px]:py-[22px] max-[400px]:px-3 max-[400px]:py-[15px]">
+
+
+                <!-- ----------- BREADCRUMB ----------- -->
+
+                <div class="mb-5 flex items-center gap-2 text-[10px] text-[#718096]">
+
+                    <a href="employees.html" class="text-[#1468d8] no-underline">
+                        Employees
+                    </a>
+
+                    <span class="text-[#b1bac8]">
+                        ›
+                    </span>
+
+                    <span id="breadcrumbEmployee">
+                        John Doe
+                    </span>
+
+                </div>
+
+
+                <!-- ----------- PROFILE ----------- -->
+
+                <div class="mb-5 overflow-hidden rounded-[12px] border border-[#e5eaf1] bg-white">
+
+                    <div
+                        class="h-[105px] border-b border-[#e5eaf1] bg-[linear-gradient(120deg,#eaf3ff,#f5f8fc)]">
+                    </div>
+
+                    <div
+                        class="flex items-end justify-between gap-5 px-[25px] pb-[23px] max-[850px]:flex-col max-[850px]:items-start">
+
+                        <div
+                            class="mt-[-38px] flex items-end gap-[17px] max-[600px]:flex-col max-[600px]:items-start">
+
+                            <div
+                                class="flex h-[85px] w-[85px] items-center justify-center rounded-[13px] border-[5px] border-white bg-[#dceaff] text-[25px] font-bold text-[#1468d8] shadow-[0_3px_10px_rgba(0,0,0,.06)] max-[600px]:mt-[-5px]">
+
+                                JD
+
+                            </div>
+
+                            <div>
+
+                                <h1
+                                    class="mb-[5px] text-[22px] text-[#102f61] max-[600px]:text-[19px]"
+                                    id="employeeName">
+
+                                    John Doe
+
+                                </h1>
+
+                                <p class="text-[11px] text-[#718096]" id="employeeDesignation">
+
+                                    HR Manager · Human Resources
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="flex gap-[9px] max-[850px]:w-full">
+
+                            <button
+                                class="cursor-pointer rounded-[7px] border border-[#e5eaf1] bg-white px-[15px] py-[10px] text-[11px] font-bold text-[#536174] max-[850px]:flex-1"
+                                onclick="editEmployee()">
+
+                                Edit Profile
+
+                            </button>
+
+                            <button
+                                class="cursor-pointer rounded-[7px] border-0 bg-[#1468d8] px-[15px] py-[10px] text-[11px] font-bold text-white max-[850px]:flex-1"
+                                onclick="requestCard()">
+
+                                Generate Visiting Card
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ----------- MAIN GRID ----------- -->
+
+                <div class="grid grid-cols-[2fr_1fr] gap-5 max-[1000px]:grid-cols-1">
+
+
+                    <!-- ----------- LEFT ----------- -->
+
+                    <div>
+
+                        <div class="overflow-hidden rounded-[12px] border border-[#e5eaf1] bg-white">
+
+                            <div class="border-b border-[#e5eaf1] px-[21px] py-[18px]">
+
+                                <h3 class="text-[14px] text-[#102f61]">
+                                    Personal & Professional Information
+                                </h3>
+
+                                <p class="mt-1 text-[10px] text-[#718096]">
+                                    Complete employee profile information
+                                </p>
+
+                            </div>
+
+
+                            <div class="p-[21px] max-[400px]:p-[17px]">
+
+                                <div class="grid grid-cols-2 gap-x-[30px] gap-y-5 max-[600px]:grid-cols-1">
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Employee ID
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]" id="employeeId">
+                                            EMP-0001
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Status
+                                        </label>
+
+                                        <span class="block">
+
+                                            <span
+                                                class="inline-block rounded-[20px] bg-[#eaf8ef] px-[10px] py-[5px] text-[9px] font-bold text-[#249653]">
+                                                Active
+                                            </span>
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Full Name
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            John Michael Doe
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Email Address
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            john.doe@company.com
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Phone Number
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            +880 1712 000001
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Joining Date
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            January 15, 2024
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Designation
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            HR Manager
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Employee Type
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            Full-Time
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Work Location
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            Dhaka, Bangladesh
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            class="mb-[6px] block text-[9px] uppercase tracking-[.5px] text-[#929dac]">
+                                            Emergency Contact
+                                        </label>
+
+                                        <strong class="block text-[11px] text-[#33445c]">
+                                            +880 1812 000001
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ----------- ACTIVITY ----------- -->
+
+                        <div class="mt-5 overflow-hidden rounded-[12px] border border-[#e5eaf1] bg-white">
+
+                            <div class="border-b border-[#e5eaf1] px-[21px] py-[18px]">
+
+                                <h3 class="text-[14px] text-[#102f61]">
+                                    Recent Activity
+                                </h3>
+
+                                <p class="mt-1 text-[10px] text-[#718096]">
+                                    Employee profile activity history
+                                </p>
+
+                            </div>
+
+
+                            <div class="p-[21px] max-[400px]:p-[17px]">
+
+                                <div class="flex flex-col">
+
+                                    <div class="relative flex gap-[13px] pb-5">
+
+                                        <div
+                                            class="absolute bottom-0 left-[5px] top-[13px] w-px bg-[#e2e7ee]">
+                                        </div>
+
+                                        <div
+                                            class="z-[1] mt-[2px] h-[11px] w-[11px] rounded-full border-[3px] border-[#eaf3ff] bg-[#1468d8]">
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[10px] text-[#394960]">
+                                                Employee profile created
+                                            </strong>
+
+                                            <span class="mt-1 block text-[9px] text-[#718096]">
+                                                January 15, 2024 · 10:30 AM
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="relative flex gap-[13px] pb-5">
+
+                                        <div
+                                            class="absolute bottom-0 left-[5px] top-[13px] w-px bg-[#e2e7ee]">
+                                        </div>
+
+                                        <div
+                                            class="z-[1] mt-[2px] h-[11px] w-[11px] rounded-full border-[3px] border-[#eaf3ff] bg-[#1468d8]">
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[10px] text-[#394960]">
+                                                Employee information updated
+                                            </strong>
+
+                                            <span class="mt-1 block text-[9px] text-[#718096]">
+                                                March 04, 2024 · 02:15 PM
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="relative flex gap-[13px]">
+
+                                        <div
+                                            class="z-[1] mt-[2px] h-[11px] w-[11px] rounded-full border-[3px] border-[#eaf3ff] bg-[#1468d8]">
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[10px] text-[#394960]">
+                                                Visiting card request submitted
+                                            </strong>
+
+                                            <span class="mt-1 block text-[9px] text-[#718096]">
+                                                March 08, 2024 · 11:42 AM
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ----------- RIGHT ----------- -->
+
+                    <div>
+
+
+                        <!-- ----------- ORGANIZATION ----------- -->
+
+                        <div class="overflow-hidden rounded-[12px] border border-[#e5eaf1] bg-white">
+
+                            <div class="border-b border-[#e5eaf1] px-[21px] py-[18px]">
+
+                                <h3 class="text-[14px] text-[#102f61]">
+                                    Organization
+                                </h3>
+
+                                <p class="mt-1 text-[10px] text-[#718096]">
+                                    Company structure
+                                </p>
+
+                            </div>
+
+
+                            <div class="p-[21px]">
+
+                                <div class="flex flex-col gap-[15px]">
+
+                                    <div class="flex items-center gap-3 border-b border-[#f0f2f6] pb-[15px]">
+
+                                        <div
+                                            class="flex h-[38px] w-[38px] items-center justify-center rounded-[8px] bg-[#edf5ff] text-[13px] text-[#1468d8]">
+                                            ▣
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[11px] text-[#102f61]">
+                                                VisCard Technologies Ltd.
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[9px] text-[#718096]">
+                                                Company
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="flex items-center gap-3 border-b border-[#f0f2f6] pb-[15px]">
+
+                                        <div
+                                            class="flex h-[38px] w-[38px] items-center justify-center rounded-[8px] bg-[#edf5ff] text-[13px] text-[#1468d8]">
+                                            ⌂
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[11px] text-[#102f61]">
+                                                Head Office
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[9px] text-[#718096]">
+                                                Branch
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="flex items-center gap-3">
+
+                                        <div
+                                            class="flex h-[38px] w-[38px] items-center justify-center rounded-[8px] bg-[#edf5ff] text-[13px] text-[#1468d8]">
+                                            ☷
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[11px] text-[#102f61]">
+                                                Human Resources
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[9px] text-[#718096]">
+                                                Department
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ----------- CARD STATUS ----------- -->
+
+                        <div class="mt-5 overflow-hidden rounded-[12px] border border-[#e5eaf1] bg-white">
+
+                            <div class="border-b border-[#e5eaf1] px-[21px] py-[18px]">
+
+                                <h3 class="text-[14px] text-[#102f61]">
+                                    Visiting Card
+                                </h3>
+
+                                <p class="mt-1 text-[10px] text-[#718096]">
+                                    Current card status
+                                </p>
+
+                            </div>
+
+
+                            <div class="p-[21px]">
+
+                                <div class="mb-[17px] flex items-center justify-between">
+
+                                    <div class="flex items-center gap-[11px]">
+
+                                        <div class="h-[9px] w-[9px] rounded-full bg-[#249653]"></div>
+
+                                        <div>
+
+                                            <strong class="block text-[12px] text-[#102f61]">
+                                                Card Active
+                                            </strong>
+
+                                            <span class="block text-[9px] text-[#718096]">
+                                                VC-2024-0001
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <span
+                                        class="inline-block rounded-[20px] bg-[#eaf8ef] px-[10px] py-[5px] text-[9px] font-bold text-[#249653]">
+                                        Active
+                                    </span>
+
+                                </div>
+
+
+                                <div class="rounded-[9px] border border-[#e5eaf1] bg-[#fafbfd] p-[14px]">
+
+                                    <div
+                                        class="relative h-[155px] overflow-hidden rounded-[7px] border border-[#dfe6ef] bg-white p-[13px]">
+
+                                        <div
+                                            class="absolute left-0 right-0 top-0 h-[5px] bg-[#1468d8]">
+                                        </div>
+
+                                        <div class="text-[9px] font-bold text-[#102f61]">
+                                            VISCARD TECHNOLOGIES
+                                        </div>
+
+
+                                        <div class="mt-5 flex items-center gap-[9px]">
+
+                                            <div
+                                                class="flex h-[45px] w-[38px] items-center justify-center rounded-[4px] bg-[#e7f0fc] text-[11px] font-bold text-[#1468d8]">
+                                                JD
+                                            </div>
+
+                                            <div>
+
+                                                <strong class="block text-[10px] text-[#102f61]">
+                                                    John Michael Doe
+                                                </strong>
+
+                                                <span class="mt-[3px] block text-[7px] text-[#718096]">
+                                                    HR Manager
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <div
+                                            class="mt-[13px] text-[7px] leading-[1.6] text-[#66758a]">
+
+                                            +880 1712 000001<br>
+                                            [john.doe@company.com](mailto:john.doe@company.com)<br>
+                                            [www.company.com](http://www.company.com)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="mt-[13px] flex gap-2 max-[600px]:flex-col">
+
+                                    <button
+                                        class="flex-1 cursor-pointer rounded-[7px] border border-[#e5eaf1] bg-white px-[15px] py-[10px] text-[11px] font-bold text-[#536174]"
+                                        onclick="previewCard()">
+
+                                        Preview
+
+                                    </button>
+
+                                    <button
+                                        class="flex-1 cursor-pointer rounded-[7px] border-0 bg-[#1468d8] px-[15px] py-[10px] text-[11px] font-bold text-white"
+                                        onclick="generateCard()">
+
+                                        Generate
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ----------- VERIFICATION ----------- -->
+
+                        <div class="mt-5 overflow-hidden rounded-[12px] border border-[#e5eaf1] bg-white">
+
+                            <div class="border-b border-[#e5eaf1] px-[21px] py-[18px]">
+
+                                <h3 class="text-[14px] text-[#102f61]">
+                                    Verification
+                                </h3>
+
+                                <p class="mt-1 text-[10px] text-[#718096]">
+                                    Secure card verification
+                                </p>
+
+                            </div>
+
+
+                            <div class="p-[21px]">
+
+                                <div class="flex items-center gap-[15px]">
+
+                                    <div
+                                        class="flex h-[70px] w-[70px] items-center justify-center rounded-[7px] border border-[#e5eaf1] text-[28px] text-[#172f52]">
+
+                                        ⌗
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <strong
+                                            class="mb-[5px] block text-[11px] text-[#102f61]">
+
+                                            QR Verification Enabled
+
+                                        </strong>
+
+                                        <span
+                                            class="block text-[9px] leading-[1.5] text-[#718096]">
+
+                                            Anyone can verify this employee card
+                                            using its unique QR code.
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <button
+                                    class="mt-[15px] w-full cursor-pointer rounded-[7px] border border-[#e5eaf1] bg-white px-[15px] py-[10px] text-[11px] font-bold text-[#536174]"
+                                    onclick="verifyCard()">
+
+                                    Open Verification
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <!-- ----------- JAVASCRIPT ----------- -->
+
+    <script>
+
+        // ----------- SIDEBAR -----------
+
+        function toggleSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("translate-x-0");
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("-translate-x-full");
+
+            document
+                .getElementById("overlay")
+                .classList.toggle("hidden");
+
+        }
+
+        function closeSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("translate-x-0");
+
+            document
+                .getElementById("sidebar")
+                .classList.add("-translate-x-full");
+
+            document
+                .getElementById("overlay")
+                .classList.add("hidden");
+
+        }
+
+
+        // ----------- GET EMPLOYEE ID -----------
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const employeeId =
+            params.get("id");
+
+
+        if (employeeId) {
+
+            document
+                .getElementById("employeeId")
+                .textContent =
+                employeeId;
+
+        }
+
+
+        // ----------- EDIT -----------
+
+        function editEmployee() {
+
+            const id =
+                employeeId || "EMP-0001";
+
+            window.location.href =
+                "employee-edit.html?id="
+                + encodeURIComponent(id);
+
+        }
+
+
+        // ----------- CARD REQUEST -----------
+
+        function requestCard() {
+
+            const id =
+                employeeId || "EMP-0001";
+
+            window.location.href =
+                "card-request.html?employee="
+                + encodeURIComponent(id);
+
+        }
+
+
+        // ----------- CARD PREVIEW -----------
+
+        function previewCard() {
+
+            const id =
+                employeeId || "EMP-0001";
+
+            window.location.href =
+                "card-preview.html?employee="
+                + encodeURIComponent(id);
+
+        }
+
+
+        // ----------- CARD GENERATION -----------
+
+        function generateCard() {
+
+            const id =
+                employeeId || "EMP-0001";
+
+            window.location.href =
+                "card-generation.html?employee="
+                + encodeURIComponent(id);
+
+        }
+
+
+        // ----------- VERIFICATION -----------
+
+        function verifyCard() {
+
+            window.location.href =
+                "verification.html";
+
+        }
+
+
+        // ----------- LOGOUT -----------
+
+        function logout() {
+
+            localStorage.removeItem(
+                "access_token"
+            );
+
+            window.location.href =
+                "login.html";
+
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employees | VisCard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Arial', 'Helvetica', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+<body class="m-0 bg-[#f5f8fc] text-[#25344d] font-sans">
+
+    <!-- ----------- APP ----------- -->
+
+    <div class="min-h-screen flex">
+
+        <!-- ----------- SIDEBAR ----------- -->
+
+        <aside
+            class="w-[250px] bg-white border-r border-[#e5eaf1] fixed top-0 bottom-0 left-0 z-[1000] flex flex-col transition-transform duration-[250ms] ease-in-out translate-x-0 max-[850px]:-translate-x-full"
+            id="sidebar">
+
+            <div class="h-[76px] flex items-center px-[22px] border-b border-[#e5eaf1]">
+
+                <a href="dashboard.html"
+                    class="flex items-center gap-[10px] text-[#102f61] text-[20px] font-bold no-underline">
+
+                    <div
+                        class="w-[38px] h-[38px] rounded-[9px] bg-[#1468d8] text-white flex items-center justify-center text-[12px] font-bold">
+                        VC
+                    </div>
+
+                    VisCard
+
+                </a>
+
+            </div>
+
+            <div class="flex-1 px-[13px] py-5 overflow-y-auto">
+
+                <div
+                    class="px-[11px] mt-0 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Overview
+                </div>
+
+                <a href="dashboard.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">▦</span>
+                    Dashboard
+                </a>
+
+                <a href="notifications.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">●</span>
+                    Notifications
+                </a>
+
+                <div class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Organization
+                </div>
+
+                <a href="company.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">▣</span>
+                    Company
+                </a>
+
+                <a href="branches.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">⌂</span>
+                    Branches
+                </a>
+
+                <a href="departments.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">☷</span>
+                    Departments
+                </a>
+
+                <div class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Employees
+                </div>
+
+                <a href="employees.html"
+                    class="flex items-center gap-[11px] px-3 py-[11px] rounded-lg bg-[#eaf3ff] text-[#1468d8] text-[13px] font-semibold mb-[3px]">
+                    <span class="w-[21px] text-center text-[14px]">♙</span>
+                    Employees
+                </a>
+
+                <div class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Visiting Cards
+                </div>
+
+                <a href="templates.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">▤</span>
+                    Templates
+                </a>
+
+                <a href="card-request.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">＋</span>
+                    Card Requests
+                </a>
+
+                <a href="approval.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">✓</span>
+                    Approvals
+                </a>
+
+                <a href="card-generation.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">▧</span>
+                    Generated Cards
+                </a>
+
+                <a href="card-history.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">◷</span>
+                    Card History
+                </a>
+
+                <div class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Intelligence
+                </div>
+
+                <a href="ai-design.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">✦</span>
+                    AI Design Assistant
+                </a>
+
+                <a href="verification.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">⌗</span>
+                    Card Verification
+                </a>
+
+                <div class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Administration
+                </div>
+
+                <a href="reports.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">▥</span>
+                    Reports
+                </a>
+
+                <a href="users.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">♟</span>
+                    Users
+                </a>
+
+                <a href="roles-permissions.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">⚙</span>
+                    Roles & Permissions
+                </a>
+
+                <a href="audit-logs.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">≡</span>
+                    Audit Logs
+                </a>
+
+                <div class="px-[11px] mt-4 mb-[9px] text-[#9aa5b5] text-[10px] font-bold tracking-[1px] uppercase">
+                    Account
+                </div>
+
+                <a href="profile.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">◯</span>
+                    Profile
+                </a>
+
+                <a href="settings.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]">
+                    <span class="w-[21px] text-center text-[14px]">⚙</span>
+                    Settings
+                </a>
+
+                <a href="login.html"
+                    class="group flex items-center gap-[11px] px-3 py-[11px] rounded-lg text-[#617087] text-[13px] font-semibold mb-[3px] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
+                    onclick="logout()">
+                    <span class="w-[21px] text-center text-[14px]">↪</span>
+                    Logout
+                </a>
+
+            </div>
+
+            <div class="border-t border-[#e5eaf1] px-[13px] py-[15px]">
+
+                <div class="flex items-center gap-[10px] p-2">
+
+                    <div
+                        class="w-9 h-9 rounded-full bg-[#dceaff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold">
+                        JD
+                    </div>
+
+                    <div>
+
+                        <strong class="block text-[#25344d] text-[12px]">
+                            John Doe
+                        </strong>
+
+                        <span class="block text-[#718096] text-[10px] mt-[2px]">
+                            Company Admin
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+        <div
+            class="hidden fixed inset-0 bg-[rgba(10,25,50,0.35)] z-[900]"
+            id="overlay"
+            onclick="closeSidebar()">
+        </div>
+
+        <!-- ----------- MAIN ----------- -->
+
+        <main class="w-[calc(100%-250px)] ml-[250px] min-h-screen max-[850px]:w-full max-[850px]:ml-0">
+
+            <header
+                class="h-[76px] bg-white border-b border-[#e5eaf1] flex items-center justify-between px-[30px] max-[850px]:px-[18px]">
+
+                <div class="flex items-center gap-[15px]">
+
+                    <button
+                        class="hidden w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-lg cursor-pointer text-[18px] max-[850px]:block"
+                        onclick="toggleSidebar()">
+                        ☰
+                    </button>
+
+                    <div>
+
+                        <h2 class="text-[#102f61] text-[20px]">
+                            Employees
+                        </h2>
+
+                        <p class="text-[#718096] text-[11px] mt-[3px] max-[450px]:hidden">
+                            Manage employee information and visiting card profiles
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="flex gap-[10px] max-[600px]:hidden">
+
+                    <button
+                        class="w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-lg cursor-pointer text-[#64748b]"
+                        onclick="window.location.href='notifications.html'">
+                        ♢
+                    </button>
+
+                    <button
+                        class="w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-lg cursor-pointer text-[#64748b]"
+                        onclick="window.location.href='profile.html'">
+                        ◯
+                    </button>
+
+                </div>
+
+            </header>
+
+            <div class="px-[30px] py-[30px] max-w-[1400px] mx-auto max-[850px]:px-[18px] max-[850px]:py-[22px] max-[450px]:px-3 max-[450px]:py-[17px]">
+
+                <!-- ----------- PAGE HEADING ----------- -->
+
+                <div
+                    class="flex justify-between items-center gap-5 mb-[25px] max-[650px]:flex-col max-[650px]:items-start">
+
+                    <div>
+
+                        <h1 class="text-[#102f61] text-[25px] mb-[5px]">
+                            Employee Management
+                        </h1>
+
+                        <p class="text-[#718096] text-[13px]">
+                            Create and manage employee profiles for visiting card generation.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="border-none rounded-lg px-[17px] py-[11px] text-[12px] font-bold cursor-pointer bg-[#1468d8] text-white hover:bg-[#0b4da8] max-[650px]:w-full"
+                        onclick="openAddModal()">
+                        * Add Employee
+                    </button>
+
+                </div>
+
+                <!-- ----------- STATS ----------- -->
+
+                <div
+                    class="grid grid-cols-4 gap-[15px] mb-5 max-[1050px]:grid-cols-2 max-[450px]:grid-cols-1">
+
+                    <div class="bg-white border border-[#e5eaf1] rounded-[11px] p-[18px]">
+
+                        <span class="block text-[#718096] text-[10px] mb-2">
+                            Total Employees
+                        </span>
+
+                        <strong class="text-[#102f61] text-[23px]">
+                            248
+                        </strong>
+
+                    </div>
+
+                    <div class="bg-white border border-[#e5eaf1] rounded-[11px] p-[18px]">
+
+                        <span class="block text-[#718096] text-[10px] mb-2">
+                            Active Employees
+                        </span>
+
+                        <strong class="text-[#102f61] text-[23px]">
+                            231
+                        </strong>
+
+                    </div>
+
+                    <div class="bg-white border border-[#e5eaf1] rounded-[11px] p-[18px]">
+
+                        <span class="block text-[#718096] text-[10px] mb-2">
+                            Pending Profiles
+                        </span>
+
+                        <strong class="text-[#102f61] text-[23px]">
+                            9
+                        </strong>
+
+                    </div>
+
+                    <div class="bg-white border border-[#e5eaf1] rounded-[11px] p-[18px]">
+
+                        <span class="block text-[#718096] text-[10px] mb-2">
+                            Cards Generated
+                        </span>
+
+                        <strong class="text-[#102f61] text-[23px]">
+                            196
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <!-- ----------- EMPLOYEE TABLE ----------- -->
+
+                <div class="bg-white border border-[#e5eaf1] rounded-xl overflow-hidden">
+
+                    <div
+                        class="px-[22px] py-[21px] border-b border-[#e5eaf1] flex items-center justify-between gap-[15px]">
+
+                        <div>
+
+                            <h3 class="text-[#102f61] text-[15px]">
+                                Employee Directory
+                            </h3>
+
+                            <p class="text-[#718096] text-[10px] mt-1">
+                                Search and manage registered employees
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="px-[22px] py-[15px] flex items-center gap-[10px] border-b border-[#e5eaf1] max-[650px]:flex-col max-[650px]:items-stretch">
+
+                        <div class="flex-1 relative">
+
+                            <span
+                                class="absolute left-[13px] top-3 text-[#98a3b3] text-[12px]">
+                                ⌕
+                            </span>
+
+                            <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="Search employee, ID, email or designation..."
+                                onkeyup="searchEmployees()"
+                                class="w-full h-[39px] border border-[#dce3ec] rounded-[7px] px-3 pl-[37px] outline-none text-[11px] focus:border-[#1468d8]">
+
+                        </div>
+
+                        <select
+                            class="h-[39px] min-w-[150px] border border-[#dce3ec] rounded-[7px] px-[10px] text-[#526071] text-[11px] outline-none bg-white focus:border-[#1468d8] max-[650px]:w-full"
+                            id="departmentFilter"
+                            onchange="filterEmployees()">
+
+                            <option value="all">
+                                All Departments
+                            </option>
+
+                            <option value="Human Resources">
+                                Human Resources
+                            </option>
+
+                            <option value="Information Technology">
+                                Information Technology
+                            </option>
+
+                            <option value="Finance & Accounts">
+                                Finance & Accounts
+                            </option>
+
+                            <option value="Sales & Marketing">
+                                Sales & Marketing
+                            </option>
+
+                            <option value="Operations">
+                                Operations
+                            </option>
+
+                        </select>
+
+                        <select
+                            class="h-[39px] min-w-[150px] border border-[#dce3ec] rounded-[7px] px-[10px] text-[#526071] text-[11px] outline-none bg-white focus:border-[#1468d8] max-[650px]:w-full"
+                            id="statusFilter"
+                            onchange="filterEmployees()">
+
+                            <option value="all">
+                                All Status
+                            </option>
+
+                            <option value="active">
+                                Active
+                            </option>
+
+                            <option value="inactive">
+                                Inactive
+                            </option>
+
+                            <option value="pending">
+                                Pending
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="overflow-x-auto">
+
+                        <table class="w-full border-collapse min-w-[1050px]">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Employee
+                                    </th>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Employee ID
+                                    </th>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Department
+                                    </th>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Designation
+                                    </th>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Contact
+                                    </th>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Status
+                                    </th>
+
+                                    <th
+                                        class="bg-[#fafbfd] text-[#8490a0] text-[9px] uppercase tracking-[0.5px] text-left px-[18px] py-[13px] border-b border-[#e5eaf1] whitespace-nowrap">
+                                        Actions
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="employeeTable">
+
+                                <tr
+                                    data-status="active"
+                                    data-department="Human Resources"
+                                    class="hover:bg-[#fbfcfe]">
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex items-center gap-[11px]">
+
+                                            <div
+                                                class="w-[39px] h-[39px] rounded-full bg-[#eaf3ff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold shrink-0">
+                                                JD
+                                            </div>
+
+                                            <div>
+
+                                                <strong class="block text-[#102f61] text-[11px] mb-[3px]">
+                                                    John Doe
+                                                </strong>
+
+                                                <span class="block text-[#718096] text-[9px]">
+                                                    john.doe@company.com
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#1468d8] font-bold text-[10px]">
+                                            EMP-0001
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Human Resources
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            HR Manager
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="text-[10px] text-[#64748b] leading-[1.6]">
+                                            +880 1712 000001<br>
+                                            Dhaka
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <span
+                                            class="inline-block px-[9px] py-[5px] rounded-[20px] text-[9px] font-bold bg-[#eaf8ef] text-[#249653]">
+                                            Active
+                                        </span>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex gap-[6px]">
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="viewEmployee('EMP-0001')">
+                                                ◉
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="editEmployee('EMP-0001')">
+                                                ✎
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#f0c8c8] hover:text-[#d94b4b]"
+                                                onclick="deleteEmployee(this)">
+                                                ×
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                <tr
+                                    data-status="active"
+                                    data-department="Information Technology"
+                                    class="hover:bg-[#fbfcfe]">
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex items-center gap-[11px]">
+
+                                            <div
+                                                class="w-[39px] h-[39px] rounded-full bg-[#eaf3ff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold shrink-0">
+                                                AR
+                                            </div>
+
+                                            <div>
+
+                                                <strong class="block text-[#102f61] text-[11px] mb-[3px]">
+                                                    Alex Rahman
+                                                </strong>
+
+                                                <span class="block text-[#718096] text-[9px]">
+                                                    alex.rahman@company.com
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#1468d8] font-bold text-[10px]">
+                                            EMP-0002
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Information Technology
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Software Engineer
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="text-[10px] text-[#64748b] leading-[1.6]">
+                                            +880 1712 000002<br>
+                                            Dhaka
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <span
+                                            class="inline-block px-[9px] py-[5px] rounded-[20px] text-[9px] font-bold bg-[#eaf8ef] text-[#249653]">
+                                            Active
+                                        </span>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex gap-[6px]">
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="viewEmployee('EMP-0002')">
+                                                ◉
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="editEmployee('EMP-0002')">
+                                                ✎
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#f0c8c8] hover:text-[#d94b4b]"
+                                                onclick="deleteEmployee(this)">
+                                                ×
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                <tr
+                                    data-status="active"
+                                    data-department="Finance & Accounts"
+                                    class="hover:bg-[#fbfcfe]">
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex items-center gap-[11px]">
+
+                                            <div
+                                                class="w-[39px] h-[39px] rounded-full bg-[#eaf3ff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold shrink-0">
+                                                SA
+                                            </div>
+
+                                            <div>
+
+                                                <strong class="block text-[#102f61] text-[11px] mb-[3px]">
+                                                    Sarah Ahmed
+                                                </strong>
+
+                                                <span class="block text-[#718096] text-[9px]">
+                                                    sarah.ahmed@company.com
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#1468d8] font-bold text-[10px]">
+                                            EMP-0003
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Finance & Accounts
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Senior Accountant
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="text-[10px] text-[#64748b] leading-[1.6]">
+                                            +880 1712 000003<br>
+                                            Dhaka
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <span
+                                            class="inline-block px-[9px] py-[5px] rounded-[20px] text-[9px] font-bold bg-[#eaf8ef] text-[#249653]">
+                                            Active
+                                        </span>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex gap-[6px]">
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="viewEmployee('EMP-0003')">
+                                                ◉
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="editEmployee('EMP-0003')">
+                                                ✎
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#f0c8c8] hover:text-[#d94b4b]"
+                                                onclick="deleteEmployee(this)">
+                                                ×
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                <tr
+                                    data-status="pending"
+                                    data-department="Sales & Marketing"
+                                    class="hover:bg-[#fbfcfe]">
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex items-center gap-[11px]">
+
+                                            <div
+                                                class="w-[39px] h-[39px] rounded-full bg-[#eaf3ff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold shrink-0">
+                                                MK
+                                            </div>
+
+                                            <div>
+
+                                                <strong class="block text-[#102f61] text-[11px] mb-[3px]">
+                                                    Michael Khan
+                                                </strong>
+
+                                                <span class="block text-[#718096] text-[9px]">
+                                                    michael.khan@company.com
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#1468d8] font-bold text-[10px]">
+                                            EMP-0004
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Sales & Marketing
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Sales Executive
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="text-[10px] text-[#64748b] leading-[1.6]">
+                                            +880 1712 000004<br>
+                                            Chattogram
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <span
+                                            class="inline-block px-[9px] py-[5px] rounded-[20px] text-[9px] font-bold bg-[#fff7e7] text-[#d58b16]">
+                                            Pending
+                                        </span>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex gap-[6px]">
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="viewEmployee('EMP-0004')">
+                                                ◉
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="editEmployee('EMP-0004')">
+                                                ✎
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#f0c8c8] hover:text-[#d94b4b]"
+                                                onclick="deleteEmployee(this)">
+                                                ×
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                <tr
+                                    data-status="inactive"
+                                    data-department="Operations"
+                                    class="hover:bg-[#fbfcfe]">
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex items-center gap-[11px]">
+
+                                            <div
+                                                class="w-[39px] h-[39px] rounded-full bg-[#eaf3ff] text-[#1468d8] flex items-center justify-center text-[12px] font-bold shrink-0">
+                                                TN
+                                            </div>
+
+                                            <div>
+
+                                                <strong class="block text-[#102f61] text-[11px] mb-[3px]">
+                                                    Tanvir Noor
+                                                </strong>
+
+                                                <span class="block text-[#718096] text-[9px]">
+                                                    tanvir.noor@company.com
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#1468d8] font-bold text-[10px]">
+                                            EMP-0005
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Operations
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+                                        <span class="text-[#526071] text-[10px]">
+                                            Operations Officer
+                                        </span>
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="text-[10px] text-[#64748b] leading-[1.6]">
+                                            +880 1712 000005<br>
+                                            Sylhet
+                                        </div>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <span
+                                            class="inline-block px-[9px] py-[5px] rounded-[20px] text-[9px] font-bold bg-[#fef0f0] text-[#d94b4b]">
+                                            Inactive
+                                        </span>
+
+                                    </td>
+
+                                    <td class="px-[18px] py-[15px] border-b border-[#f0f2f6] text-[11px] text-[#25344d] align-middle">
+
+                                        <div class="flex gap-[6px]">
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="viewEmployee('EMP-0005')">
+                                                ◉
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#b9cce5] hover:text-[#1468d8]"
+                                                onclick="editEmployee('EMP-0005')">
+                                                ✎
+                                            </button>
+
+                                            <button
+                                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[#66758a] text-[11px] hover:border-[#f0c8c8] hover:text-[#d94b4b]"
+                                                onclick="deleteEmployee(this)">
+                                                ×
+                                            </button>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <div
+                        class="flex justify-between items-center px-[22px] py-[17px] max-[650px]:flex-col max-[650px]:gap-3 max-[650px]:items-start">
+
+                        <div class="text-[#718096] text-[10px]">
+                            Showing 1–5 of 248 employees
+                        </div>
+
+                        <div class="flex gap-[5px]">
+
+                            <button
+                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-[#1468d8] text-white border-[#1468d8] rounded-[6px] cursor-pointer text-[10px]">
+                                1
+                            </button>
+
+                            <button
+                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[10px] text-[#64748b]">
+                                2
+                            </button>
+
+                            <button
+                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[10px] text-[#64748b]">
+                                3
+                            </button>
+
+                            <button
+                                class="w-[30px] h-[30px] border border-[#e5eaf1] bg-white rounded-[6px] cursor-pointer text-[10px] text-[#64748b]">
+                                →
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- ----------- ADD EMPLOYEE MODAL ----------- -->
+
+    <div
+        class="hidden fixed inset-0 bg-[rgba(10,25,50,0.45)] z-[2000] items-center justify-center p-5"
+        id="employeeModal">
+
+        <div
+            class="w-full max-w-[700px] max-h-[92vh] overflow-y-auto bg-white rounded-[13px] shadow-[0_20px_50px_rgba(0,0,0,0.15)]">
+
+            <div
+                class="px-[22px] py-5 border-b border-[#e5eaf1] flex items-center justify-between">
+
+                <h3 class="text-[#102f61] text-[16px]">
+                    Add New Employee
+                </h3>
+
+                <button
+                    class="border-none bg-transparent text-[20px] text-[#8591a2] cursor-pointer"
+                    onclick="closeModal()">
+                    ×
+                </button>
+
+            </div>
+
+            <div class="p-[22px]">
+
+                <form id="employeeForm">
+
+                    <div
+                        class="grid grid-cols-2 gap-[15px] max-[650px]:grid-cols-1">
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                First Name *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="firstName"
+                                placeholder="Enter first name"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Last Name *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="lastName"
+                                placeholder="Enter last name"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Employee ID *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="employeeId"
+                                placeholder="e.g. EMP-0006"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Email Address *
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="employee@company.com"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Phone Number
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="phone"
+                                placeholder="+880 1XXXXXXXXX"
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Designation *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="designation"
+                                placeholder="e.g. Software Engineer"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Department *
+                            </label>
+
+                            <select
+                                id="department"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                                <option value="">
+                                    Select Department
+                                </option>
+
+                                <option value="Human Resources">
+                                    Human Resources
+                                </option>
+
+                                <option value="Information Technology">
+                                    Information Technology
+                                </option>
+
+                                <option value="Finance & Accounts">
+                                    Finance & Accounts
+                                </option>
+
+                                <option value="Sales & Marketing">
+                                    Sales & Marketing
+                                </option>
+
+                                <option value="Operations">
+                                    Operations
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Branch *
+                            </label>
+
+                            <select
+                                id="branch"
+                                required
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                                <option value="">
+                                    Select Branch
+                                </option>
+
+                                <option value="Head Office">
+                                    Head Office
+                                </option>
+
+                                <option value="Chattogram Branch">
+                                    Chattogram Branch
+                                </option>
+
+                                <option value="Sylhet Branch">
+                                    Sylhet Branch
+                                </option>
+
+                                <option value="Rajshahi Branch">
+                                    Rajshahi Branch
+                                </option>
+
+                                <option value="Khulna Branch">
+                                    Khulna Branch
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Joining Date
+                            </label>
+
+                            <input
+                                type="date"
+                                id="joiningDate"
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                        </div>
+
+                        <div>
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Status
+                            </label>
+
+                            <select
+                                id="status"
+                                class="w-full h-10 border border-[#dce3ec] rounded-[7px] px-[11px] outline-none text-[11px] text-[#25344d] bg-white focus:border-[#1468d8]">
+
+                                <option value="active">
+                                    Active
+                                </option>
+
+                                <option value="pending">
+                                    Pending
+                                </option>
+
+                                <option value="inactive">
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-span-full">
+
+                            <label class="block text-[#47566b] text-[10px] font-bold mb-[7px]">
+                                Employee Photo
+                            </label>
+
+                            <div
+                                class="border border-dashed border-[#cbd6e5] rounded-lg p-[15px] text-center text-[#718096] text-[10px]">
+
+                                Upload employee profile photo
+
+                                <input
+                                    type="file"
+                                    id="employeePhoto"
+                                    accept="image/png,image/jpeg"
+                                    class="block w-full border-none h-auto p-0 mt-2 text-[10px]">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <div
+                class="px-[22px] py-4 border-t border-[#e5eaf1] flex justify-end gap-[9px]">
+
+                <button
+                    class="border-none rounded-lg px-[17px] py-[11px] text-[12px] font-bold cursor-pointer bg-white text-[#526071] border border-[#e5eaf1]"
+                    onclick="closeModal()">
+                    Cancel
+                </button>
+
+                <button
+                    class="border-none rounded-lg px-[17px] py-[11px] text-[12px] font-bold cursor-pointer bg-[#1468d8] text-white hover:bg-[#0b4da8]"
+                    onclick="saveEmployee()">
+                    Save Employee
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ----------- SIDEBAR -----------
+
+        function toggleSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("!translate-x-0");
+
+            document
+                .getElementById("overlay")
+                .classList.toggle("!block");
+
+        }
+
+        function closeSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("!translate-x-0");
+
+            document
+                .getElementById("overlay")
+                .classList.remove("!block");
+
+        }
+
+
+        // ----------- MODAL -----------
+
+        function openAddModal() {
+
+            document
+                .getElementById("employeeForm")
+                .reset();
+
+            document
+                .getElementById("employeeModal")
+                .classList.add("!flex");
+
+        }
+
+        function closeModal() {
+
+            document
+                .getElementById("employeeModal")
+                .classList.remove("!flex");
+
+        }
+
+
+        // ----------- SAVE -----------
+
+        function saveEmployee() {
+
+            const firstName =
+                document
+                    .getElementById("firstName")
+                    .value
+                    .trim();
+
+            const lastName =
+                document
+                    .getElementById("lastName")
+                    .value
+                    .trim();
+
+            const employeeId =
+                document
+                    .getElementById("employeeId")
+                    .value
+                    .trim();
+
+            const email =
+                document
+                    .getElementById("email")
+                    .value
+                    .trim();
+
+            const designation =
+                document
+                    .getElementById("designation")
+                    .value
+                    .trim();
+
+            const department =
+                document
+                    .getElementById("department")
+                    .value;
+
+            const branch =
+                document
+                    .getElementById("branch")
+                    .value;
+
+            if (
+                !firstName ||
+                !lastName ||
+                !employeeId ||
+                !email ||
+                !designation ||
+                !department ||
+                !branch
+            ) {
+
+                alert(
+                    "Please complete all required fields."
+                );
+
+                return;
+
+            }
+
+            alert(
+                "Employee created successfully."
+            );
+
+            closeModal();
+
+        }
+
+
+        // ----------- SEARCH -----------
+
+        function searchEmployees() {
+
+            const input =
+                document
+                    .getElementById("searchInput")
+                    .value
+                    .toLowerCase();
+
+            const rows =
+                document
+                    .querySelectorAll("#employeeTable tr");
+
+            rows.forEach(function (row) {
+
+                const text =
+                    row.textContent.toLowerCase();
+
+                row.style.display =
+                    text.includes(input)
+                        ? ""
+                        : "none";
+
+            });
+
+        }
+
+
+        // ----------- FILTER -----------
+
+        function filterEmployees() {
+
+            const department =
+                document
+                    .getElementById("departmentFilter")
+                    .value;
+
+            const status =
+                document
+                    .getElementById("statusFilter")
+                    .value;
+
+            const rows =
+                document
+                    .querySelectorAll("#employeeTable tr");
+
+            rows.forEach(function (row) {
+
+                const rowDepartment =
+                    row.getAttribute("data-department");
+
+                const rowStatus =
+                    row.getAttribute("data-status");
+
+                const departmentMatch =
+                    department === "all" ||
+                    rowDepartment === department;
+
+                const statusMatch =
+                    status === "all" ||
+                    rowStatus === status;
+
+                row.style.display =
+                    departmentMatch && statusMatch
+                        ? ""
+                        : "none";
+
+            });
+
+        }
+
+
+        // ----------- VIEW -----------
+
+        function viewEmployee(employeeId) {
+
+            window.location.href =
+                "employee-details.html?id="
+                + encodeURIComponent(employeeId);
+
+        }
+
+
+        // ----------- EDIT -----------
+
+        function editEmployee(employeeId) {
+
+            alert(
+                "Edit employee: "
+                + employeeId
+            );
+
+        }
+
+
+        // ----------- DELETE -----------
+
+        function deleteEmployee(button) {
+
+            const row =
+                button.closest("tr");
+
+            const employee =
+                row
+                    .querySelector(".employee-name strong")
+                    .textContent;
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to delete "
+                    + employee
+                    + "?"
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            row.remove();
+
+            alert(
+                "Employee deleted successfully."
+            );
+
+        }
+
+
+        // ----------- LOGOUT -----------
+
+        function logout() {
+
+            localStorage.removeItem(
+                "access_token"
+            );
+
+        }
+
+
+        // ----------- CLOSE MODAL -----------
+
+        window.addEventListener(
+            "click",
+            function (event) {
+
+                const modal =
+                    document.getElementById(
+                        "employeeModal"
+                    );
+
+                if (event.target === modal) {
+
+                    closeModal();
+
+                }
+
+            });
+
+    </script>
+
+</body>
+
+</html>
