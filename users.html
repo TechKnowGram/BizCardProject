@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>User Management | VisCard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Arial", "Helvetica", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+
+
+<body class="font-sans bg-[#f5f8fc] text-[#26364d]">
+
+
+    <!-- ----------- SIDEBAR ----------- -->
+
+    <aside
+        class="fixed top-0 bottom-0 left-0 z-[1000] flex w-[250px] flex-col border-r border-[#e4e9f0] bg-white transition duration-200 translate-x-0 max-[850px]:-translate-x-full"
+        id="sidebar">
+
+        <div class="flex h-[76px] items-center border-b border-[#e4e9f0] px-[22px]">
+
+            <a href="dashboard.html"
+                class="flex items-center gap-[10px] text-[20px] font-bold text-[#102f61]">
+
+                <div
+                    class="flex h-[38px] w-[38px] items-center justify-center rounded-[9px] bg-[#1468d8] text-[12px] text-white">
+                    VC
+                </div>
+
+                VisCard
+
+            </a>
+
+        </div>
+
+
+        <div class="flex-1 overflow-y-auto px-[13px] py-5">
+
+            <div
+                class="mt-0 mb-[9px] px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Overview
+            </div>
+
+            <a href="dashboard.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">▦</span>
+                Dashboard
+            </a>
+
+            <a href="notifications.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">●</span>
+                Notifications
+            </a>
+
+
+            <div
+                class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Organization
+            </div>
+
+            <a href="company.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">▣</span>
+                Company
+            </a>
+
+            <a href="branches.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">⌂</span>
+                Branches
+            </a>
+
+            <a href="departments.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">☷</span>
+                Departments
+            </a>
+
+
+            <div
+                class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Employees
+            </div>
+
+            <a href="employees.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">♙</span>
+                Employees
+            </a>
+
+
+            <div
+                class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Visiting Cards
+            </div>
+
+            <a href="templates.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">▤</span>
+                Templates
+            </a>
+
+            <a href="card-request.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">＋</span>
+                Card Requests
+            </a>
+
+            <a href="approval.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">✓</span>
+                Approvals
+            </a>
+
+            <a href="card-generation.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">▧</span>
+                Generate Card
+            </a>
+
+            <a href="card-history.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">◷</span>
+                Card History
+            </a>
+
+
+            <div
+                class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Intelligence
+            </div>
+
+            <a href="ai-design.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">✦</span>
+                AI Design Assistant
+            </a>
+
+            <a href="verification.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">⌗</span>
+                Card Verification
+            </a>
+
+
+            <div
+                class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Administration
+            </div>
+
+            <a href="reports.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">▥</span>
+                Reports
+            </a>
+
+            <a href="users.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] bg-[#eaf3ff] px-3 py-[11px] text-[13px] font-semibold text-[#1468d8]">
+                <span class="w-[21px] text-center">♟</span>
+                Users
+            </a>
+
+            <a href="roles-permissions.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">⚙</span>
+                Roles & Permissions
+            </a>
+
+            <a href="audit-logs.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">≡</span>
+                Audit Logs
+            </a>
+
+
+            <div
+                class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]">
+                Account
+            </div>
+
+            <a href="profile.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">◯</span>
+                Profile
+            </a>
+
+            <a href="settings.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">⚙</span>
+                Settings
+            </a>
+
+            <a href="login.html"
+                class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] hover:bg-[#eaf3ff] hover:text-[#1468d8]">
+                <span class="w-[21px] text-center">↪</span>
+                Logout
+            </a>
+
+        </div>
+
+
+        <div class="border-t border-[#e4e9f0] px-[13px] py-[15px]">
+
+            <div class="flex items-center gap-[10px] p-2">
+
+                <div
+                    class="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#dceaff] text-[12px] font-bold text-[#1468d8]">
+                    JD
+                </div>
+
+                <div>
+                    <strong class="block text-[12px]">
+                        John Doe
+                    </strong>
+
+                    <span class="mt-[2px] block text-[10px] text-[#718096]">
+                        Company Admin
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <div
+        class="hidden fixed inset-0 z-[900] bg-[rgba(10,25,50,0.35)]"
+        id="overlay"
+        onclick="closeSidebar()">
+    </div>
+
+
+    <!-- ----------- MAIN ----------- -->
+
+    <main class="min-h-screen w-[calc(100%-250px)] ml-[250px] max-[850px]:ml-0 max-[850px]:w-full">
+
+
+        <header
+            class="flex h-[76px] items-center justify-between border-b border-[#e4e9f0] bg-white px-[30px] max-[850px]:px-[18px]">
+
+            <div class="flex items-center gap-[15px]">
+
+                <button
+                    class="hidden h-[38px] w-[38px] rounded-[8px] border border-[#e4e9f0] bg-white text-[18px] max-[850px]:block"
+                    onclick="toggleSidebar()">
+                    ☰
+                </button>
+
+                <div>
+
+                    <h2 class="text-[20px] text-[#102f61]">
+                        User Management
+                    </h2>
+
+                    <p class="mt-[3px] text-[11px] text-[#718096]">
+                        Manage system users and account access
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="flex gap-[10px]">
+
+                <button
+                    class="h-[38px] w-[38px] rounded-[8px] border border-[#e4e9f0] bg-white text-[#64748b]"
+                    onclick="window.location.href='notifications.html'">
+                    ♢
+                </button>
+
+                <button
+                    class="h-[38px] w-[38px] rounded-[8px] border border-[#e4e9f0] bg-white text-[#64748b]"
+                    onclick="window.location.href='profile.html'">
+                    ◯
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <div class="mx-auto max-w-[1450px] p-[30px] max-[850px]:px-[18px] max-[850px]:py-[22px] max-[600px]:px-3 max-[600px]:py-4">
+
+
+            <div class="mb-5 flex gap-2 text-[10px] text-[#718096]">
+
+                <a href="dashboard.html" class="text-[#1468d8]">
+                    Dashboard
+                </a>
+
+                <span>›</span>
+
+                <span>
+                    Users
+                </span>
+
+            </div>
+
+
+            <div
+                class="mb-[22px] flex items-end justify-between gap-5 max-[600px]:flex-col max-[600px]:items-start">
+
+                <div>
+
+                    <h1 class="text-[24px] text-[#102f61]">
+                        Users
+                    </h1>
+
+                    <p class="mt-[6px] text-[11px] text-[#718096]">
+                        Create, manage and control user access across the organization.
+                    </p>
+
+                </div>
+
+                <button
+                    class="h-[38px] rounded-[7px] border-0 bg-[#1468d8] px-4 text-[9px] font-bold text-white max-[600px]:w-full"
+                    onclick="openModal()">
+
+                    ＋ Add New User
+
+                </button>
+
+            </div>
+
+
+            <!-- ----------- STATISTICS ----------- -->
+
+            <div
+                class="mb-[18px] grid grid-cols-4 gap-[15px] max-[1050px]:grid-cols-2 max-[600px]:grid-cols-1">
+
+
+                <div class="rounded-[10px] border border-[#e4e9f0] bg-white p-[17px]">
+
+                    <div
+                        class="flex h-[35px] w-[35px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]">
+                        ♟
+                    </div>
+
+                    <div class="mt-3 text-[8px] font-bold uppercase text-[#8490a1]">
+                        Total Users
+                    </div>
+
+                    <div class="mt-1 text-[23px] font-bold text-[#102f61]">
+                        286
+                    </div>
+
+                </div>
+
+
+                <div class="rounded-[10px] border border-[#e4e9f0] bg-white p-[17px]">
+
+                    <div
+                        class="flex h-[35px] w-[35px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]">
+                        ✓
+                    </div>
+
+                    <div class="mt-3 text-[8px] font-bold uppercase text-[#8490a1]">
+                        Active Users
+                    </div>
+
+                    <div class="mt-1 text-[23px] font-bold text-[#102f61]">
+                        261
+                    </div>
+
+                </div>
+
+
+                <div class="rounded-[10px] border border-[#e4e9f0] bg-white p-[17px]">
+
+                    <div
+                        class="flex h-[35px] w-[35px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]">
+                        ◷
+                    </div>
+
+                    <div class="mt-3 text-[8px] font-bold uppercase text-[#8490a1]">
+                        Pending Users
+                    </div>
+
+                    <div class="mt-1 text-[23px] font-bold text-[#102f61]">
+                        17
+                    </div>
+
+                </div>
+
+
+                <div class="rounded-[10px] border border-[#e4e9f0] bg-white p-[17px]">
+
+                    <div
+                        class="flex h-[35px] w-[35px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]">
+                        ×
+                    </div>
+
+                    <div class="mt-3 text-[8px] font-bold uppercase text-[#8490a1]">
+                        Disabled Users
+                    </div>
+
+                    <div class="mt-1 text-[23px] font-bold text-[#102f61]">
+                        8
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ----------- FILTER ----------- -->
+
+            <div class="mb-[18px] rounded-[10px] border border-[#e4e9f0] bg-white p-4">
+
+                <div
+                    class="grid grid-cols-[1.4fr_1fr_1fr_auto] gap-3 max-[1050px]:grid-cols-2 max-[600px]:grid-cols-1">
+
+
+                    <div>
+
+                        <label
+                            class="mb-[6px] block text-[8px] font-bold uppercase text-[#66758a]">
+                            Search Users
+                        </label>
+
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="Search by name or email..."
+                            class="h-[38px] w-full rounded-[7px] border border-[#dce3ec] bg-white px-[10px] text-[9px] text-[#536277] outline-none">
+
+                    </div>
+
+
+                    <div>
+
+                        <label
+                            class="mb-[6px] block text-[8px] font-bold uppercase text-[#66758a]">
+                            Role
+                        </label>
+
+                        <select
+                            id="roleFilter"
+                            class="h-[38px] w-full rounded-[7px] border border-[#dce3ec] bg-white px-[10px] text-[9px] text-[#536277] outline-none">
+
+                            <option>
+                                All Roles
+                            </option>
+
+                            <option>
+                                Super Admin
+                            </option>
+
+                            <option>
+                                Company Admin
+                            </option>
+
+                            <option>
+                                Manager
+                            </option>
+
+                            <option>
+                                Employee
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div>
+
+                        <label
+                            class="mb-[6px] block text-[8px] font-bold uppercase text-[#66758a]">
+                            Status
+                        </label>
+
+                        <select
+                            id="statusFilter"
+                            class="h-[38px] w-full rounded-[7px] border border-[#dce3ec] bg-white px-[10px] text-[9px] text-[#536277] outline-none">
+
+                            <option>
+                                All Status
+                            </option>
+
+                            <option>
+                                Active
+                            </option>
+
+                            <option>
+                                Pending
+                            </option>
+
+                            <option>
+                                Disabled
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        class="h-[38px] rounded-[7px] border-0 bg-[#102f61] px-[17px] text-[9px] font-bold text-white max-[600px]:w-full"
+                        onclick="filterUsers()">
+
+                        Filter
+
+                    </button>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- ----------- TABLE ----------- -->
+
+            <div class="overflow-hidden rounded-[11px] border border-[#e4e9f0] bg-white">
+
+
+                <div class="flex items-center justify-between border-b border-[#e4e9f0] p-[18px]">
+
+                    <div>
+
+                        <h3 class="text-[13px] text-[#102f61]">
+                            System Users
+                        </h3>
+
+                        <p class="mt-1 text-[8px] text-[#718096]">
+                            All registered users in the current organization
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="overflow-x-auto">
+
+                    <table class="w-full min-w-[850px] border-collapse">
+
+                        <thead>
+
+                            <tr>
+
+                                <th
+                                    class="bg-[#f8fafc] px-[17px] py-[13px] text-left text-[8px] uppercase tracking-[.4px] text-[#8490a1]">
+                                    User
+                                </th>
+
+                                <th
+                                    class="bg-[#f8fafc] px-[17px] py-[13px] text-left text-[8px] uppercase tracking-[.4px] text-[#8490a1]">
+                                    Role
+                                </th>
+
+                                <th
+                                    class="bg-[#f8fafc] px-[17px] py-[13px] text-left text-[8px] uppercase tracking-[.4px] text-[#8490a1]">
+                                    Department
+                                </th>
+
+                                <th
+                                    class="bg-[#f8fafc] px-[17px] py-[13px] text-left text-[8px] uppercase tracking-[.4px] text-[#8490a1]">
+                                    Last Login
+                                </th>
+
+                                <th
+                                    class="bg-[#f8fafc] px-[17px] py-[13px] text-left text-[8px] uppercase tracking-[.4px] text-[#8490a1]">
+                                    Status
+                                </th>
+
+                                <th
+                                    class="bg-[#f8fafc] px-[17px] py-[13px] text-left text-[8px] uppercase tracking-[.4px] text-[#8490a1]">
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="userTable">
+
+
+                            <tr>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex items-center gap-[10px]">
+
+                                        <div
+                                            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf3ff] text-[9px] font-bold text-[#1468d8]">
+                                            JD
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[9px] text-[#102f61]">
+                                                John Doe
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[8px] text-[#8a96a6]">
+                                                john@company.com
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td
+                                    class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] font-semibold text-[#516175]">
+                                    Company Admin
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Administration
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Today, 09:42 AM
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <span
+                                        class="inline-flex rounded-[20px] bg-[#eaf8ef] px-2 py-[5px] text-[7px] font-bold text-[#217d49]">
+                                        Active
+                                    </span>
+
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex gap-[6px]">
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb]"
+                                            onclick="editUser('John Doe')">
+                                            ✎
+                                        </button>
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb] hover:text-[#d64545]"
+                                            onclick="disableUser('John Doe')">
+                                            ×
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex items-center gap-[10px]">
+
+                                        <div
+                                            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf3ff] text-[9px] font-bold text-[#1468d8]">
+                                            SA
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[9px] text-[#102f61]">
+                                                Sarah Ahmed
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[8px] text-[#8a96a6]">
+                                                sarah@company.com
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td
+                                    class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] font-semibold text-[#516175]">
+                                    Manager
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Marketing
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Today, 08:15 AM
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <span
+                                        class="inline-flex rounded-[20px] bg-[#eaf8ef] px-2 py-[5px] text-[7px] font-bold text-[#217d49]">
+                                        Active
+                                    </span>
+
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex gap-[6px]">
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb]"
+                                            onclick="editUser('Sarah Ahmed')">
+                                            ✎
+                                        </button>
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb] hover:text-[#d64545]"
+                                            onclick="disableUser('Sarah Ahmed')">
+                                            ×
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex items-center gap-[10px]">
+
+                                        <div
+                                            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf3ff] text-[9px] font-bold text-[#1468d8]">
+                                            ML
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[9px] text-[#102f61]">
+                                                Michael Lee
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[8px] text-[#8a96a6]">
+                                                michael@company.com
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td
+                                    class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] font-semibold text-[#516175]">
+                                    Employee
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Engineering
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Yesterday, 05:22 PM
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <span
+                                        class="inline-flex rounded-[20px] bg-[#eaf8ef] px-2 py-[5px] text-[7px] font-bold text-[#217d49]">
+                                        Active
+                                    </span>
+
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex gap-[6px]">
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb]"
+                                            onclick="editUser('Michael Lee')">
+                                            ✎
+                                        </button>
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb] hover:text-[#d64545]"
+                                            onclick="disableUser('Michael Lee')">
+                                            ×
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex items-center gap-[10px]">
+
+                                        <div
+                                            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf3ff] text-[9px] font-bold text-[#1468d8]">
+                                            DM
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[9px] text-[#102f61]">
+                                                David Miller
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[8px] text-[#8a96a6]">
+                                                david@company.com
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td
+                                    class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] font-semibold text-[#516175]">
+                                    Employee
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Finance
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Never
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <span
+                                        class="inline-flex rounded-[20px] bg-[#fff6dd] px-2 py-[5px] text-[7px] font-bold text-[#9b7117]">
+                                        Pending
+                                    </span>
+
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex gap-[6px]">
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb]"
+                                            onclick="editUser('David Miller')">
+                                            ✎
+                                        </button>
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb] hover:text-[#d64545]"
+                                            onclick="disableUser('David Miller')">
+                                            ×
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                            <tr>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex items-center gap-[10px]">
+
+                                        <div
+                                            class="flex h-8 w-8 items-center justify-center rounded-full bg-[#eaf3ff] text-[9px] font-bold text-[#1468d8]">
+                                            JW
+                                        </div>
+
+                                        <div>
+
+                                            <strong class="block text-[9px] text-[#102f61]">
+                                                James Wilson
+                                            </strong>
+
+                                            <span class="mt-[3px] block text-[8px] text-[#8a96a6]">
+                                                james@company.com
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td
+                                    class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] font-semibold text-[#516175]">
+                                    Employee
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    Operations
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+                                    05 Sep 2026
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <span
+                                        class="inline-flex rounded-[20px] bg-[#fff0f0] px-2 py-[5px] text-[7px] font-bold text-[#b43b3b]">
+                                        Disabled
+                                    </span>
+
+                                </td>
+
+                                <td class="border-t border-[#edf0f4] px-[17px] py-[14px] text-[9px] text-[#59687b]">
+
+                                    <div class="flex gap-[6px]">
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb]"
+                                            onclick="editUser('James Wilson')">
+                                            ✎
+                                        </button>
+
+                                        <button
+                                            class="h-7 w-7 rounded-[6px] border border-[#e4e9f0] bg-white text-[#65748a] hover:bg-[#f4f7fb] hover:text-[#d64545]"
+                                            onclick="disableUser('James Wilson')">
+                                            ×
+                                        </button>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- ----------- ADD USER MODAL ----------- -->
+
+    <div
+        class="hidden fixed inset-0 z-[2000] items-center justify-center bg-[rgba(10,25,50,0.45)] p-5"
+        id="userModal">
+
+        <div
+            class="w-full max-w-[480px] rounded-[12px] bg-white p-[25px] shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+
+            <div class="mb-5 flex items-center justify-between">
+
+                <h2 class="text-[18px] text-[#102f61]">
+                    Create New User
+                </h2>
+
+                <button
+                    class="border-0 bg-transparent text-[20px] text-[#7b8798]"
+                    onclick="closeModal()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="mb-[15px]">
+
+                <label class="mb-[6px] block text-[9px] font-bold text-[#536277]">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="fullName"
+                    placeholder="Enter full name"
+                    class="h-10 w-full rounded-[7px] border border-[#dce3ec] px-[11px] text-[10px] outline-none">
+
+            </div>
+
+
+            <div class="mb-[15px]">
+
+                <label class="mb-[6px] block text-[9px] font-bold text-[#536277]">
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter email address"
+                    class="h-10 w-full rounded-[7px] border border-[#dce3ec] px-[11px] text-[10px] outline-none">
+
+            </div>
+
+
+            <div class="mb-[15px]">
+
+                <label class="mb-[6px] block text-[9px] font-bold text-[#536277]">
+                    Role
+                </label>
+
+                <select
+                    id="userRole"
+                    class="h-10 w-full rounded-[7px] border border-[#dce3ec] px-[11px] text-[10px] outline-none">
+
+                    <option>
+                        Employee
+                    </option>
+
+                    <option>
+                        Manager
+                    </option>
+
+                    <option>
+                        Company Admin
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="mb-[15px]">
+
+                <label class="mb-[6px] block text-[9px] font-bold text-[#536277]">
+                    Department
+                </label>
+
+                <select
+                    id="userDepartment"
+                    class="h-10 w-full rounded-[7px] border border-[#dce3ec] px-[11px] text-[10px] outline-none">
+
+                    <option>
+                        Engineering
+                    </option>
+
+                    <option>
+                        Marketing
+                    </option>
+
+                    <option>
+                        Human Resources
+                    </option>
+
+                    <option>
+                        Finance
+                    </option>
+
+                    <option>
+                        Operations
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="mt-5 flex justify-end gap-2">
+
+                <button
+                    class="h-[38px] rounded-[7px] border border-[#e4e9f0] bg-white px-[15px] text-[9px]"
+                    onclick="closeModal()">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    class="h-[38px] rounded-[7px] border-0 bg-[#1468d8] px-[17px] text-[9px] font-bold text-white"
+                    onclick="createUser()">
+
+                    Create User
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // ----------- SIDEBAR -----------
+
+        function toggleSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("!translate-x-0");
+
+            document
+                .getElementById("overlay")
+                .classList.toggle("!block");
+
+        }
+
+        function closeSidebar() {
+
+            document
+                .getElementById("sidebar")
+                .classList.remove("!translate-x-0");
+
+            document
+                .getElementById("overlay")
+                .classList.remove("!block");
+
+        }
+
+
+        // ----------- MODAL -----------
+
+        function openModal() {
+
+            document
+                .getElementById("userModal")
+                .classList.add("!flex");
+
+        }
+
+        function closeModal() {
+
+            document
+                .getElementById("userModal")
+                .classList.remove("!flex");
+
+        }
+
+
+        // ----------- CREATE USER -----------
+
+        function createUser() {
+
+            const name =
+                document.getElementById("fullName").value.trim();
+
+            const email =
+                document.getElementById("email").value.trim();
+
+            const role =
+                document.getElementById("userRole").value;
+
+            const department =
+                document.getElementById("userDepartment").value;
+
+
+            if (!name || !email) {
+
+                alert("Please complete all required fields.");
+
+                return;
+
+            }
+
+
+            alert(
+                "User created successfully."
+            );
+
+            closeModal();
+
+        }
+
+
+        // ----------- SEARCH / FILTER -----------
+
+        function filterUsers() {
+
+            const search =
+                document
+                    .getElementById("searchInput")
+                    .value
+                    .toLowerCase();
+
+            const role =
+                document
+                    .getElementById("roleFilter")
+                    .value;
+
+            const status =
+                document
+                    .getElementById("statusFilter")
+                    .value;
+
+
+            const rows =
+                document.querySelectorAll("#userTable tr");
+
+
+            rows.forEach(row => {
+
+                const text =
+                    row.innerText.toLowerCase();
+
+                const roleText =
+                    row.cells[1]?.innerText || "";
+
+                const statusText =
+                    row.cells[4]?.innerText || "";
+
+
+                const searchMatch =
+                    !search ||
+                    text.includes(search);
+
+                const roleMatch =
+                    role === "All Roles" ||
+                    roleText.includes(role);
+
+                const statusMatch =
+                    status === "All Status" ||
+                    statusText.includes(status);
+
+
+                row.style.display =
+                    searchMatch &&
+                        roleMatch &&
+                        statusMatch
+                        ? ""
+                        : "none";
+
+            });
+
+        }
+
+
+        // ----------- EDIT USER -----------
+
+        function editUser(name) {
+
+            alert(
+                "Edit user: " + name
+            );
+
+        }
+
+
+        // ----------- DISABLE USER -----------
+
+        function disableUser(name) {
+
+            const confirmed =
+                confirm(
+                    "Are you sure you want to disable " +
+                    name +
+                    "?"
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            alert(
+                name + " has been disabled."
+            );
+
+        }
+
+    </script>
+
+</body>
+
+</html>
