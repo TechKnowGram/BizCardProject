@@ -1,1337 +1,1108 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Generation | VisCard</title>
 
-    <title>Dashboard | VisCard</title>
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ["Arial", "Helvetica", "sans-serif"]
-                    }
-                }
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                primary: "#1468d8",
+                primaryDark: "#0b4da8",
+                dark: "#102f61",
+                text: "#25344d",
+                muted: "#718096",
+                border: "#e5eaf1",
+                background: "#f5f8fc"
             }
-        };
-    </script>
+        }
+    }
+}
+</script>
 </head>
 
-<body class="bg-[#f5f8fc] font-sans text-[#25344d]">
+<body class="bg-[#f5f8fc] text-[#25344d] font-sans">
 
-    <div class="flex min-h-screen">
+<div class="min-h-screen">
 
+<!-- SIDEBAR -->
+<aside id="sidebar"
+class="fixed top-0 bottom-0 left-0 z-[1000] w-[250px] bg-white border-r border-[#e5eaf1] flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0">
 
-        <!-- ================= SIDEBAR ================= -->
+<div class="h-[76px] flex items-center px-[22px] border-b border-[#e5eaf1]">
+<a href="dashboard.html" class="flex items-center gap-2.5 text-[#102f61] text-xl font-bold">
+<div class="w-[38px] h-[38px] rounded-[9px] bg-[#1468d8] text-white flex items-center justify-center text-xs font-bold">VC</div>
+VisCard
+</a>
+</div>
 
-        <aside
-            id="sidebar"
-            class="fixed bottom-0 left-0 top-0 z-[1000] flex w-[250px] -translate-x-full flex-col border-r border-[#e5eaf1] bg-white transition-transform duration-200 ease-in-out min-[851px]:translate-x-0"
-        >
+<div class="flex-1 p-5 overflow-y-auto">
 
-            <!-- SIDEBAR HEADER -->
-
-            <div
-                class="flex h-[76px] items-center border-b border-[#e5eaf1] px-[22px]"
-            >
+<div class="text-[10px] font-bold tracking-[1px] text-[#9aa5b5] uppercase mb-2.5">Main</div>
 
-                <a
-                    href="dashboard.html"
-                    class="flex items-center gap-[10px] text-[20px] font-bold text-[#102f61]"
-                >
+<a href="dashboard.html" class="menu">▦ <span>Dashboard</span></a>
+<a href="templates.html" class="menu">▤ <span>Templates</span></a>
 
-                    <div
-                        class="flex h-[38px] w-[38px] items-center justify-center rounded-[9px] bg-[#1468d8] text-[12px] font-bold text-white"
-                    >
-                        VC
-                    </div>
+<div class="text-[10px] font-bold tracking-[1px] text-[#9aa5b5] uppercase mt-5 mb-2.5">
+Card Management
+</div>
 
-                    VisCard
-
-                </a>
-
-            </div>
-
-
-            <!-- SIDEBAR CONTENT -->
-
-            <div
-                class="flex-1 overflow-y-auto px-[13px] py-5"
-            >
-
-                <!-- OVERVIEW -->
-
-                <div
-                    class="mb-[9px] mt-0 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Overview
-                </div>
-
-                <a
-                    href="dashboard.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] bg-[#eaf3ff] px-3 py-[11px] text-[13px] font-semibold text-[#1468d8] transition duration-200"
-                >
-                    <span class="w-[21px] text-center text-[14px]">▦</span>
-                    Dashboard
-                </a>
-
-                <a
-                    href="notifications.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">●</span>
-                    Notifications
-                </a>
-
-
-                <!-- ORGANIZATION -->
-
-                <div
-                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Organization
-                </div>
-
-                <a
-                    href="company.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">▣</span>
-                    Company
-                </a>
-
-                <a
-                    href="branches.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">⌂</span>
-                    Branches
-                </a>
-
-                <a
-                    href="departments.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">☷</span>
-                    Departments
-                </a>
-
-
-                <!-- EMPLOYEES -->
-
-                <div
-                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Employees
-                </div>
-
-                <a
-                    href="employees.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">♙</span>
-                    Employees
-                </a>
-
-
-                <!-- VISITING CARDS -->
-
-                <div
-                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Visiting Cards
-                </div>
-
-                <a
-                    href="templates.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">▤</span>
-                    Templates
-                </a>
-
-                <a
-                    href="card-request.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">＋</span>
-                    Card Requests
-                </a>
-
-                <a
-                    href="approval.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">✓</span>
-                    Approvals
-                </a>
-
-                <a
-                    href="card-generation.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">▧</span>
-                    Generated Cards
-                </a>
-
-                <a
-                    href="card-history.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">◷</span>
-                    Card History
-                </a>
-
-
-                <!-- INTELLIGENCE -->
-
-                <div
-                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Intelligence
-                </div>
-
-                <a
-                    href="ai-design.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">✦</span>
-                    AI Design Assistant
-                </a>
-
-                <a
-                    href="verification.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">⌗</span>
-                    Card Verification
-                </a>
-
-
-                <!-- ADMINISTRATION -->
-
-                <div
-                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Administration
-                </div>
-
-                <a
-                    href="reports.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">▥</span>
-                    Reports
-                </a>
-
-                <a
-                    href="users.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">♟</span>
-                    Users
-                </a>
-
-                <a
-                    href="roles-permissions.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">⚙</span>
-                    Roles & Permissions
-                </a>
-
-                <a
-                    href="audit-logs.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">≡</span>
-                    Audit Logs
-                </a>
-
-
-                <!-- ACCOUNT -->
-
-                <div
-                    class="mb-[9px] mt-4 px-[11px] text-[10px] font-bold uppercase tracking-[1px] text-[#9aa5b5]"
-                >
-                    Account
-                </div>
-
-                <a
-                    href="profile.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">◯</span>
-                    Profile
-                </a>
-
-                <a
-                    href="settings.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                >
-                    <span class="w-[21px] text-center text-[14px]">⚙</span>
-                    Settings
-                </a>
-
-                <a
-                    href="login.html"
-                    class="mb-[3px] flex items-center gap-[11px] rounded-[8px] px-3 py-[11px] text-[13px] font-semibold text-[#617087] transition duration-200 hover:bg-[#f0f6ff] hover:text-[#1468d8]"
-                    onclick="logout()"
-                >
-                    <span class="w-[21px] text-center text-[14px]">↪</span>
-                    Logout
-                </a>
-
-            </div>
-
-
-            <!-- SIDEBAR FOOTER -->
-
-            <div
-                class="border-t border-[#e5eaf1] px-[13px] py-[15px]"
-            >
-
-                <div
-                    class="flex items-center gap-[10px] rounded-[8px] p-2"
-                >
-
-                    <div
-                        class="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full bg-[#dceaff] text-[12px] font-bold text-[#1468d8]"
-                    >
-                        JD
-                    </div>
-
-                    <div class="min-w-0">
-
-                        <strong
-                            class="block overflow-hidden text-ellipsis whitespace-nowrap text-[12px] text-[#25344d]"
-                        >
-                            John Doe
-                        </strong>
-
-                        <span
-                            class="mt-[2px] block text-[10px] text-[#718096]"
-                        >
-                            Company Admin
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </aside>
-
-
-        <!-- OVERLAY -->
-
-        <div
-            id="overlay"
-            class="fixed inset-0 z-[900] hidden bg-[rgba(10,25,50,0.35)]"
-            onclick="closeSidebar()"
-        ></div>
-
-
-        <!-- ================= MAIN ================= -->
-
-        <main
-            class="ml-0 min-h-screen w-full min-[851px]:ml-[250px] min-[851px]:w-[calc(100%-250px)]"
-        >
-
-            <!-- TOPBAR -->
-
-            <header
-                class="flex h-[68px] items-center justify-between border-b border-[#e5eaf1] bg-white px-[18px] min-[601px]:h-[76px] min-[601px]:px-[30px]"
-            >
-
-                <div class="flex items-center gap-[15px]">
-
-                    <button
-                        class="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[8px] border border-[#e5eaf1] bg-white text-[18px] min-[851px]:hidden"
-                        onclick="toggleSidebar()"
-                    >
-                        ☰
-                    </button>
-
-                    <div>
-
-                        <h2
-                            class="text-[17px] text-[#102f61] min-[601px]:text-[20px]"
-                        >
-                            Dashboard
-                        </h2>
-
-                        <p
-                            class="mt-[3px] hidden text-[11px] text-[#718096] min-[601px]:block"
-                        >
-                            Employee Visiting Card Management
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="flex items-center gap-[10px]">
-
-                    <button
-                        class="relative flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[8px] border border-[#e5eaf1] bg-white text-[#64748b] max-[600px]:hidden"
-                        onclick="window.location.href='notifications.html'"
-                        title="Notifications"
-                    >
-                        ♢
-
-                        <span
-                            class="absolute right-[8px] top-[7px] h-[7px] w-[7px] rounded-full border border-white bg-[#e14c4c]"
-                        ></span>
-
-                    </button>
-
-
-                    <button
-                        class="relative flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[8px] border border-[#e5eaf1] bg-white text-[#64748b]"
-                        onclick="window.location.href='profile.html'"
-                        title="Profile"
-                    >
-                        ◯
-                    </button>
-
-                </div>
-
-            </header>
-
-
-            <!-- CONTENT -->
-
-            <div
-                class="mx-auto max-w-[1500px] p-[18px_14px] min-[601px]:px-[22px] min-[601px]:py-[22px] min-[851px]:p-[30px]"
-            >
-
-             
-
-                <div
-                    class="mb-[25px] flex flex-col items-start justify-between gap-5 min-[601px]:flex-row min-[601px]:items-center"
-                >
-
-                    <div>
-
-                        <h1
-                            class="mb-[5px] text-[22px] text-[#102f61] min-[601px]:text-[26px]"
-                        >
-                            Welcome back, Admin!
-                        </h1>
-
-                        <p class="text-[13px] text-[#718096]">
-                            Here's what's happening with your organization today.
-                        </p>
+<a href="card-request.html" class="menu">＋ <span>Card Requests</span></a>
+<a href="approval.html" class="menu">✓ <span>Approvals</span></a>
+<a href="card-generation.html" class="menu active">▧ <span>Generated Cards</span></a>
+<a href="card-history.html" class="menu">◷ <span>Card History</span></a>
 
-                    </div>
-
-
-                    <a
-                        href="employee-add.html"
-                        class="inline-flex w-full items-center justify-center gap-[7px] rounded-[8px] border-none bg-[#1468d8] px-[17px] py-[11px] text-[12px] font-bold text-white transition duration-200 hover:bg-[#0b4da8] min-[601px]:w-auto"
-                    >
-                        + Add Employee
-                    </a>
-
-                </div>
-
-
-                <!-- STATISTICS -->
-
-                <section
-                    class="mb-[22px] grid grid-cols-1 gap-[10px] min-[391px]:grid-cols-2 min-[601px]:gap-[17px] min-[1151px]:grid-cols-4"
-                >
-
-                    <!-- STAT 1 -->
-
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[14px] min-[601px]:p-[19px]"
-                    >
-
-                        <div
-                            class="mb-[17px] flex items-center justify-between"
-                        >
-
-                            <span
-                                class="text-[12px] font-semibold text-[#718096]"
-                            >
-                                Total Employees
-                            </span>
-
-                            <div
-                                class="flex h-[31px] w-[31px] items-center justify-center rounded-[9px] bg-[#eaf3ff] text-[#1468d8] min-[601px]:h-[35px] min-[601px]:w-[35px]"
-                            >
-                                ♙
-                            </div>
-
-                        </div>
+<div class="text-[10px] font-bold tracking-[1px] text-[#9aa5b5] uppercase mt-5 mb-2.5">
+Account
+</div>
 
-                        <div
-                            class="text-[21px] font-bold text-[#102f61] min-[601px]:text-[25px]"
-                        >
-                            248
-                        </div>
-
-                        <div
-                            class="mt-[6px] text-[10px] text-[#249653]"
-                        >
-                            ↑ 12% from last month
-                        </div>
-
-                    </div>
-
-
-                    <!-- STAT 2 -->
-
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[14px] min-[601px]:p-[19px]"
-                    >
-
-                        <div
-                            class="mb-[17px] flex items-center justify-between"
-                        >
-
-                            <span
-                                class="text-[12px] font-semibold text-[#718096]"
-                            >
-                                Active Cards
-                            </span>
-
-                            <div
-                                class="flex h-[31px] w-[31px] items-center justify-center rounded-[9px] bg-[#eaf3ff] text-[#1468d8] min-[601px]:h-[35px] min-[601px]:w-[35px]"
-                            >
-                                ▧
-                            </div>
+<a href="company.html" class="menu">▣ <span>Company</span></a>
+<a href="profile.html" class="menu">◯ <span>Profile</span></a>
+<a href="settings.html" class="menu">⚙ <span>Settings</span></a>
+<a href="login.html" onclick="logout()" class="menu">↪ <span>Logout</span></a>
 
-                        </div>
+</div>
 
-                        <div
-                            class="text-[21px] font-bold text-[#102f61] min-[601px]:text-[25px]"
-                        >
-                            216
-                        </div>
+<div class="border-t border-[#e5eaf1] p-[15px]">
+<div class="flex items-center gap-2.5 p-2 rounded-lg">
+<div class="w-9 h-9 rounded-full bg-[#dceaff] text-[#1468d8] flex items-center justify-center text-xs font-bold">JD</div>
+<div>
+<strong class="block text-[#25344d] text-xs">John Doe</strong>
+<span class="block text-[#718096] text-[10px] mt-0.5">Company Admin</span>
+</div>
+</div>
+</div>
 
-                        <div
-                            class="mt-[6px] text-[10px] text-[#249653]"
-                        >
-                            ↑ 8% from last month
-                        </div>
+</aside>
 
-                    </div>
 
+<!-- MAIN -->
+<main class="lg:ml-[250px] min-h-screen">
 
-                    <!-- STAT 3 -->
+<!-- TOPBAR -->
+<header class="h-[76px] bg-white border-b border-[#e5eaf1] flex items-center justify-between px-[18px] lg:px-[30px]">
 
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[14px] min-[601px]:p-[19px]"
-                    >
+<div class="flex items-center gap-[15px]">
 
-                        <div
-                            class="mb-[17px] flex items-center justify-between"
-                        >
+<button onclick="toggleSidebar()" class="lg:hidden w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-lg text-lg">
+☰
+</button>
 
-                            <span
-                                class="text-[12px] font-semibold text-[#718096]"
-                            >
-                                Pending Requests
-                            </span>
+<div>
+<h2 class="text-[#102f61] text-xl font-bold">Card Generation</h2>
+<p class="text-[#718096] text-[11px] mt-0.5">Create employee visiting cards</p>
+</div>
 
-                            <div
-                                class="flex h-[31px] w-[31px] items-center justify-center rounded-[9px] bg-[#eaf3ff] text-[#1468d8] min-[601px]:h-[35px] min-[601px]:w-[35px]"
-                            >
-                                ◷
-                            </div>
+</div>
 
-                        </div>
+<div class="flex items-center gap-2.5">
 
-                        <div
-                            class="text-[21px] font-bold text-[#102f61] min-[601px]:text-[25px]"
-                        >
-                            18
-                        </div>
+<button onclick="window.location.href='approval.html'" class="w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-lg text-[#64748b]">
+✓
+</button>
 
-                        <div
-                            class="mt-[6px] text-[10px] text-[#d98a16]"
-                        >
-                            Requires attention
-                        </div>
+<button onclick="window.location.href='profile.html'" class="w-[38px] h-[38px] border border-[#e5eaf1] bg-white rounded-lg text-[#64748b]">
+◯
+</button>
 
-                    </div>
+</div>
 
+</header>
 
-                    <!-- STAT 4 -->
 
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[14px] min-[601px]:p-[19px]"
-                    >
+<!-- CONTENT -->
+<div class="p-[18px] md:p-[30px] max-w-[1400px] mx-auto">
 
-                        <div
-                            class="mb-[17px] flex items-center justify-between"
-                        >
+<div class="mb-[25px]">
+<h1 class="text-[#102f61] text-[22px] md:text-[27px] font-bold mb-1.5">
+Create Visiting Cards
+</h1>
 
-                            <span
-                                class="text-[12px] font-semibold text-[#718096]"
-                            >
-                                Templates
-                            </span>
+<p class="text-[#718096] text-[13px]">
+Select a template and choose how you want to generate employee cards.
+</p>
+</div>
 
-                            <div
-                                class="flex h-[31px] w-[31px] items-center justify-center rounded-[9px] bg-[#eaf3ff] text-[#1468d8] min-[601px]:h-[35px] min-[601px]:w-[35px]"
-                            >
-                                ▤
-                            </div>
 
-                        </div>
+<!-- TEMPLATE -->
+<section>
 
-                        <div
-                            class="text-[21px] font-bold text-[#102f61] min-[601px]:text-[25px]"
-                        >
-                            12
-                        </div>
+<h3 class="text-[#102f61] text-[17px] font-bold mb-[15px]">
+1. Choose Card Template
+</h3>
 
-                        <div
-                            class="mt-[6px] text-[10px] text-[#249653]"
-                        >
-                            4 custom templates
-                        </div>
 
-                    </div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[18px] mb-[30px]">
 
-                </section>
 
+<!-- TEMPLATE 1 CORPORATE BLUE -->
+<div class="template-card selected bg-white border-2 border-[#1468d8] rounded-xl p-[15px] cursor-pointer hover:-translate-y-0.5 transition"
+onclick="selectTemplate(this,'Corporate Blue')">
 
-                <!-- MAIN GRID -->
+<div class="h-[190px] rounded-[9px] overflow-hidden mb-[13px] shadow">
 
-                <section
-                    class="grid grid-cols-1 gap-5 min-[1151px]:grid-cols-[1.5fr_1fr]"
-                >
+<div class="bg-[#1468d8] text-white p-4 h-[115px]">
 
+<div class="flex justify-between text-[10px] font-bold">
+<span>YOUR COMPANY</span>
+<span>LOGO</span>
+</div>
 
-                    <!-- RECENT REQUESTS -->
+<div class="flex items-center gap-3 mt-6">
 
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[15px] min-[601px]:p-[21px]"
-                    >
+<div class="w-12 h-12 rounded-full bg-white/80"></div>
 
-                        <div
-                            class="mb-[19px] flex items-center justify-between"
-                        >
+<div>
+<div class="font-bold text-sm">John Doe</div>
+<div class="text-[9px]">Software Engineer</div>
+</div>
 
-                            <h3
-                                class="text-[15px] text-[#102f61]"
-                            >
-                                Recent Card Requests
-                            </h3>
+</div>
+</div>
 
-                            <a
-                                href="card-request.html"
-                                class="text-[11px] font-bold text-[#1468d8]"
-                            >
-                                View All
-                            </a>
-
-                        </div>
-
-
-                        <div class="overflow-x-auto">
-
-                            <table
-                                class="w-full min-w-[520px] border-collapse"
-                            >
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th
-                                            class="border-b border-[#e5eaf1] px-2 py-[10px] text-left text-[10px] font-bold uppercase text-[#8a96a7]"
-                                        >
-                                            Employee
-                                        </th>
-
-                                        <th
-                                            class="border-b border-[#e5eaf1] px-2 py-[10px] text-left text-[10px] font-bold uppercase text-[#8a96a7]"
-                                        >
-                                            Template
-                                        </th>
-
-                                        <th
-                                            class="border-b border-[#e5eaf1] px-2 py-[10px] text-left text-[10px] font-bold uppercase text-[#8a96a7]"
-                                        >
-                                            Date
-                                        </th>
-
-                                        <th
-                                            class="border-b border-[#e5eaf1] px-2 py-[10px] text-left text-[10px] font-bold uppercase text-[#8a96a7]"
-                                        >
-                                            Status
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody>
-
-                                    <tr>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <strong class="text-[#25344d]">
-                                                Sarah Ahmed
-                                            </strong>
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Corporate Blue
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Sep 08, 2026
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <span
-                                                class="inline-block rounded-[20px] bg-[#fff5df] px-2 py-[5px] text-[9px] font-bold text-[#b77512]"
-                                            >
-                                                Pending
-                                            </span>
-                                        </td>
-
-                                    </tr>
-
-
-                                    <tr>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <strong class="text-[#25344d]">
-                                                Michael Chen
-                                            </strong>
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Executive Dark
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Sep 07, 2026
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <span
-                                                class="inline-block rounded-[20px] bg-[#eaf8ef] px-2 py-[5px] text-[9px] font-bold text-[#26824b]"
-                                            >
-                                                Approved
-                                            </span>
-                                        </td>
-
-                                    </tr>
-
+<div class="bg-white p-3 text-[8px] space-y-1 text-[#25344d]">
 
-                                    <tr>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <strong class="text-[#25344d]">
-                                                Emma Wilson
-                                            </strong>
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Minimal White
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Sep 06, 2026
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <span
-                                                class="inline-block rounded-[20px] bg-[#fff5df] px-2 py-[5px] text-[9px] font-bold text-[#b77512]"
-                                            >
-                                                Pending
-                                            </span>
-                                        </td>
-
-                                    </tr>
-
-
-                                    <tr>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <strong class="text-[#25344d]">
-                                                David Martin
-                                            </strong>
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Corporate Blue
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            Sep 05, 2026
-                                        </td>
-
-                                        <td
-                                            class="border-b border-[#f0f2f6] px-2 py-[13px] text-[11px] text-[#526071]"
-                                        >
-                                            <span
-                                                class="inline-block rounded-[20px] bg-[#fff0f0] px-2 py-[5px] text-[9px] font-bold text-[#c34343]"
-                                            >
-                                                Rejected
-                                            </span>
-                                        </td>
-
-                                    </tr>
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- QUICK ACTIONS -->
-
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[15px] min-[601px]:p-[21px]"
-                    >
-
-                        <div class="mb-[19px]">
-
-                            <h3
-                                class="text-[15px] text-[#102f61]"
-                            >
-                                Quick Actions
-                            </h3>
-
-                        </div>
-
-
-                        <div
-                            class="grid grid-cols-1 gap-[10px] min-[601px]:grid-cols-2 min-[1151px]:grid-cols-2"
-                        >
-
-                            <a
-                                href="employee-add.html"
-                                class="rounded-[9px] border border-[#e5eaf1] p-[15px_12px] transition duration-200 hover:border-[#bdd5f6] hover:bg-[#f8fbff]"
-                            >
-
-                                <div
-                                    class="mb-[10px] flex h-[34px] w-[34px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]"
-                                >
-                                    +
-                                </div>
-
-                                <h4
-                                    class="mb-[3px] text-[11px] text-[#25344d]"
-                                >
-                                    Add Employee
-                                </h4>
-
-                                <p
-                                    class="text-[9px] leading-[1.5] text-[#718096]"
-                                >
-                                    Add a new employee to your organization.
-                                </p>
-
-                            </a>
-
-
-                            <a
-                                href="templates.html"
-                                class="rounded-[9px] border border-[#e5eaf1] p-[15px_12px] transition duration-200 hover:border-[#bdd5f6] hover:bg-[#f8fbff]"
-                            >
-
-                                <div
-                                    class="mb-[10px] flex h-[34px] w-[34px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]"
-                                >
-                                    ▤
-                                </div>
+<div><b>ID:</b> EMP-001</div>
+<div><b>Department:</b> IT</div>
+<div><b>Phone:</b> +880 1700-000000</div>
+<div><b>Email:</b> john@company.com</div>
+<div><b>Address:</b> Dhaka, Bangladesh</div>
 
-                                <h4
-                                    class="mb-[3px] text-[11px] text-[#25344d]"
-                                >
-                                    Browse Templates
-                                </h4>
+</div>
+</div>
 
-                                <p
-                                    class="text-[9px] leading-[1.5] text-[#718096]"
-                                >
-                                    Select a professional card design.
-                                </p>
+<h4 class="text-[#25344d] text-[13px] font-bold mb-1">
+Corporate Blue
+</h4>
 
-                            </a>
+<p class="text-[#718096] text-[10px]">
+Professional corporate design
+</p>
 
+<div class="selected-badge mt-2 text-[#249653] text-[10px] font-bold">
+✓ Selected
+</div>
 
-                            <a
-                                href="card-request.html"
-                                class="rounded-[9px] border border-[#e5eaf1] p-[15px_12px] transition duration-200 hover:border-[#bdd5f6] hover:bg-[#f8fbff]"
-                            >
-
-                                <div
-                                    class="mb-[10px] flex h-[34px] w-[34px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]"
-                                >
-                                    +
-                                </div>
-
-                                <h4
-                                    class="mb-[3px] text-[11px] text-[#25344d]"
-                                >
-                                    Create Card
-                                </h4>
+</div>
 
-                                <p
-                                    class="text-[9px] leading-[1.5] text-[#718096]"
-                                >
-                                    Create a new visiting card request.
-                                </p>
 
-                            </a>
+<!-- TEMPLATE 2 EXECUTIVE DARK -->
+<div class="template-card bg-white border-2 border-[#e5eaf1] rounded-xl p-[15px] cursor-pointer hover:-translate-y-0.5 transition"
+onclick="selectTemplate(this,'Executive Dark')">
 
-
-                            <a
-                                href="ai-design.html"
-                                class="rounded-[9px] border border-[#e5eaf1] p-[15px_12px] transition duration-200 hover:border-[#bdd5f6] hover:bg-[#f8fbff]"
-                            >
+<div class="h-[190px] rounded-[9px] overflow-hidden mb-[13px] shadow">
 
-                                <div
-                                    class="mb-[10px] flex h-[34px] w-[34px] items-center justify-center rounded-[8px] bg-[#eaf3ff] text-[#1468d8]"
-                                >
-                                    ✦
-                                </div>
+<div class="bg-[#101b2d] text-white p-4 h-[115px]">
 
-                                <h4
-                                    class="mb-[3px] text-[11px] text-[#25344d]"
-                                >
-                                    AI Designer
-                                </h4>
-
-                                <p
-                                    class="text-[9px] leading-[1.5] text-[#718096]"
-                                >
-                                    Get intelligent design recommendations.
-                                </p>
+<div class="flex justify-between text-[10px] font-bold">
+<span>YOUR COMPANY</span>
+<span>LOGO</span>
+</div>
 
-                            </a>
+<div class="flex items-center gap-3 mt-6">
 
-                        </div>
+<div class="w-12 h-12 rounded-lg bg-slate-500"></div>
 
-                    </div>
+<div>
+<div class="font-bold text-sm">John Doe</div>
+<div class="text-[9px] text-slate-300">Managing Director</div>
+</div>
 
+</div>
+</div>
 
-                    <!-- RECENT ACTIVITY -->
+<div class="bg-[#f8fafc] p-3 text-[8px] space-y-1">
 
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[15px] min-[601px]:p-[21px]"
-                    >
+<div><b>ID:</b> EMP-001</div>
+<div><b>Department:</b> Management</div>
+<div><b>Phone:</b> +880 1700-000000</div>
+<div><b>Email:</b> john@company.com</div>
+<div><b>Address:</b> Dhaka, Bangladesh</div>
 
-                        <div
-                            class="mb-[19px] flex items-center justify-between"
-                        >
-
-                            <h3
-                                class="text-[15px] text-[#102f61]"
-                            >
-                                Recent Activity
-                            </h3>
-
-                            <a
-                                href="audit-logs.html"
-                                class="text-[11px] font-bold text-[#1468d8]"
-                            >
-                                View Logs
-                            </a>
+</div>
+</div>
 
-                        </div>
+<h4 class="text-[#25344d] text-[13px] font-bold mb-1">
+Executive Dark
+</h4>
 
+<p class="text-[#718096] text-[10px]">
+Premium dark professional design
+</p>
 
-                        <div class="flex flex-col">
+<div class="selected-badge hidden mt-2 text-[#249653] text-[10px] font-bold">
+✓ Selected
+</div>
 
+</div>
 
-                            <div
-                                class="flex gap-[11px] border-b border-[#f0f2f6] py-3"
-                            >
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ✓
-                                </div>
+<!-- TEMPLATE 3 MINIMAL WHITE -->
+<div class="template-card bg-white border-2 border-[#e5eaf1] rounded-xl p-[15px] cursor-pointer hover:-translate-y-0.5 transition"
+onclick="selectTemplate(this,'Minimal White')">
 
-                                <div>
+<div class="h-[190px] rounded-[9px] overflow-hidden mb-[13px] shadow border">
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        Card request for
-                                        <strong>Michael Chen</strong>
-                                        was approved.
-                                    </p>
+<div class="bg-white p-4 h-[115px]">
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        20 minutes ago
-                                    </span>
+<div class="text-center text-[10px] font-bold">
+YOUR COMPANY
+</div>
 
-                                </div>
+<div class="flex justify-center mt-3">
+<div class="w-11 h-11 rounded-full bg-slate-200"></div>
+</div>
 
-                            </div>
+<div class="text-center mt-2">
+<div class="font-bold text-sm">John Doe</div>
+<div class="text-[9px] text-slate-500">UI/UX Designer</div>
+</div>
 
+</div>
 
-                            <div
-                                class="flex gap-[11px] border-b border-[#f0f2f6] py-3"
-                            >
+<div class="border-t bg-white p-3 text-[8px] space-y-1">
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    +
-                                </div>
+<div><b>ID:</b> EMP-001</div>
+<div><b>Department:</b> Design</div>
+<div><b>Phone:</b> +880 1700-000000</div>
+<div><b>Email:</b> john@company.com</div>
+<div><b>Address:</b> Dhaka, Bangladesh</div>
 
-                                <div>
+</div>
+</div>
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        New employee
-                                        <strong>Sarah Ahmed</strong>
-                                        was added.
-                                    </p>
+<h4 class="text-[#25344d] text-[13px] font-bold mb-1">
+Minimal White
+</h4>
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        1 hour ago
-                                    </span>
+<p class="text-[#718096] text-[10px]">
+Clean and simple card design
+</p>
 
-                                </div>
+<div class="selected-badge hidden mt-2 text-[#249653] text-[10px] font-bold">
+✓ Selected
+</div>
 
-                            </div>
+</div>
 
 
-                            <div
-                                class="flex gap-[11px] border-b border-[#f0f2f6] py-3"
-                            >
+<!-- TEMPLATE 4 MODERN GRADIENT -->
+<div class="template-card bg-white border-2 border-[#e5eaf1] rounded-xl p-[15px] cursor-pointer hover:-translate-y-0.5 transition"
+onclick="selectTemplate(this,'Modern Gradient')">
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ▤
-                                </div>
+<div class="h-[190px] rounded-[9px] overflow-hidden mb-[13px] shadow">
 
-                                <div>
+<div class="bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 h-[115px]">
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        New custom template
-                                        <strong>Corporate Pro</strong>
-                                        was created.
-                                    </p>
+<div class="flex justify-between text-[10px] font-bold">
+<span>YOUR COMPANY</span>
+<span>LOGO</span>
+</div>
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        3 hours ago
-                                    </span>
+<div class="mt-4">
 
-                                </div>
+<div class="w-11 h-11 rounded-xl bg-white/30"></div>
 
-                            </div>
+<div class="font-bold text-sm mt-1">
+John Doe
+</div>
 
+<div class="text-[9px]">
+Marketing Manager
+</div>
 
-                            <div
-                                class="flex gap-[11px] py-3"
-                            >
+</div>
+</div>
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ▧
-                                </div>
+<div class="bg-white p-3 text-[8px] space-y-1">
 
-                                <div>
+<div><b>ID:</b> EMP-001</div>
+<div><b>Department:</b> Marketing</div>
+<div><b>Phone:</b> +880 1700-000000</div>
+<div><b>Email:</b> john@company.com</div>
+<div><b>Address:</b> Dhaka, Bangladesh</div>
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        12 employee cards were generated.
-                                    </p>
+</div>
+</div>
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        Yesterday
-                                    </span>
+<h4 class="text-[#25344d] text-[13px] font-bold mb-1">
+Modern Gradient
+</h4>
 
-                                </div>
+<p class="text-[#718096] text-[10px]">
+Modern colorful card design
+</p>
 
-                            </div>
+<div class="selected-badge hidden mt-2 text-[#249653] text-[10px] font-bold">
+✓ Selected
+</div>
 
-                        </div>
+</div>
 
-                    </div>
 
+<!-- TEMPLATE 5 PROFESSIONAL GREEN -->
+<div class="template-card bg-white border-2 border-[#e5eaf1] rounded-xl p-[15px] cursor-pointer hover:-translate-y-0.5 transition"
+onclick="selectTemplate(this,'Professional Green')">
 
-                    <!---------------------------------------- ORGANIZATION OVERVIEW -->
+<div class="h-[190px] rounded-[9px] overflow-hidden mb-[13px] shadow">
 
-                    <div
-                        class="rounded-[12px] border border-[#e5eaf1] bg-white p-[15px] min-[601px]:p-[21px]"
-                    >
+<div class="bg-emerald-600 text-white p-4 h-[115px]">
 
-                        <div
-                            class="mb-[19px] flex items-center justify-between"
-                        >
+<div class="flex justify-between text-[10px] font-bold">
+<span>YOUR COMPANY</span>
+<span>LOGO</span>
+</div>
 
-                            <h3
-                                class="text-[15px] text-[#102f61]"
-                            >
-                                Organization Overview
-                            </h3>
+<div class="flex items-center gap-3 mt-6">
 
-                            <a
-                                href="company.html"
-                                class="text-[11px] font-bold text-[#1468d8]"
-                            >
-                                Manage
-                            </a>
+<div class="w-12 h-12 rounded-lg bg-white/30"></div>
 
-                        </div>
+<div>
+<div class="font-bold text-sm">John Doe</div>
+<div class="text-[9px]">HR Executive</div>
+</div>
 
+</div>
+</div>
 
-                        <div class="flex flex-col">
+<div class="bg-white p-3 text-[8px] space-y-1">
 
+<div><b>ID:</b> EMP-001</div>
+<div><b>Department:</b> Human Resources</div>
+<div><b>Phone:</b> +880 1700-000000</div>
+<div><b>Email:</b> john@company.com</div>
+<div><b>Address:</b> Dhaka, Bangladesh</div>
 
-                            <div
-                                class="flex gap-[11px] border-b border-[#f0f2f6] py-3"
-                            >
+</div>
+</div>
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ▣
-                                </div>
+<h4 class="text-[#25344d] text-[13px] font-bold mb-1">
+Professional Green
+</h4>
 
-                                <div>
+<p class="text-[#718096] text-[10px]">
+Professional HR and business design
+</p>
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        <strong>
-                                            Company
-                                        </strong>
-                                    </p>
+<div class="selected-badge hidden mt-2 text-[#249653] text-[10px] font-bold">
+✓ Selected
+</div>
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        VisCard Technologies Ltd.
-                                    </span>
+</div>
 
-                                </div>
+</div>
 
-                            </div>
+</section>
 
 
-                            <div
-                                class="flex gap-[11px] border-b border-[#f0f2f6] py-3"
-                            >
+<!-- METHODS -->
+<section class="mt-2.5">
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ⌂
-                                </div>
+<h3 class="text-[#102f61] text-[17px] font-bold mb-[15px]">
+2. Choose Generation Method
+</h3>
 
-                                <div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        <strong>
-                                            Branches
-                                        </strong>
-                                    </p>
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        5 active branches
-                                    </span>
+<!-- INDIVIDUAL -->
+<div class="bg-white border border-[#e5eaf1] rounded-[13px] p-[25px] hover:border-[#bdd5f6] hover:shadow-lg transition">
 
-                                </div>
+<div class="w-12 h-12 bg-[#eaf3ff] text-[#1468d8] rounded-[11px] flex items-center justify-center text-[21px] mb-[15px]">
+♙
+</div>
 
-                            </div>
+<h3 class="text-[#102f61] text-base font-bold mb-1.5">
+Individual Card
+</h3>
 
+<p class="text-[#718096] text-[11px] leading-[1.6] mb-[18px]">
+Enter information for one employee and submit the card request for approval.
+</p>
 
-                            <div
-                                class="flex gap-[11px] border-b border-[#f0f2f6] py-3"
-                            >
+<button onclick="openIndividualModal()"
+class="w-full rounded-lg py-3 bg-[#1468d8] text-white text-xs font-bold hover:bg-[#0b4da8]">
+Create Individual Card
+</button>
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ☷
-                                </div>
+</div>
 
-                                <div>
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        <strong>
-                                            Departments
-                                        </strong>
-                                    </p>
+<!-- BULK -->
+<div class="bg-white border border-[#e5eaf1] rounded-[13px] p-[25px] hover:border-[#bdd5f6] hover:shadow-lg transition">
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        14 departments
-                                    </span>
+<div class="w-12 h-12 bg-[#eaf3ff] text-[#1468d8] rounded-[11px] flex items-center justify-center text-[21px] mb-[15px]">
+▤
+</div>
 
-                                </div>
+<h3 class="text-[#102f61] text-base font-bold mb-1.5">
+Bulk Card Generation
+</h3>
 
-                            </div>
+<p class="text-[#718096] text-[11px] leading-[1.6] mb-[18px]">
+Upload an Excel file containing multiple employees and generate cards together.
+</p>
 
+<button onclick="openExcelModal()"
+class="w-full rounded-lg py-3 bg-[#edf4fd] text-[#1468d8] text-xs font-bold hover:bg-[#dcecff]">
+Upload Excel File
+</button>
 
-                            <div
-                                class="flex gap-[11px] py-3"
-                            >
+</div>
 
-                                <div
-                                    class="flex h-[31px] w-[31px] shrink-0 items-center justify-center rounded-full bg-[#eaf3ff] text-[11px] text-[#1468d8]"
-                                >
-                                    ♙
-                                </div>
+</div>
 
-                                <div>
+</section>
 
-                                    <p
-                                        class="text-[11px] leading-[1.5] text-[#4f5e73]"
-                                    >
-                                        <strong>
-                                            Employees
-                                        </strong>
-                                    </p>
 
-                                    <span
-                                        class="mt-[3px] block text-[9px] text-[#9aa5b5]"
-                                    >
-                                        248 registered employees
-                                    </span>
+<!-- REQUEST TABLE -->
+<section class="bg-white border border-[#e5eaf1] rounded-xl p-[21px] mt-[22px]">
 
-                                </div>
+<div class="flex items-center justify-between mb-[18px]">
 
-                            </div>
+<h3 class="text-[#102f61] text-[15px] font-bold">
+Recent Card Requests
+</h3>
 
-                        </div>
+<a href="approval.html" class="text-[#1468d8] text-[11px] font-bold">
+View Approvals
+</a>
 
-                    </div>
+</div>
 
-                </section>
+<div class="overflow-x-auto">
 
-            </div>
+<table class="w-full min-w-[650px]">
 
-        </main>
+<thead>
+<tr>
 
-    </div>
+<th class="table-head">REQUEST</th>
+<th class="table-head">TYPE</th>
+<th class="table-head">TEMPLATE</th>
+<th class="table-head">CARDS</th>
+<th class="table-head">STATUS</th>
 
+</tr>
+</thead>
 
-    <script>
+<tbody>
 
-        /* ===================================== SIDEBAR ================= */
+<tr>
 
-        function toggleSidebar() {
+<td class="table-cell">
+<strong>Sarah Ahmed</strong>
+</td>
 
-            const sidebar =
-                document.getElementById("sidebar");
+<td class="table-cell">Individual</td>
+<td class="table-cell">Corporate Blue</td>
+<td class="table-cell">1</td>
 
-            const overlay =
-                document.getElementById("overlay");
+<td class="table-cell">
+<span class="px-2 py-1 rounded-full bg-[#fff5df] text-[#b77512] text-[9px] font-bold">
+Pending
+</span>
+</td>
 
-            sidebar.classList.toggle("-translate-x-full");
-            sidebar.classList.toggle("translate-x-0");
+</tr>
 
-            overlay.classList.toggle("hidden");
-        }
+<tr>
 
+<td class="table-cell">
+<strong>September Employee Batch</strong>
+</td>
 
-        function closeSidebar() {
+<td class="table-cell">Excel Bulk</td>
+<td class="table-cell">Executive Dark</td>
+<td class="table-cell">20</td>
 
-            const sidebar =
-                document.getElementById("sidebar");
+<td class="table-cell">
+<span class="px-2 py-1 rounded-full bg-[#eaf8ef] text-[#26824b] text-[9px] font-bold">
+Approved
+</span>
+</td>
 
-            const overlay =
-                document.getElementById("overlay");
+</tr>
 
-            sidebar.classList.add("-translate-x-full");
-            sidebar.classList.remove("translate-x-0");
+<tr>
 
-            overlay.classList.add("hidden");
+<td class="table-cell">
+<strong>Michael Chen</strong>
+</td>
 
-        }
+<td class="table-cell">Individual</td>
+<td class="table-cell">Minimal White</td>
+<td class="table-cell">1</td>
 
+<td class="table-cell">
+<span class="px-2 py-1 rounded-full bg-[#fff0f0] text-[#c34343] text-[9px] font-bold">
+Rejected
+</span>
+</td>
 
-        /* ================= LOGOUT ================= */
+</tr>
 
-        function logout() {
+</tbody>
+</table>
 
-            /*
-             * Later this will call:
-             *
-             * POST /api/auth/logout
-             *
-             * and remove the JWT/refresh token.
-             */
+</div>
+</section>
 
-            localStorage.removeItem("access_token");
+</div>
+</main>
+</div>
 
-        }
 
-    </script>
+<!-- INDIVIDUAL MODAL -->
+<div id="individualModal"
+class="hidden fixed inset-0 z-[2000] bg-[#0a1932]/45 items-center justify-center p-5">
+
+<div class="w-full max-w-[650px] max-h-[90vh] overflow-y-auto bg-white rounded-[14px] p-[25px]">
+
+<div class="flex items-center justify-between mb-5">
+
+<h2 class="text-[#102f61] text-lg font-bold">
+Individual Card Information
+</h2>
+
+<button onclick="closeModal('individualModal')"
+class="w-8 h-8 border-0 bg-slate-100 rounded-lg text-lg">
+×
+</button>
+
+</div>
+
+
+<form id="individualForm">
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
+
+<div>
+<label class="label">First Name</label>
+<input id="firstName" type="text" placeholder="Enter first name" required class="input">
+</div>
+
+<div>
+<label class="label">Last Name</label>
+<input id="lastName" type="text" placeholder="Enter last name" required class="input">
+</div>
+
+<div>
+<label class="label">Employee ID</label>
+<input id="employeeId" type="text" placeholder="EMP-001" required class="input">
+</div>
+
+<div>
+<label class="label">Designation</label>
+<input id="designation" type="text" placeholder="Software Engineer" required class="input">
+</div>
+
+<div>
+<label class="label">Department</label>
+<input id="department" type="text" placeholder="IT" required class="input">
+</div>
+
+<div>
+<label class="label">Phone</label>
+<input id="phone" type="tel" placeholder="+880..." required class="input">
+</div>
+
+<div>
+<label class="label">Email</label>
+<input id="email" type="email" placeholder="employee@example.com" required class="input">
+</div>
+
+<div>
+<label class="label">Company Name</label>
+<input id="companyName" type="text" placeholder="Company name" required class="input">
+</div>
+
+<div class="sm:col-span-2">
+<label class="label">Address</label>
+<input id="address" type="text" placeholder="Employee address" class="input">
+</div>
+
+<div class="sm:col-span-2">
+<label class="label">Employee Photo</label>
+<input id="photo" type="file" accept="image/*" class="input">
+</div>
+
+<div class="sm:col-span-2 bg-[#f5f8fc] p-3 rounded-lg text-xs">
+Selected Template:
+<strong id="selectedTemplateText">Corporate Blue</strong>
+</div>
+
+</div>
+
+
+<div class="flex justify-end gap-2.5 mt-[22px]">
+
+<button type="button"
+onclick="closeModal('individualModal')"
+class="rounded-lg px-[17px] py-[11px] text-[11px] font-bold bg-slate-100 text-slate-600">
+Cancel
+</button>
+
+<button type="submit"
+class="rounded-lg px-[17px] py-[11px] text-[11px] font-bold bg-[#1468d8] text-white">
+Submit for Approval
+</button>
+
+</div>
+
+</form>
+
+</div>
+</div>
+
+
+<!-- EXCEL MODAL -->
+<div id="excelModal"
+class="hidden fixed inset-0 z-[2000] bg-[#0a1932]/45 items-center justify-center p-5">
+
+<div class="w-full max-w-[650px] bg-white rounded-[14px] p-[25px]">
+
+<div class="flex items-center justify-between mb-5">
+
+<h2 class="text-[#102f61] text-lg font-bold">
+Bulk Card Generation
+</h2>
+
+<button onclick="closeModal('excelModal')"
+class="w-8 h-8 border-0 bg-slate-100 rounded-lg text-lg">
+×
+</button>
+
+</div>
+
+
+<div onclick="document.getElementById('excelFile').click()"
+class="border-2 border-dashed border-[#cbd8e8] rounded-[10px] p-[35px_20px] text-center bg-[#f9fbfe] cursor-pointer hover:border-[#1468d8]">
+
+<div class="text-[35px] text-[#1468d8] mb-2.5">
+▤
+</div>
+
+<h4 class="text-[#102f61] text-sm font-bold mb-1">
+Upload Excel File
+</h4>
+
+<p class="text-[#718096] text-[10px]">
+Click to select .xlsx or .xls file
+</p>
+
+<input id="excelFile"
+type="file"
+accept=".xlsx,.xls"
+class="hidden"
+onchange="showExcelName(this)">
+
+</div>
+
+
+<div class="bg-[#f0f7ff] border border-[#d5e7fb] rounded-lg p-3 text-[#526b8c] text-[10px] leading-[1.6] mt-[15px]">
+
+<strong>Excel columns:</strong>
+
+first_name, last_name, employee_id,
+designation, department, phone,
+email, company_name, address
+
+<br><br>
+
+<strong>Example:</strong>
+
+<br>
+
+Sarah | Ahmed | EMP-001 | Manager |
+HR | 017XXXXXXXX | sarah@email.com |
+Company Ltd | Dhaka
+
+</div>
+
+
+<div id="excelSelected"
+class="hidden mt-[15px] p-3 bg-[#eaf8ef] text-[#26824b] rounded-lg text-[11px] font-bold">
+</div>
+
+
+<div class="bg-[#f5f8fc] p-3 rounded-lg mt-[15px] text-xs">
+Selected Template:
+<strong id="bulkTemplateText">Corporate Blue</strong>
+</div>
+
+
+<div class="flex justify-end gap-2.5 mt-[22px]">
+
+<button onclick="closeModal('excelModal')"
+class="rounded-lg px-[17px] py-[11px] text-[11px] font-bold bg-slate-100 text-slate-600">
+Cancel
+</button>
+
+<button onclick="submitExcel()"
+class="rounded-lg px-[17px] py-[11px] text-[11px] font-bold bg-[#1468d8] text-white">
+Validate & Submit
+</button>
+
+</div>
+
+</div>
+</div>
+
+
+<script>
+
+/* GLOBAL */
+
+let selectedTemplate = "Corporate Blue";
+
+let individualCardData = null;
+
+let bulkCardData = null;
+
+
+/* SIDEBAR */
+
+function toggleSidebar(){
+
+document.getElementById("sidebar")
+.classList.toggle("-translate-x-full");
+
+}
+
+
+/* TEMPLATE */
+
+function selectTemplate(element,templateName){
+
+document.querySelectorAll(".template-card")
+.forEach(card=>{
+
+card.classList.remove("border-[#1468d8]");
+card.classList.add("border-[#e5eaf1]");
+
+const badge=card.querySelector(".selected-badge");
+
+if(badge){
+badge.classList.add("hidden");
+}
+
+});
+
+
+element.classList.remove("border-[#e5eaf1]");
+element.classList.add("border-[#1468d8]");
+
+
+const badge=element.querySelector(".selected-badge");
+
+if(badge){
+badge.classList.remove("hidden");
+}
+
+
+selectedTemplate=templateName;
+
+document.getElementById("selectedTemplateText").innerText=templateName;
+
+document.getElementById("bulkTemplateText").innerText=templateName;
+
+console.log("Selected Template:",selectedTemplate);
+
+}
+
+
+/* MODAL */
+
+function openIndividualModal(){
+
+const modal=document.getElementById("individualModal");
+
+modal.classList.remove("hidden");
+modal.classList.add("flex");
+
+}
+
+
+function openExcelModal(){
+
+const modal=document.getElementById("excelModal");
+
+modal.classList.remove("hidden");
+modal.classList.add("flex");
+
+}
+
+
+function closeModal(id){
+
+const modal=document.getElementById(id);
+
+modal.classList.add("hidden");
+modal.classList.remove("flex");
+
+}
+
+
+/* INDIVIDUAL DATA */
+
+document.getElementById("individualForm")
+.addEventListener("submit",function(event){
+
+event.preventDefault();
+
+
+const firstName=document.getElementById("firstName").value.trim();
+
+const lastName=document.getElementById("lastName").value.trim();
+
+const employeeId=document.getElementById("employeeId").value.trim();
+
+const designation=document.getElementById("designation").value.trim();
+
+const department=document.getElementById("department").value.trim();
+
+const phone=document.getElementById("phone").value.trim();
+
+const email=document.getElementById("email").value.trim();
+
+const companyName=document.getElementById("companyName").value.trim();
+
+const address=document.getElementById("address").value.trim();
+
+const photo=document.getElementById("photo").files[0];
+
+
+individualCardData={
+
+first_name:firstName,
+
+last_name:lastName,
+
+employee_id:employeeId,
+
+designation:designation,
+
+department:department,
+
+phone:phone,
+
+email:email,
+
+company_name:companyName,
+
+address:address,
+
+template:selectedTemplate,
+
+photo:photo
+
+};
+
+
+console.log("INDIVIDUAL CARD DATA");
+console.log(individualCardData);
+
+
+/*
+FastAPI:
+
+const formData=new FormData();
+
+Object.keys(individualCardData).forEach(key=>{
+
+if(individualCardData[key]){
+formData.append(key,individualCardData[key]);
+}
+
+});
+
+fetch("http://127.0.0.1:8000/card/individual",{
+method:"POST",
+body:formData
+});
+*/
+
+
+alert(
+"Card request submitted for approval.\n\nTemplate: "
++selectedTemplate
+);
+
+closeModal("individualModal");
+
+});
+
+
+/* EXCEL */
+
+function showExcelName(input){
+
+const file=input.files[0];
+
+if(!file){
+return;
+}
+
+const selected=document.getElementById("excelSelected");
+
+selected.classList.remove("hidden");
+
+selected.innerHTML="✓ Selected: "+file.name;
+
+}
+
+
+function submitExcel(){
+
+const file=document.getElementById("excelFile").files[0];
+
+if(!file){
+
+alert("Please select an Excel file.");
+
+return;
+
+}
+
+
+bulkCardData={
+
+template:selectedTemplate,
+
+excel_file:file
+
+};
+
+
+console.log("BULK CARD DATA");
+console.log(bulkCardData);
+
+
+/*
+FastAPI:
+
+const formData=new FormData();
+
+formData.append(
+"template",
+selectedTemplate
+);
+
+formData.append(
+"excel_file",
+file
+);
+
+fetch("http://127.0.0.1:8000/card/bulk",{
+method:"POST",
+body:formData
+});
+*/
+
+
+alert(
+"Excel file submitted for approval.\n\nTemplate: "
++selectedTemplate
+);
+
+closeModal("excelModal");
+
+}
+
+
+/* LOGOUT */
+
+function logout(){
+
+localStorage.removeItem("access_token");
+
+}
+
+
+/* INITIAL */
+
+document.addEventListener("DOMContentLoaded",function(){
+
+const first=document.querySelector(".template-card");
+
+if(first){
+
+selectTemplate(first,"Corporate Blue");
+
+}
+
+});
+
+</script>
+
+
+<style>
+
+.menu{
+display:flex;
+align-items:center;
+gap:12px;
+padding:10px 12px;
+border-radius:8px;
+color:#617087;
+font-size:13px;
+font-weight:600;
+margin-bottom:4px;
+}
+
+.menu:hover{
+background:#f0f6ff;
+color:#1468d8;
+}
+
+.menu.active{
+background:#eaf3ff;
+color:#1468d8;
+}
+
+.label{
+display:block;
+color:#25344d;
+font-size:11px;
+font-weight:700;
+margin-bottom:6px;
+}
+
+.input{
+width:100%;
+border:1px solid #e5eaf1;
+border-radius:8px;
+padding:11px;
+outline:none;
+font-size:12px;
+}
+
+.input:focus{
+border-color:#1468d8;
+}
+
+.table-head{
+text-align:left;
+color:#8a96a7;
+font-size:10px;
+padding:8px;
+border-bottom:1px solid #e5eaf1;
+}
+
+.table-cell{
+padding:12px;
+font-size:11px;
+border-bottom:1px solid #f0f2f6;
+}
+
+</style>
 
 </body>
-
 </html>
