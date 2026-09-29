@@ -53,8 +53,8 @@ Registration example:
 {
   "username": "Rubel",
   "company_name": "BizCard Ltd",
-  "email": "owner@example.com",
-  "password": "strong-password"
+  "email": "owner@gmail.com",
+  "password": "Strong@123"
 }
 ```
 
