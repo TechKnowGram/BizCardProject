@@ -1,0 +1,11 @@
+.reference/
+.venv/
+__pycache__/
+.pytest_cache/
+.test-*/
+pytest-*/
+pytest-cache-files-*/
+.env
+*.db
+generated_cards/
+tmp/
