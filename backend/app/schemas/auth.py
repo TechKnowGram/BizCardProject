@@ -67,6 +67,12 @@ class CompanySummary(BaseModel):
     name: str
     status: str
     selected_template_id: int | None
+    phone: str | None = None
+    address: str | None = None
+    website: str | None = None
+    description: str | None = None
+    has_logo: bool = False
+    rejection_reason: str | None = None
 
 
 class RegistrationResponse(BaseModel):

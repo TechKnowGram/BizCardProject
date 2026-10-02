@@ -8,4 +8,5 @@ pytest-cache-files-*/
 .env
 *.db
 generated_cards/
+uploads/
 tmp/

@@ -28,6 +28,8 @@ SYSTEM_ADMIN_USERNAME=Rubel
 SYSTEM_ADMIN_EMAIL=rubel@gmail.com
 SYSTEM_ADMIN_PASSWORD=choose-at-least-8-characters
 GENERATED_CARD_STORAGE=generated_cards
+UPLOAD_STORAGE=uploads
+PUBLIC_APP_URL=http://localhost:3000
 ```
 
 `GENERATED_CARD_STORAGE` may be absolute. A relative path is resolved under
@@ -38,7 +40,7 @@ size and ownership metadata.
 
 1. `POST /auth/register` creates a `COMPANY_ADMIN` and `PENDING` company.
 2. System admin uses `PATCH /admin/companies/{id}/status` with `APPROVED`.
-3. Company admin uploads CSV at `POST /employees/import`.
+3. Company admin uploads CSV at `POST /employees/import` or manages employees manually.
 4. Company admin lists `GET /templates`, then selects one with
    `POST /templates/{id}/select`.
 5. Company admin creates a single or bulk `POST /card-requests`.
@@ -46,6 +48,11 @@ size and ownership metadata.
    `PATCH /admin/card-requests/{id}/decision`.
 7. Company admin lists `GET /card-requests/{id}/cards` and downloads from
    `GET /cards/{id}/download`.
+8. A card QR opens `GET /verify/cards/{token}` through the public frontend verification page.
+
+Company branding is managed through `GET/PUT /company/profile` and
+`POST /company/logo`. Employee photos, status, CSV export, request ZIP downloads,
+in-app notifications, admin statistics, and audit logs are also available.
 
 Registration example:
 

@@ -1,5 +1,10 @@
 from pathlib import Path
+from secrets import token_urlsafe
 from reportlab.lib.colors import HexColor, white
+from reportlab.lib.utils import ImageReader
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics import renderPDF
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen.canvas import Canvas
 from sqlalchemy.orm import Session
@@ -30,7 +35,30 @@ def fit_text(canvas: Canvas, text: str, font: str, size: int, max_width: float):
     return size
 
 
-def render_card_pdf(path: Path, company_name: str, employee, style_key: str):
+def draw_qr(canvas: Canvas, value: str, x: float, y: float, size: float = 43):
+    canvas.saveState()
+    canvas.setFillColor(white)
+    canvas.roundRect(x - 3, y - 3, size + 6, size + 6, 2, fill=1, stroke=0)
+    qr = QrCodeWidget(value)
+    x1, y1, x2, y2 = qr.getBounds()
+    scale = size / max(x2 - x1, y2 - y1)
+    drawing = Drawing(size, size, transform=[scale, 0, 0, scale, 0, 0])
+    drawing.add(qr)
+    renderPDF.draw(drawing, canvas, x, y)
+    canvas.restoreState()
+
+
+def draw_image(canvas: Canvas, file_path: str | None, x: float, y: float, width: float, height: float):
+    if not file_path or not Path(file_path).is_file():
+        return False
+    try:
+        canvas.drawImage(ImageReader(file_path), x, y, width, height, preserveAspectRatio=True, anchor='c', mask='auto')
+        return True
+    except Exception:
+        return False
+
+
+def render_card_pdf(path: Path, company, employee, style_key: str, verification_token: str):
     style = STYLES.get(style_key, STYLES['classic'])
     canvas = Canvas(str(path), pagesize=(CARD_WIDTH, CARD_HEIGHT), pageCompression=1)
     canvas.setFillColor(HexColor(style['background']))
@@ -47,16 +75,27 @@ def render_card_pdf(path: Path, company_name: str, employee, style_key: str):
 
     text_color = white if style['text'] == '#FFFFFF' else HexColor(style['text'])
     canvas.setFillColor(text_color)
-    fit_text(canvas, employee.name, 'Helvetica-Bold', 17, 195)
-    canvas.drawString(30, 99, employee.name)
-    fit_text(canvas, employee.designation, 'Helvetica', 10, 195)
-    canvas.drawString(30, 82, employee.designation)
+    has_photo = draw_image(canvas, employee.photo_path, 25, 86, 38, 38)
+    text_x = 71 if has_photo else 30
+    fit_text(canvas, employee.name, 'Helvetica-Bold', 17, 158 if has_photo else 195)
+    canvas.drawString(text_x, 103 if has_photo else 99, employee.name)
+    fit_text(canvas, employee.designation, 'Helvetica', 10, 158 if has_photo else 195)
+    canvas.drawString(text_x, 86 if has_photo else 82, employee.designation)
     canvas.setFont('Helvetica', 8)
-    canvas.drawString(30, 66, employee.department)
+    canvas.drawString(text_x, 70 if has_photo else 66, employee.department)
+    fit_text(canvas, employee.email, 'Helvetica', 7, 150)
     canvas.drawString(30, 46, employee.email)
+    canvas.setFont('Helvetica', 8)
     canvas.drawString(30, 32, employee.phone)
-    fit_text(canvas, company_name.upper(), 'Helvetica-Bold', 8, 195)
-    canvas.drawRightString(232, 14, company_name.upper())
+    draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{verification_token}", 190, 42)
+    canvas.setFont('Helvetica', 5)
+    canvas.drawCentredString(211.5, 37, 'SCAN TO VERIFY')
+    if not draw_image(canvas, company.logo_path, 194, 112, 38, 18):
+        fit_text(canvas, company.name.upper(), 'Helvetica-Bold', 8, 195)
+        canvas.drawRightString(232, 14, company.name.upper())
+    else:
+        canvas.setFont('Helvetica-Bold', 7)
+        canvas.drawRightString(232, 14, company.name.upper())
     canvas.showPage()
     canvas.save()
 
@@ -74,7 +113,8 @@ def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
             employee = item.employee
             filename = f'{employee.employee_id}_card.pdf'
             path = output_dir / filename
-            render_card_pdf(path, request.company.name, employee, request.template.style_key)
+            verification_token = token_urlsafe(24)
+            render_card_pdf(path, request.company, employee, request.template.style_key, verification_token)
             created_paths.append(path)
             card = GeneratedCard(
                 request_item_id=item.id,
@@ -83,6 +123,8 @@ def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
                 file_path=str(path.resolve()),
                 file_name=filename,
                 file_size=path.stat().st_size,
+                verification_token=verification_token,
+                status='ACTIVE',
             )
             db.add(card)
             cards.append(card)

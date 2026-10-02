@@ -22,6 +22,8 @@ class Settings(BaseSettings):
         default=SecretStr(''), validation_alias=AliasChoices('SYSTEM_ADMIN_PASSWORD', 'SUPER_ADMIN_PASSWORD')
     )
     generated_card_storage: str = 'generated_cards'
+    upload_storage: str = 'uploads'
+    public_app_url: str = 'http://localhost:3000'
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[1] / '.env',
         env_file_encoding='utf-8',

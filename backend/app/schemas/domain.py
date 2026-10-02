@@ -1,11 +1,29 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator
 from app.schemas.auth import UserResponse, CompanySummary
 
 
 class CompanyStatusUpdate(BaseModel):
     status: Literal['APPROVED', 'REJECTED', 'SUSPENDED']
+    reason: str | None = Field(default=None, max_length=500)
+
+
+class CompanyProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str = Field(min_length=1, max_length=150)
+    phone: str | None = Field(default=None, max_length=50)
+    address: str | None = Field(default=None, max_length=300)
+    website: HttpUrl | None = None
+    description: str | None = Field(default=None, max_length=1000)
+
+    @field_validator('name', 'phone', 'address', 'description')
+    @classmethod
+    def clean_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        return cleaned or None
 
 
 class CompanyResponse(BaseModel):
@@ -14,6 +32,12 @@ class CompanyResponse(BaseModel):
     name: str
     status: str
     selected_template_id: int | None
+    phone: str | None
+    address: str | None
+    website: str | None
+    description: str | None
+    has_logo: bool
+    rejection_reason: str | None
     created_at: datetime
     admins: list[UserResponse]
 
@@ -27,6 +51,9 @@ class EmployeeResponse(BaseModel):
     department: str
     email: str
     phone: str
+    is_active: bool
+    has_photo: bool
+    created_at: datetime
 
 
 class EmployeeCreate(BaseModel):
@@ -53,6 +80,10 @@ class EmployeeCreate(BaseModel):
 
 class EmployeeUpdate(EmployeeCreate):
     pass
+
+
+class EmployeeStatusUpdate(BaseModel):
+    is_active: bool
 
 
 class CSVImportResponse(BaseModel):
@@ -102,6 +133,7 @@ class CardRequestResponse(BaseModel):
     status: str
     rejection_reason: str | None
     created_at: datetime
+    decided_at: datetime | None
     items: list[CardItemResponse]
     company: CompanySummary
     template: TemplateResponse
@@ -119,4 +151,36 @@ class GeneratedCardResponse(BaseModel):
     employee_id: int
     file_name: str
     file_size: int
+    verification_token: str
+    status: str
+    created_at: datetime
+
+
+class VerificationResponse(BaseModel):
+    valid: bool
+    card_status: str
+    employee_name: str
+    employee_id: str
+    designation: str
+    company_name: str
+    issued_at: datetime
+
+
+class NotificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    kind: str
+    message: str
+    is_read: bool
+    created_at: datetime
+
+
+class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    action: str
+    entity_type: str
+    entity_id: str
+    company_id: int | None
+    details: str | None
     created_at: datetime

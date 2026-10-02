@@ -6,11 +6,12 @@ Next.js App Router + Tailwind CSS, using plain JavaScript.
 app/
   layout.js          Shared page layout
   globals.css        Tailwind and global styles
-  page.js            Redirects / to /login
+  page.js            Public marketing homepage
   login/page.js      Login form
-  dashboard/page.js  Account details and logout
+  dashboard/page.js  Role-aware company/admin workspace
+  verify/[token]/     Public QR card verification
 components/
-  Brand.js           Shared logo
+  Brand.js           Shared logo and visual identity
 lib/
   api.js             Backend requests and token helpers
 ```

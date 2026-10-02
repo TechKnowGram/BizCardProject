@@ -15,8 +15,9 @@ def test_alembic_upgrade_on_empty_database(tmp_path, monkeypatch):
     tables = set(inspect(engine).get_table_names())
     assert {
         'users', 'companies', 'employees', 'card_templates', 'card_requests',
-        'card_request_items', 'generated_cards', 'alembic_version',
+        'card_request_items', 'generated_cards', 'notifications', 'audit_logs', 'alembic_version',
     } <= tables
+    assert {'verification_token', 'status'} <= {column['name'] for column in inspect(engine).get_columns('generated_cards')}
     with engine.connect() as connection:
         assert len(connection.execute(select(CardTemplate)).all()) == 3
     engine.dispose()

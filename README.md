@@ -10,10 +10,14 @@ BizCard is a full-stack company visiting-card management system. Companies regis
 - Track company approval status
 - Import employees from CSV with all-or-nothing validation
 - Add and edit employees manually
+- Search, filter, activate/deactivate, add photos, and export employees
+- Maintain company profile details and upload a company logo
 - Select Classic, Modern, or Minimal card templates
 - Submit single or bulk card requests
 - Track request status and rejection reasons
 - Download completed employee cards as PDF files
+- Download a full request as a ZIP and verify cards through public QR pages
+- Receive in-app workflow notifications
 
 ### System Admin
 
@@ -23,6 +27,7 @@ BizCard is a full-stack company visiting-card management system. Companies regis
 - Approve or reject card requests
 - Activate or deactivate predefined templates
 - Generate one PDF per employee without duplicate generation
+- Review platform statistics and a traceable administrative audit log
 
 ## Tech stack
 
@@ -94,6 +99,8 @@ SYSTEM_ADMIN_USERNAME=Rubel
 SYSTEM_ADMIN_EMAIL=rubel@gmail.com
 SYSTEM_ADMIN_PASSWORD=replace-with-a-secure-password
 GENERATED_CARD_STORAGE=generated_cards
+UPLOAD_STORAGE=uploads
+PUBLIC_APP_URL=http://localhost:3000
 ```
 
 Apply migrations and start FastAPI:
@@ -142,7 +149,8 @@ npm run dev -- --port 3001
 6. The Company Admin creates a single or bulk card request.
 7. The System Admin reviews the requester and employee details.
 8. Approval generates one PDF for each employee.
-9. The Company Admin downloads the completed cards.
+9. Each card receives a unique public-safe QR verification URL.
+10. The Company Admin downloads individual PDFs or a request ZIP.
 
 ## Validation rules
 
@@ -204,4 +212,6 @@ npm run build
 - Protected endpoints require JWT bearer authentication.
 - Company-owned employee, request, and card queries are scoped by `company_id`.
 - Generated PDFs are stored on disk; PostgreSQL stores their metadata and file paths.
+- Logos and employee photos use local upload storage and are never stored as database bytes.
+- Deactivating an employee also deactivates their existing public card verification.
 - Real `.env` files, local databases, generated cards, virtual environments, and frontend build files are excluded from Git.

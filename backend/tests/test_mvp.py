@@ -1,4 +1,5 @@
 import os
+import base64
 from pathlib import Path
 
 os.environ['DATABASE_URL'] = 'sqlite://'
@@ -180,6 +181,42 @@ def test_manual_employee_create_edit_duplicate_and_isolation(context):
     assert client.put(f'/employees/{employee_id}', headers=second_headers, json=payload).status_code == 404
 
 
+def test_profile_assets_employee_status_export_notifications_and_audit(context):
+    client, _, _ = context
+    _, headers, admin, _ = prepare_approved_company(client)
+    profile = client.put('/company/profile', headers=headers, json={
+        'name': 'Northstar Labs', 'phone': '+8801700000000', 'address': 'Dhaka',
+        'website': 'https://northstar.example', 'description': 'A product engineering company.',
+    })
+    assert profile.status_code == 200, profile.text
+    assert profile.json()['name'] == 'Northstar Labs'
+    png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+    logo = client.post('/company/logo', headers=headers, files={'file': ('logo.png', png, 'image/png')})
+    assert logo.status_code == 200, logo.text
+    assert logo.json()['has_logo'] is True
+
+    payload = {'employee_id': 'PHOTO-1', 'name': 'Photo User', 'designation': 'Designer', 'department': 'Brand', 'email': 'photo@example.com', 'phone': '123'}
+    employee = client.post('/employees', headers=headers, json=payload).json()
+    photo = client.post(f"/employees/{employee['id']}/photo", headers=headers, files={'file': ('photo.png', png, 'image/png')})
+    assert photo.status_code == 200, photo.text
+    assert photo.json()['has_photo'] is True
+    exported = client.get('/employees/export', headers=headers)
+    assert exported.status_code == 200
+    assert 'PHOTO-1' in exported.text
+    inactive = client.patch(f"/employees/{employee['id']}/status", headers=headers, json={'is_active': False})
+    assert inactive.json()['is_active'] is False
+
+    notifications = client.get('/notifications', headers=headers)
+    assert notifications.status_code == 200
+    assert notifications.json()
+    audits = client.get('/admin/audit-logs', headers=admin)
+    assert audits.status_code == 200
+    assert any(item['action'] == 'COMPANY_PROFILE_UPDATED' for item in audits.json())
+    stats = client.get('/admin/stats', headers=admin)
+    assert stats.status_code == 200
+    assert stats.json()['companies'] == 1
+
+
 def test_single_bulk_decisions_pdf_generation_and_idempotency(context):
     client, sessions, _ = context
     _, headers, admin, template_id = prepare_approved_company(client)
@@ -217,9 +254,18 @@ def test_single_bulk_decisions_pdf_generation_and_idempotency(context):
     cards = client.get(f'/card-requests/{request_id}/cards', headers=headers).json()
     assert len(cards) == 2
     for card in cards:
+        assert card['status'] == 'ACTIVE'
+        verification = client.get(f"/verify/cards/{card['verification_token']}")
+        assert verification.status_code == 200
+        assert verification.json()['valid'] is True
+        assert 'email' not in verification.json()
+        assert 'phone' not in verification.json()
         download = client.get(f"/cards/{card['id']}/download", headers=headers)
         assert download.status_code == 200
         assert download.content.startswith(b'%PDF-')
+    archive = client.get(f'/card-requests/{request_id}/cards/download', headers=headers)
+    assert archive.status_code == 200
+    assert archive.content.startswith(b'PK')
     with sessions() as db:
         paths_before = [Path(value) for value in db.scalars(select(GeneratedCard.file_path)).all()]
         assert all(len(PdfReader(str(path)).pages) == 1 for path in paths_before)

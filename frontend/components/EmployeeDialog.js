@@ -9,7 +9,7 @@ const empty = { employee_id: '', name: '', designation: '', department: '', emai
 export default function EmployeeDialog({ employee, busy, apiError, onSave, onClose }) {
   const [values, setValues] = useState(empty);
   const [errors, setErrors] = useState({});
-  useEffect(() => { setValues(employee ? { ...empty, ...employee } : empty); }, [employee]);
+  useEffect(() => { setValues(employee ? Object.fromEntries(Object.keys(empty).map(key => [key, employee[key] || ''])) : empty); }, [employee]);
 
   function submit(event) {
     event.preventDefault();

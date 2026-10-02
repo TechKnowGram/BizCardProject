@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models import Company, User
 from app.models.constants import COMPANY_ADMIN
 from app.schemas.auth import CompanySummary, LoginRequest, RegisterRequest, RegistrationResponse, TokenResponse, UserResponse
+from app.services.activity import add_audit, add_notification, notify_system_admins
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 
@@ -25,6 +26,10 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
     )
     db.add(user)
     try:
+        db.flush()
+        add_notification(db, user.id, 'COMPANY_SUBMITTED', 'Your company registration is waiting for review.')
+        notify_system_admins(db, 'COMPANY_REVIEW', f'{company.name} submitted a registration request.')
+        add_audit(db, 'COMPANY_REGISTERED', 'company', company.id, user.id, company.id)
         db.commit()
     except IntegrityError:
         db.rollback()
