@@ -3,30 +3,70 @@ import Brand from '../components/Brand';
 import CardPreview from '../components/CardPreview';
 
 const steps = [
-  ['01', 'Create your workspace', 'Register your company and submit it for a quick administrator review.'],
-  ['02', 'Bring your people', 'Add employees one by one or import a validated CSV for the whole team.'],
-  ['03', 'Choose your signature', 'Preview a curated card style and make it the company standard.'],
-  ['04', 'Approve and share', 'Approved requests become verified, downloadable employee PDF cards.'],
+  ['01', 'Create your workspace', 'Register your company and send the profile for a quick administrator review.', 'spark-coral'],
+  ['02', 'Bring your people', 'Add employees manually or import a validated CSV when the whole team is ready.', 'spark-cyan'],
+  ['03', 'Pick your signature', 'Choose a curated card style and keep every employee perfectly on brand.', 'spark-yellow'],
+  ['04', 'Approve. Generate. Share.', 'Approved requests become verified PDF cards, ready to download or share.', 'spark-violet'],
+];
+
+const features = [
+  ['01', 'People, organized', 'Search, edit, import and manage every employee from one focused workspace.'],
+  ['02', 'Brand, protected', 'A single approved template keeps every card consistent across the company.'],
+  ['03', 'Requests, visible', 'See the requester, employees, template and decision history before approval.'],
+  ['04', 'Cards, verified', 'Every generated PDF includes a public-safe QR verification experience.'],
 ];
 
 export default function HomePage() {
   return <main className="marketing-page">
-    <nav className="marketing-nav"><Link href="/"><Brand /></Link><div className="hidden items-center gap-8 text-sm text-slate-600 md:flex"><a href="#product">Product</a><a href="#templates">Templates</a><a href="#security">Security</a></div><div className="flex items-center gap-2"><Link className="btn-quiet" href="/login">Sign in</Link><Link className="btn-primary" href="/register">Start your workspace</Link></div></nav>
+    <div className="hero-shell">
+      <nav className="marketing-nav">
+        <Link href="/" aria-label="BizCard home"><Brand light /></Link>
+        <div className="marketing-links"><a href="#workflow">How it works</a><a href="#templates">Templates</a><a href="#security">Security</a></div>
+        <div className="nav-actions"><Link className="nav-signin" href="/login">Sign in</Link><Link className="btn-sun" href="/register">Start free <span>↗</span></Link></div>
+      </nav>
 
-    <section className="hero-section"><div className="hero-copy"><span className="hero-kicker">VISITING CARDS, BEAUTIFULLY MANAGED</span><h1>Your team deserves a better first impression.</h1><p>Manage every employee, keep every card on brand, and turn approved requests into verified PDF visiting cards from one calm workspace.</p><div className="mt-8 flex flex-wrap gap-3"><Link className="btn-primary hero-cta" href="/register">Create your company workspace →</Link><a className="btn-secondary hero-cta" href="#product">See how it works</a></div><div className="hero-proof"><span><strong>3</strong> curated templates</span><span><strong>100%</strong> company isolated</span><span><strong>QR</strong> verified cards</span></div></div><div className="hero-visual"><div className="hero-card hero-card-back"><CardPreview style="minimal" name="Tanvir Hasan" designation="Sales Manager" company="NORTHSTAR" /></div><div className="hero-card hero-card-front"><CardPreview style="modern" name="Ayesha Rahman" designation="Software Engineer" company="NORTHSTAR" /></div><span className="floating-note">✓ Approved & ready</span></div></section>
+      <section className="hero-section">
+        <div className="hero-doodle hero-doodle-one">✦</div><div className="hero-doodle hero-doodle-two">⌁</div>
+        <div className="hero-copy">
+          <span className="hero-kicker"><i /> THE SMARTER COMPANY CARD WORKSPACE</span>
+          <h1>Small card.<br /><span>Big impression.</span></h1>
+          <p>Bring your people, brand and approval flow together. Create polished, verified visiting cards without the design chaos.</p>
+          <div className="hero-actions"><Link className="btn-sun hero-cta" href="/register">Build your company workspace <span>↗</span></Link><a className="hero-text-link" href="#workflow">See the workflow <b>↓</b></a></div>
+          <div className="hero-proof"><span><strong>3</strong> curated styles</span><span><strong>100%</strong> company isolated</span><span><strong>QR</strong> verified PDFs</span></div>
+        </div>
+        <div className="hero-visual">
+          <span className="orbit orbit-one" /><span className="orbit orbit-two" /><span className="orbit orbit-three" />
+          <div className="hero-card hero-card-back"><CardPreview style="minimal" name="Tanvir Hasan" designation="Sales Manager" company="NORTHSTAR" /></div>
+          <div className="hero-card hero-card-front"><CardPreview style="modern" name="Ayesha Rahman" designation="Software Engineer" company="NORTHSTAR" /></div>
+          <div className="floating-note"><b>✓</b><span>Approved & ready<small>3 cards generated</small></span></div>
+          <div className="floating-qr"><span>▦</span><small>Verified</small></div>
+        </div>
+      </section>
+      <div className="hero-wave" />
+    </div>
 
-    <section className="trust-strip"><span>Built for modern teams</span><b>Company approval</b><b>Employee management</b><b>Brand consistency</b><b>Verified PDFs</b></section>
+    <section className="signal-strip"><p>Everything your card workflow needs</p><div><span>COMPANY APPROVAL</span><i>✦</i><span>EMPLOYEE MANAGEMENT</span><i>✦</i><span>BRAND CONSISTENCY</span><i>✦</i><span>VERIFIED PDF CARDS</span></div></section>
 
-    <section id="product" className="marketing-section"><div className="section-heading"><p className="eyebrow">ONE CONNECTED WORKFLOW</p><h2>From company registration to a card worth sharing.</h2><p>No scattered spreadsheets, design handoffs, or uncertain approval status. Every step lives in one traceable flow.</p></div><div className="step-grid">{steps.map(([number, title, copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}</div></section>
+    <section id="workflow" className="marketing-section workflow-section">
+      <div className="section-heading centered"><span className="section-chip">THE WHOLE JOURNEY</span><h2>From company signup to<br /><em>a card worth sharing.</em></h2><p>One clear, traceable workflow. Every person knows what happens next.</p></div>
+      <div className="step-grid">{steps.map(([number, title, copy, color]) => <article key={number} className={color}><span className="step-number">{number}</span><div className="step-icon">{number === '01' ? '⌂' : number === '02' ? '♙' : number === '03' ? '✦' : '✓'}</div><h3>{title}</h3><p>{copy}</p></article>)}</div>
+    </section>
 
-    <section id="templates" className="marketing-section template-showcase"><div className="section-heading"><p className="eyebrow">CURATED DESIGN SYSTEM</p><h2>Three styles. One unmistakable identity.</h2><p>Choose the character that fits your company. Every employee stays consistent without needing a designer.</p></div><div className="showcase-grid">{[['classic','Classic','Confident and traditional.'],['modern','Modern','Bold, sharp, and contemporary.'],['minimal','Minimal','Quiet, refined, and clear.']].map(([style,name,copy]) => <article key={style}><CardPreview style={style} name="Ayesha Rahman" designation="Product Designer" company="NORTHSTAR" /><h3>{name}</h3><p>{copy}</p></article>)}</div></section>
+    <section className="feature-stage">
+      <div className="feature-stage-inner"><div className="feature-intro"><span className="section-chip dark">BUILT FOR REAL TEAMS</span><h2>Less chasing.<br /><em>More creating.</em></h2><p>BizCard turns a scattered operational task into a simple, confident system.</p><Link className="btn-sun" href="/register">Start your workspace <span>↗</span></Link></div><div className="feature-grid">{features.map(([n, title, copy]) => <article key={n}><span>{n}</span><h3>{title}</h3><p>{copy}</p></article>)}</div></div>
+    </section>
 
-    <section className="marketing-section feature-split"><div><p className="eyebrow">DESIGNED FOR REAL OPERATIONS</p><h2>Give every decision the context it needs.</h2><p>Administrators see who submitted a company or card request, which employees are included, the selected design, and any previous decision reason before they approve.</p><ul className="feature-list"><li>Single and bulk card requests</li><li>Manual employee editing and CSV import</li><li>Company logo and employee photo support</li><li>Bulk ZIP and employee CSV export</li></ul></div><div className="approval-mock"><div className="mock-top"><span>Card request #1042</span><b>Pending review</b></div><div className="mock-company"><span className="company-mark">N</span><div><strong>Northstar Labs</strong><small>Requested by Ayesha Rahman</small></div></div>{['Tanvir Hasan · Sales Manager','Nabila Ahmed · Product Designer','Farhan Kabir · Engineer'].map(name => <div className="mock-row" key={name}><span>{name}</span><i>Ready</i></div>)}<button>Approve & generate 3 cards</button></div></section>
+    <section id="templates" className="marketing-section template-showcase">
+      <div className="section-heading"><span className="section-chip">CURATED DESIGN SYSTEM</span><h2>Three moods.<br /><em>One unmistakable team.</em></h2><p>Choose the character that fits your company. No designer or custom setup required.</p></div>
+      <div className="showcase-grid">{[['classic','Classic','Confident and timeless.','01'],['modern','Modern','Bold and energetic.','02'],['minimal','Minimal','Quiet and refined.','03']].map(([style,name,copy,n]) => <article key={style}><div className="template-number">{n}</div><CardPreview style={style} name="Ayesha Rahman" designation="Product Designer" company="NORTHSTAR" /><div><h3>{name}</h3><p>{copy}</p></div></article>)}</div>
+    </section>
 
-    <section id="security" className="security-section"><div><p className="eyebrow">SECURITY BY DESIGN</p><h2>Your company data stays your company data.</h2></div><div className="security-grid"><article><strong>Tenant isolation</strong><p>Every company-owned query is scoped by company ID at the API layer.</p></article><article><strong>Role-based access</strong><p>JWT authentication and backend RBAC protect every operational action.</p></article><article><strong>Public-safe verification</strong><p>QR pages confirm a card without exposing private contact information.</p></article></div></section>
+    <section className="marketing-section review-section"><div className="review-copy"><span className="section-chip">DECIDE WITH CONTEXT</span><h2>A clear review.<br /><em>A confident yes.</em></h2><p>Administrators see the company, requester, employees and selected template before making a decision.</p><ul className="feature-list"><li>Single and bulk card requests</li><li>Company and request decision notes</li><li>Complete audit trail</li><li>Duplicate-safe PDF generation</li></ul></div><div className="approval-mock"><div className="mock-top"><span>Card request <b>#1042</b></span><em>Pending review</em></div><div className="mock-company"><span className="company-mark">N</span><div><strong>Northstar Labs</strong><small>Requested by Ayesha Rahman</small></div><span className="mock-template">Modern</span></div>{['Tanvir Hasan · Sales Manager','Nabila Ahmed · Product Designer','Farhan Kabir · Engineer'].map((name, i) => <div className="mock-row" key={name}><span><b>{String(i + 1).padStart(2, '0')}</b>{name}</span><i>Ready</i></div>)}<button>Approve & generate 3 cards <span>↗</span></button></div></section>
 
-    <section className="final-cta"><p className="eyebrow">A BETTER FIRST IMPRESSION STARTS HERE</p><h2>Bring your team and your brand together.</h2><p>Set up your company workspace, choose a signature design, and create verified cards your people are proud to share.</p><Link className="btn-primary hero-cta mt-7" href="/register">Get started with BizCard →</Link></section>
+    <section id="security" className="security-section"><div className="security-orb">✦</div><div><span className="section-chip dark">SECURITY BY DESIGN</span><h2>Your company data stays<br /><em>your company data.</em></h2></div><div className="security-grid"><article><span>01</span><strong>Tenant isolation</strong><p>Every company-owned query is scoped by company ID.</p></article><article><span>02</span><strong>Role-based access</strong><p>JWT authentication and backend RBAC protect each action.</p></article><article><span>03</span><strong>Public-safe verification</strong><p>QR pages confirm validity without exposing private details.</p></article></div></section>
 
-    <footer className="marketing-footer"><Brand light /><p>Professional cards. Controlled workflow. Confident teams.</p><div><Link href="/login">Sign in</Link><Link href="/register">Register</Link></div></footer>
+    <section className="final-cta"><div className="cta-scribble">⌁</div><span className="section-chip">READY WHEN YOU ARE</span><h2>Make the next introduction<br /><em>impossible to forget.</em></h2><p>Create your company workspace and turn your team into one confident brand.</p><Link className="btn-sun hero-cta" href="/register">Get started with BizCard <span>↗</span></Link></section>
+
+    <footer className="marketing-footer"><div className="footer-brand"><Brand light /><p>Professional cards.<br />Beautifully managed.</p></div><div className="footer-links"><div><b>Product</b><a href="#workflow">How it works</a><a href="#templates">Templates</a><a href="#security">Security</a></div><div><b>Workspace</b><Link href="/login">Sign in</Link><Link href="/register">Register company</Link></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} BizCard</span><span>Built for memorable first impressions.</span></div></footer>
   </main>;
 }
