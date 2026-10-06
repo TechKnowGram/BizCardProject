@@ -30,7 +30,10 @@ export default function NotificationBell() {
 
   return <div className="notification-wrap" ref={wrap}>
     <button className="notification-button" aria-label={`${unread} unread notifications`} aria-expanded={open} onClick={() => setOpen(!open)}>
-      <span className="bell-icon">♢</span>{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
+      <svg className="bell-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+        <path d="M10 21h4" />
+      </svg>{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
     </button>
     {open && <div className="notification-menu">
       <div className="notification-head"><div><strong>Notifications</strong><small>{unread ? `${unread} unread` : 'All caught up'}</small></div>{unread > 0 && <button onClick={markAll}>Mark all read</button>}</div>

@@ -628,7 +628,8 @@ body { font-family: "Segoe UI", Inter, Arial, sans-serif; color: var(--ink); bac
 .decision-box > div { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:14px; }
 
 .notification-button { position:relative; }
-.notification-button .bell-icon { color:#655d6f; font-size:17px; transform:rotate(-10deg); }
+.notification-button .bell-icon { width:18px; height:18px; fill:none; stroke:#655d6f; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:stroke .18s,transform .18s; }
+.notification-button:hover .bell-icon,.notification-button[aria-expanded="true"] .bell-icon { stroke:#6430c2; transform:rotate(-7deg); }
 .notification-button > b { position:absolute; top:-4px; right:-4px; display:grid; min-width:18px; height:18px; place-items:center; border:2px solid white; border-radius:999px; background:var(--coral); padding:0 3px; color:white; font-size:7px; }
 .notification-head { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #eeeaf1; padding:15px 16px; }
 .notification-head strong { display:block; font-size:12px; }
