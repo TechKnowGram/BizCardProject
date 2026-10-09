@@ -8,6 +8,9 @@ import EmployeeDialog from './EmployeeDialog';
 import CompanyProfilePanel from './CompanyProfilePanel';
 import ReviewDialog from './ReviewDialog';
 import Toast from './Toast';
+import CardStudio from './CardStudio';
+import CsvImportDialog from './CsvImportDialog';
+import RequestWizard from './RequestWizard';
 
 const PAGE_SIZE = 8;
 const formatDate = value => value ? new Date(value).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
@@ -32,7 +35,8 @@ export default function CompanyDashboard({ tab, setTab }) {
   const [employeeEditor, setEmployeeEditor] = useState(undefined);
   const [employeeError, setEmployeeError] = useState('');
   const [requestViewer, setRequestViewer] = useState(null);
-  const [previewEmployeeId, setPreviewEmployeeId] = useState('');
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   const load = useCallback(async () => {
     setError('');
@@ -42,7 +46,7 @@ export default function CompanyDashboard({ tab, setTab }) {
       if (companyData.status === 'APPROVED') {
         const [employeeData, templateData, requestData] = await Promise.all([api('/employees'), api('/templates'), api('/card-requests')]);
         setEmployees(employeeData); setTemplates(templateData); setRequests(requestData);
-        setPreviewEmployeeId(current => current || String(employeeData.find(item => item.is_active)?.id || ''));
+
       }
     } catch (requestError) { setError(requestError.message); }
     finally { setLoading(false); }
@@ -50,18 +54,6 @@ export default function CompanyDashboard({ tab, setTab }) {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(1); }, [search, department]);
-
-  async function uploadCsv(event) {
-    const file = event.target.files?.[0]; if (!file) return;
-    const form = new FormData(); form.append('file', file);
-    setBusy(true); setError('');
-    try {
-      const result = await api('/employees/import', { method: 'POST', body: form });
-      setMessage(`Import complete — ${result.imported} employee${result.imported === 1 ? '' : 's'} added.`);
-      await load();
-    } catch (requestError) { setError(requestError.message); }
-    finally { setBusy(false); event.target.value = ''; }
-  }
 
   async function saveEmployee(values) {
     setBusy(true); setEmployeeError('');
@@ -103,16 +95,7 @@ export default function CompanyDashboard({ tab, setTab }) {
     setSelectedEmployees(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
   }
 
-  async function createRequest() {
-    if (!selectedEmployees.length) { setError('Select at least one active employee.'); return; }
-    if (!company.selected_template_id) { setError('Choose a template before requesting cards.'); setTab('templates'); return; }
-    setBusy(true); setError('');
-    try {
-      await api('/card-requests', { method: 'POST', body: JSON.stringify({ employee_ids: selectedEmployees, template_id: company.selected_template_id }) });
-      setSelectedEmployees([]); setMessage('Card request submitted for administrator review.'); setTab('requests'); await load();
-    } catch (requestError) { setError(requestError.message); }
-    finally { setBusy(false); }
-  }
+  function createRequest() { setWizardOpen(true); }
 
   async function openRequest(request) {
     let cards = [];
@@ -144,7 +127,7 @@ export default function CompanyDashboard({ tab, setTab }) {
   </>;
 
   const selectedTemplate = templates.find(template => template.id === company.selected_template_id);
-  const previewEmployee = employees.find(item => String(item.id) === String(previewEmployeeId)) || employees[0];
+
   const profileComplete = Boolean(company.phone && company.address && company.website && company.description && company.has_logo);
   const setupSteps = [
     ['Company approved', true, 'profile'],
@@ -176,20 +159,18 @@ export default function CompanyDashboard({ tab, setTab }) {
     {tab === 'profile' && <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />}
 
     {tab === 'employees' && <section className="panel">
-      <div className="panel-header"><div><span className="panel-kicker">TEAM DIRECTORY</span><h2>Your people</h2><p>Add people manually or import a complete team CSV.</p></div><div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={() => download('/employees/export', 'employees.csv')}>Export CSV</button><button className="btn-secondary" onClick={() => { setEmployeeError(''); setEmployeeEditor(null); }}>Add manually</button><label className="btn-primary cursor-pointer">{busy ? 'Uploading…' : 'Upload CSV'}<input disabled={busy} type="file" accept=".csv,text/csv" onChange={uploadCsv} className="hidden" /></label></div></div>
+      <div className="panel-header"><div><span className="panel-kicker">TEAM DIRECTORY</span><h2>Your people</h2><p>Add people manually or import a complete team CSV.</p></div><div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={() => download('/employees/export', 'employees.csv')}>Export CSV</button><button className="btn-secondary" onClick={() => { setEmployeeError(''); setEmployeeEditor(null); }}>Add manually</button><button className="btn-primary" onClick={() => setCsvOpen(true)}>Import CSV</button></div></div>
       {employees.length ? <><div className="filter-bar"><div className="search-field"><span>⌕</span><input aria-label="Search employees" placeholder="Search name, ID, email…" value={search} onChange={event => setSearch(event.target.value)} /></div><select className="input compact" value={department} onChange={event => setDepartment(event.target.value)}><option value="ALL">All departments</option>{departments.map(value => <option key={value}>{value}</option>)}</select>{(search || department !== 'ALL') && <button className="btn-quiet" onClick={() => { setSearch(''); setDepartment('ALL'); }}>Clear filters</button>}<span>{visibleEmployees.length} result{visibleEmployees.length === 1 ? '' : 's'}</span></div>
       <div className="overflow-x-auto"><table className="data-table employee-table"><thead><tr><th><input aria-label="Select all employees on this page" type="checkbox" checked={pageSelected} onChange={() => setSelectedEmployees(current => pageSelected ? current.filter(id => !activeOnPage.some(item => item.id === id)) : [...new Set([...current, ...activeOnPage.map(item => item.id)])])} /></th><th>Employee</th><th>Role</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead><tbody>{pageEmployees.map(employee => <tr key={employee.id} className={selectedEmployees.includes(employee.id) ? 'selected-row' : ''}><td><input disabled={!employee.is_active} aria-label={`Select ${employee.name}`} type="checkbox" checked={selectedEmployees.includes(employee.id)} onChange={() => toggleEmployee(employee.id)} /></td><td><div className="employee-cell"><span className="employee-avatar">{employee.name.split(' ').map(part => part[0]).slice(0,2).join('')}</span><div><strong>{employee.name}</strong><small>{employee.employee_id}{employee.has_photo ? ' · Photo ready' : ''}</small></div></div></td><td>{employee.designation}<small>{employee.department}</small></td><td>{employee.email}<small>{employee.phone}</small></td><td><StatusBadge value={employee.is_active ? 'ACTIVE' : 'INACTIVE'} /></td><td><div className="row-actions"><button onClick={() => { setEmployeeError(''); setEmployeeEditor(employee); }}>Edit</button><label>Photo<input className="hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={event => uploadPhoto(employee, event.target.files?.[0])} /></label><button onClick={() => changeEmployeeStatus(employee)}>{employee.is_active ? 'Deactivate' : 'Activate'}</button></div></td></tr>)}</tbody></table></div>
       <div className="table-footer"><span>Page {page} of {pageCount}</span><div><button disabled={page === 1} onClick={() => setPage(value => value - 1)}>← Previous</button><button disabled={page === pageCount} onClick={() => setPage(value => value + 1)}>Next →</button></div></div>
       <div className="selection-bar"><p><strong>{selectedEmployees.length}</strong> active employee{selectedEmployees.length !== 1 ? 's' : ''} selected</p><button disabled={busy || !selectedEmployees.length} onClick={createRequest} className="btn-primary">{busy ? 'Submitting…' : 'Create card request'}</button></div></> : <EmptyState icon="♙" title="Add your team to get started" copy="Add one employee manually or import a validated CSV file." action="Add first employee" onAction={() => setEmployeeEditor(null)} />}</section>}
 
-    {tab === 'templates' && <section className="panel">
-      <div className="panel-header"><div><span className="panel-kicker">BRAND SYSTEM</span><h2>Choose your signature look</h2><p>Preview a real employee before setting the company standard.</p></div>{employees.length > 0 && <select className="input compact" value={previewEmployeeId} onChange={event => setPreviewEmployeeId(event.target.value)}>{employees.filter(item => item.is_active).map(item => <option key={item.id} value={item.id}>Preview: {item.name}</option>)}</select>}</div>
-      <div className="template-live-banner"><span>LIVE PREVIEW</span><p>{previewEmployee ? `Showing real company and employee data for ${previewEmployee.name}.` : 'Add an employee to preview real card data.'}</p></div>
-      <div className="template-grid">{templates.map(template => { const selected = template.id === company.selected_template_id; return <article className={`template-option ${selected ? 'selected' : ''}`} key={template.id}><CardPreview style={template.style_key} company={company.name} name={previewEmployee?.name || 'Your employee'} designation={previewEmployee?.designation || 'Job title'} /><div className="template-meta"><div><h3>{template.name}</h3><p>{template.description}</p></div>{selected && <span className="selected-label">Selected</span>}</div><button className={selected ? 'btn-secondary w-full' : 'btn-primary w-full'} disabled={busy || selected} onClick={() => selectTemplate(template.id)}>{selected ? 'Current company template' : `Choose ${template.name}`}</button></article>; })}</div>
-    </section>}
+    {tab === 'templates' && <CardStudio company={company} employees={employees} templates={templates} templateId={company.selected_template_id} onChoose={selectTemplate} busy={busy} />}
 
-    {tab === 'requests' && <section className="panel"><div className="panel-header"><div><span className="panel-kicker">CARD DELIVERY</span><h2>Card request history</h2><p>Follow every decision and download completed cards.</p></div><button className="btn-secondary" onClick={() => setTab('employees')}>Create new request</button></div>{requests.length ? <div className="request-list">{requests.map(request => <button className="request-card" key={request.id} onClick={() => openRequest(request)}><span className="request-icon">▤</span><div className="request-summary"><strong>Request #{request.id}</strong><small>{formatDate(request.created_at)} · {request.items.length} employee{request.items.length === 1 ? '' : 's'}</small></div><span className="request-template">{request.template?.name || `Template #${request.template_id}`}</span><StatusBadge value={request.status} /><b>View details →</b></button>)}</div> : <EmptyState icon="▤" title="No card requests yet" copy="Select active employees and send your first card request." action="Choose employees" onAction={() => setTab('employees')} />}</section>}
+    {tab === 'requests' && <section className="panel"><div className="panel-header"><div><span className="panel-kicker">CARD DELIVERY</span><h2>Card request history</h2><p>Follow every decision and download completed cards.</p></div><button className="btn-secondary" onClick={createRequest}>Create new request</button></div>{requests.length ? <div className="request-list">{requests.map(request => <button className="request-card" key={request.id} onClick={() => openRequest(request)}><span className="request-icon">▤</span><div className="request-summary"><strong>Request #{request.id}</strong><small>{formatDate(request.created_at)} · {request.items.length} employee{request.items.length === 1 ? '' : 's'}</small></div><span className="request-template">{request.template?.name || `Template #${request.template_id}`}</span><StatusBadge value={request.status} /><b>View details →</b></button>)}</div> : <EmptyState icon="▤" title="No card requests yet" copy="Select active employees and send your first card request." action="Choose employees" onAction={() => setTab('employees')} />}</section>}
 
+    {csvOpen && <CsvImportDialog employees={employees} onClose={() => setCsvOpen(false)} onComplete={async count => { setCsvOpen(false); setMessage(`${count} employees imported successfully.`); await load(); }} />}
+    {wizardOpen && <RequestWizard company={company} employees={employees} templates={templates} initialIds={selectedEmployees} onClose={() => setWizardOpen(false)} onComplete={async () => { setWizardOpen(false); setSelectedEmployees([]); setTab('requests'); await load(); }} />}
     {employeeEditor !== undefined && <EmployeeDialog employee={employeeEditor} busy={busy} apiError={employeeError} onSave={saveEmployee} onClose={() => setEmployeeEditor(undefined)} />}
     {requestViewer && <RequestDetails viewer={requestViewer} onClose={() => setRequestViewer(null)} onDownload={download} />}
   </>;

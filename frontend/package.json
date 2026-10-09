@@ -2,7 +2,7 @@
   "name": "bizcard-frontend",
   "version": "0.1.0",
   "private": true,
-  "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start", "test:csv": "node tests/csv.test.mjs" },
   "dependencies": { "next": "latest", "react": "latest", "react-dom": "latest" },
   "devDependencies": { "tailwindcss": "^4", "@tailwindcss/postcss": "^4" }
 }
