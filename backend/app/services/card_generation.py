@@ -58,7 +58,9 @@ def draw_image(canvas: Canvas, file_path: str | None, x: float, y: float, width:
         return False
 
 
-def render_card_pdf(path: Path, company, employee, style_key: str, verification_token: str):
+def render_card_pdf(path: Path, company, employee, style_key: str, verification_token: str, design: dict | None = None):
+    if design:
+        return render_custom_card(path, company, employee, verification_token, design)
     style = STYLES.get(style_key, STYLES['classic'])
     canvas = Canvas(str(path), pagesize=(CARD_WIDTH, CARD_HEIGHT), pageCompression=1)
     canvas.setFillColor(HexColor(style['background']))
@@ -114,7 +116,7 @@ def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
             filename = f'{employee.employee_id}_card.pdf'
             path = output_dir / filename
             verification_token = token_urlsafe(24)
-            render_card_pdf(path, request.company, employee, request.template.style_key, verification_token)
+            render_card_pdf(path, request.company, employee, request.template.style_key, verification_token, request.template.design)
             created_paths.append(path)
             card = GeneratedCard(
                 request_item_id=item.id,
@@ -134,3 +136,71 @@ def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
         for path in created_paths:
             path.unlink(missing_ok=True)
         raise
+
+
+def fit_card_label(canvas, value, font, size, width):
+    selected_size = fit_text(canvas, value, font, size, width)
+    if stringWidth(value, font, selected_size) <= width:
+        return value
+    shortened = value
+    while shortened and stringWidth(shortened + '...', font, selected_size) > width:
+        shortened = shortened[:-1]
+    return shortened + '...'
+
+
+def render_custom_card(path, company, employee, token, definition):
+    from app.schemas.ai import CardDesign
+    design = CardDesign.model_validate(definition)
+    canvas = Canvas(str(path), pagesize=(CARD_WIDTH, CARD_HEIGHT), pageCompression=1)
+    canvas.setFillColor(HexColor(design.background))
+    canvas.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, fill=1, stroke=0)
+    canvas.setFillColor(HexColor(design.accent))
+    canvas.setStrokeColor(HexColor(design.accent))
+    if design.decoration == 'stripe':
+        canvas.rect(0, 136, 252, 8, fill=1, stroke=0)
+    elif design.decoration == 'corner':
+        canvas.circle(252, 144, 30, fill=1, stroke=0)
+    elif design.decoration == 'frame':
+        canvas.setLineWidth(2)
+        canvas.rect(8, 8, 236, 128, fill=0, stroke=1)
+    else:
+        canvas.rect(20, 122, 30, 3, fill=1, stroke=0)
+    canvas.setFillColor(HexColor(design.text))
+    font = design.font
+    bold = {'Helvetica': 'Helvetica-Bold', 'Times-Roman': 'Times-Bold', 'Courier': 'Courier-Bold'}[font]
+    has_photo = draw_image(canvas, employee.photo_path, 20, 84, 34, 34)
+    left = 62 if has_photo else 20
+    width = 170 if has_photo else 212
+    centered = design.layout == 'center' and not has_photo
+    def text(value, y, size, face=font, available=width):
+        value = fit_card_label(canvas, value, face, size, available)
+        if centered:
+            canvas.drawCentredString(126, y, value)
+        else:
+            canvas.drawString(left, y, value)
+    text(employee.name, 102, 17, bold)
+    text(employee.designation, 85, 10)
+    text(employee.department, 70, 8, available=120)
+    email = fit_card_label(canvas, employee.email, font, 8, 155)
+    canvas.drawString(20, 45, email)
+    phone = fit_card_label(canvas, employee.phone, font, 8, 155)
+    canvas.drawString(20, 31, phone)
+    draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{token}", 190, 35)
+    draw_image(canvas, company.logo_path, 196, 111, 32, 16)
+    company_name = fit_card_label(canvas, company.name.upper(), bold, 7, 210)
+    canvas.drawRightString(232, 16, company_name)
+    canvas.showPage()
+    if design.two_sided:
+        canvas.setFillColor(HexColor(design.background))
+        canvas.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, fill=1, stroke=0)
+        canvas.setFillColor(HexColor(design.accent))
+        canvas.rect(0, 136, 252, 8, fill=1, stroke=0)
+        draw_image(canvas, company.logo_path, 106, 93, 40, 28)
+        canvas.setFillColor(HexColor(design.text))
+        company_name = fit_card_label(canvas, company.name, bold, 18, 212)
+        canvas.drawCentredString(126, 75, company_name)
+        website = fit_card_label(canvas, company.website or 'Your people. Your brand.', font, 8, 155)
+        canvas.drawString(20, 34, website)
+        draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{token}", 190, 24)
+        canvas.showPage()
+    canvas.save()

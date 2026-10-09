@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     system_admin_password: SecretStr = Field(
         default=SecretStr(''), validation_alias=AliasChoices('SYSTEM_ADMIN_PASSWORD', 'SUPER_ADMIN_PASSWORD')
     )
+    gemini_api_key: SecretStr = SecretStr('')
+    gemini_model: str = 'gemini-3.5-flash-lite'
     generated_card_storage: str = 'generated_cards'
     upload_storage: str = 'uploads'
     public_app_url: str = 'http://localhost:3000'

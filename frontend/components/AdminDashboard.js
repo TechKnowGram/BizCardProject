@@ -6,6 +6,7 @@ import StatusBadge from './StatusBadge';
 import CardPreview from './CardPreview';
 import ReviewDialog from './ReviewDialog';
 import Toast from './Toast';
+import AdminTemplateCollection from './AdminTemplateCollection';
 
 const formatDate = value => value ? new Date(value).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Not available';
 
@@ -14,7 +15,7 @@ function StatCard({ label, value, note, tone }) {
 }
 
 export default function AdminDashboard({ tab, setTab }) {
-  const [data, setData] = useState({ companies: [], requests: [], templates: [], audits: [], stats: {} });
+  const [data, setData] = useState({ companies: [], requests: [], templates: [], companyDesigns: [], audits: [], stats: {} });
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
   const [review, setReview] = useState(null);
@@ -27,10 +28,10 @@ export default function AdminDashboard({ tab, setTab }) {
   const load = useCallback(async () => {
     setError('');
     try {
-      const [companies, requests, templates, audits, stats] = await Promise.all([
-        api('/admin/companies'), api('/admin/card-requests'), api('/admin/templates'), api('/admin/audit-logs'), api('/admin/stats'),
+      const [companies, requests, templates, audits, stats, companyDesigns] = await Promise.all([
+        api('/admin/companies'), api('/admin/card-requests'), api('/admin/templates'), api('/admin/audit-logs'), api('/admin/stats'), api('/admin/templates/company-designs'),
       ]);
-      setData({ companies, requests, templates, audits, stats });
+      setData({ companies, requests, templates, audits, stats, companyDesigns });
     } catch (requestError) { setError(requestError.message); }
     finally { setLoading(false); }
   }, []);
@@ -44,6 +45,15 @@ export default function AdminDashboard({ tab, setTab }) {
       await api(path, { method: 'PATCH', body: JSON.stringify(body) });
       setReview(null); setMessage('The decision was saved successfully.'); await load();
     } catch (requestError) { setError(requestError.message); }
+    finally { setBusy(false); }
+  }
+
+  async function saveDesign(id) {
+    setBusy(true); setError('');
+    try {
+      await api(`/admin/templates/${id}/save`, { method: 'POST' });
+      setMessage('Design saved to the shared template collection.'); await load();
+    } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   }
 
@@ -86,7 +96,7 @@ export default function AdminDashboard({ tab, setTab }) {
     {tab !== 'overview' && <section className="panel">
       <div className="panel-header"><div><span className="panel-kicker">{tab === 'companies' ? 'WORKSPACE ACCESS' : tab === 'requests' ? 'CARD DELIVERY' : tab === 'templates' ? 'DESIGN SYSTEM' : 'SYSTEM HISTORY'}</span><h2>{tab === 'companies' ? 'Company directory' : tab === 'requests' ? 'Card review queue' : tab === 'templates' ? 'Template collection' : 'Administrative activity'}</h2><p>{tab === 'audit' ? 'A traceable record of important decisions and data changes.' : tab === 'templates' ? 'Curated layouts for a consistent company identity.' : 'Open a submission to inspect full context before deciding.'}</p></div>{tab !== 'templates' && <div className="flex flex-wrap gap-2"><div className="search-field"><span>⌕</span><input aria-label="Search records" placeholder="Search…" value={search} onChange={event => setSearch(event.target.value)} /></div>{tab !== 'audit' && <select className="input compact" value={status} onChange={event => setStatus(event.target.value)}>{['ALL', 'PENDING', 'APPROVED', 'REJECTED', ...(tab === 'companies' ? ['SUSPENDED'] : ['COMPLETED', 'PROCESSING', 'FAILED'])].map(value => <option key={value}>{value}</option>)}</select>}</div>}</div>
 
-      {tab === 'templates' ? <div className="template-grid">{data.templates.map(template => <article className="template-option" key={template.id}><CardPreview style={template.style_key} /><div className="template-meta"><div><h3>{template.name}</h3><p>{template.description}</p></div><StatusBadge value={template.is_active ? 'ACTIVE' : 'INACTIVE'} /></div><button className="btn-secondary w-full" disabled={busy} onClick={() => mutate(`/admin/templates/${template.id}`, { is_active: !template.is_active })}>{template.is_active ? 'Deactivate template' : 'Activate template'}</button></article>)}</div> :
+      {tab === 'templates' ? <AdminTemplateCollection data={data} busy={busy} onSave={saveDesign} onToggle={template => mutate(`/admin/templates/${template.id}`, { is_active: !template.is_active })} /> :
       tab === 'audit' ? <div className="overflow-x-auto"><table className="data-table"><thead><tr><th>Activity</th><th>Entity</th><th>Company</th><th>Details</th><th>Date</th></tr></thead><tbody>{visible.map(item => <tr key={item.id}><td><strong className="audit-action">{item.action.replaceAll('_', ' ')}</strong></td><td>{item.entity_type} #{item.entity_id}</td><td>{item.company_id ? `#${item.company_id}` : 'System'}</td><td className="max-w-xs text-slate-500">{item.details || '—'}</td><td>{formatDate(item.created_at)}</td></tr>)}</tbody></table>{!visible.length && <Empty />}</div> :
       <div className="overflow-x-auto"><table className="data-table"><thead><tr><th>{tab === 'companies' ? 'Company' : 'Request / company'}</th><th>Submitted by</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>{visible.map(item => { const owner = tab === 'companies' ? item.admins?.[0] : item.created_by; return <tr key={item.id}><td><div className="entity-cell"><span>{tab === 'companies' ? item.name.charAt(0) : '▤'}</span><div><strong>{tab === 'companies' ? item.name : item.company?.name}</strong><small>{tab === 'companies' ? `Company #${item.id}` : `Request #${item.id} · ${item.items.length} cards`}</small></div></div></td><td><p>{owner?.username || 'Not available'}</p><small>{owner?.email}</small></td><td className="text-slate-500">{formatDate(item.created_at)}</td><td><StatusBadge value={item.status} /></td><td><button className="table-action" onClick={() => open(item)}>Review details ↗</button></td></tr>; })}</tbody></table>{!visible.length && <Empty />}</div>}
     </section>}
@@ -95,7 +105,7 @@ export default function AdminDashboard({ tab, setTab }) {
       <div className="review-status-line"><StatusBadge value={review.status} /><span>Submitted {formatDate(review.created_at)}</span></div>
       <dl className="review-grid"><div><dt>Company</dt><dd>{review.name || review.company?.name}</dd></div><div><dt>Submitted</dt><dd>{formatDate(review.created_at)}</dd></div>{(review.kind === 'companies' ? review.admins || [] : [review.created_by]).filter(Boolean).map(owner => <div key={owner.id}><dt>{review.kind === 'companies' ? 'Company administrator' : 'Requested by'}</dt><dd>{owner.username}<span>{owner.email}</span></dd></div>)}{review.kind === 'companies' && <><div><dt>Phone</dt><dd>{review.phone || 'Not provided'}</dd></div><div><dt>Website</dt><dd>{review.website || 'Not provided'}</dd></div><div><dt>Address</dt><dd>{review.address || 'Not provided'}</dd></div><div><dt>Branding</dt><dd>{review.has_logo ? 'Logo uploaded' : 'No logo yet'}</dd></div></>}</dl>
       {review.kind === 'companies' && review.description && <div className="review-note"><strong>About the company</strong><p>{review.description}</p></div>}
-      {review.kind === 'requests' && <><div className="request-review-layout"><div><h3>Selected template · {review.template?.name}</h3><CardPreview style={review.template?.style_key} company={review.company?.name} name={review.items[0]?.employee?.name} designation={review.items[0]?.employee?.designation} /></div><div><h3>Request timeline</h3><div className="request-timeline compact"><div className="done"><span>✓</span><i /><p><strong>Submitted</strong><small>{formatDate(review.created_at)}</small></p></div><div className={review.decided_at ? 'done' : ''}><span>{review.decided_at ? '✓' : '2'}</span><i /><p><strong>Administrator decision</strong><small>{review.decided_at ? formatDate(review.decided_at) : 'Waiting for you'}</small></p></div><div className={review.status === 'COMPLETED' ? 'done' : ''}><span>{review.status === 'COMPLETED' ? '✓' : '3'}</span><p><strong>Cards generated</strong><small>{review.status === 'COMPLETED' ? 'Complete' : 'Waiting'}</small></p></div></div></div></div><h3 className="detail-heading">Employees included ({review.items.length})</h3><div className="request-people">{review.items.map(item => <div key={item.id}><span>{item.employee.name.charAt(0)}</span><p><strong>{item.employee.name}</strong><small>{item.employee.employee_id} · {item.employee.designation} · {item.employee.department}</small></p></div>)}</div></>}
+      {review.kind === 'requests' && <><div className="request-review-layout"><div><h3>Selected template · {review.template?.name}</h3><CardPreview design={review.template?.design} style={review.template?.style_key} company={review.company?.name} name={review.items[0]?.employee?.name} designation={review.items[0]?.employee?.designation} /></div><div><h3>Request timeline</h3><div className="request-timeline compact"><div className="done"><span>✓</span><i /><p><strong>Submitted</strong><small>{formatDate(review.created_at)}</small></p></div><div className={review.decided_at ? 'done' : ''}><span>{review.decided_at ? '✓' : '2'}</span><i /><p><strong>Administrator decision</strong><small>{review.decided_at ? formatDate(review.decided_at) : 'Waiting for you'}</small></p></div><div className={review.status === 'COMPLETED' ? 'done' : ''}><span>{review.status === 'COMPLETED' ? '✓' : '3'}</span><p><strong>Cards generated</strong><small>{review.status === 'COMPLETED' ? 'Complete' : 'Waiting'}</small></p></div></div></div></div><h3 className="detail-heading">Employees included ({review.items.length})</h3><div className="request-people">{review.items.map(item => <div key={item.id}><span>{item.employee.name.charAt(0)}</span><p><strong>{item.employee.name}</strong><small>{item.employee.employee_id} · {item.employee.designation} · {item.employee.department}</small></p></div>)}</div></>}
       {review.rejection_reason && <div className="decision-note"><strong>Decision note</strong><p>{review.rejection_reason}</p></div>}
       {(review.kind === 'companies' || review.status === 'PENDING') && <div className="decision-box"><label><span className="field-label">Rejection reason</span><textarea className="input min-h-24" maxLength={500} value={reason} onChange={event => setReason(event.target.value)} placeholder="Required only when rejecting. Explain what must be corrected." /></label><div><button className="btn-secondary" disabled={busy} onClick={() => setReview(null)}>Cancel</button><button className="btn-danger" disabled={busy || !reason.trim()} onClick={() => mutate(review.kind === 'companies' ? `/admin/companies/${review.id}/status` : `/admin/card-requests/${review.id}/decision`, review.kind === 'companies' ? { status: 'REJECTED', reason: reason.trim() } : { decision: 'REJECTED', reason: reason.trim() })}>Reject</button>{review.kind === 'companies' && review.status === 'APPROVED' ? <button className="btn-danger" disabled={busy} onClick={() => mutate(`/admin/companies/${review.id}/status`, { status: 'SUSPENDED' })}>Suspend company</button> : <button className="btn-primary" disabled={busy} onClick={() => mutate(review.kind === 'companies' ? `/admin/companies/${review.id}/status` : `/admin/card-requests/${review.id}/decision`, review.kind === 'companies' ? { status: 'APPROVED' } : { decision: 'APPROVED' })}>{busy ? 'Saving decision…' : review.kind === 'companies' ? 'Approve company' : 'Approve & generate cards'}</button>}</div></div>}
     </ReviewDialog>}

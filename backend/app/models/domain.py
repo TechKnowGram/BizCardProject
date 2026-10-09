@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID as PythonUUID
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import JSON, Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
@@ -8,6 +8,7 @@ from app.db.base import Base
 
 class Company(Base):
     __tablename__ = 'companies'
+    brand_kit: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='PENDING', index=True)
@@ -56,6 +57,8 @@ class Employee(Base):
 
 class CardTemplate(Base):
     __tablename__ = 'card_templates'
+    company_id: Mapped[int | None] = mapped_column(ForeignKey('companies.id', name='fk_template_company', use_alter=True), nullable=True, index=True)
+    design: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
     description: Mapped[str] = mapped_column(String(255), nullable=False, default='')

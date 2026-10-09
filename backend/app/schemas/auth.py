@@ -62,6 +62,7 @@ class UserResponse(BaseModel):
 
 
 class CompanySummary(BaseModel):
+    brand_kit: dict | None = None
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
