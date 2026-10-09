@@ -215,3 +215,23 @@ npm run build
 - Logos and employee photos use local upload storage and are never stored as database bytes.
 - Deactivating an employee also deactivates their existing public card verification.
 - Real `.env` files, local databases, generated cards, virtual environments, and frontend build files are excluded from Git.
+
+## AI Card Designer
+
+Set `GEMINI_API_KEY` and optionally `GEMINI_MODEL=gemini-3.5-flash-lite` in `backend/app/.env`, then run `alembic upgrade head` and restart the backend. The key stays on the backend. The integration uses Gemini's OpenAI-compatible chat completions endpoint; no OpenAI key is needed.
+
+Approved companies can open **Card Studio ? AI Designer**, describe a style, preview it, refine it, then save it as a private company template. Select the saved template and submit the normal card request for admin approval and PDF generation. Draft generation does not save or select a template automatically.
+
+Supported designs use validated colors, three print fonts, left/center layouts and four decorations. AI does not generate executable HTML, arbitrary artwork or brand logos. This keeps saved previews and printable PDFs predictable. Employee data is not sent to Gemini; only the design prompt and optional previous draft are sent. Avoid putting confidential information in prompts. Provider quota and costs depend on your Gemini account.
+
+Company AI designs remain private and are listed separately from the shared admin template collection. System Admin can use **Company designs ? Save to shared collection** to publish a copy. Card approval does not publish a template, and repeated library saves reuse the same shared copy.
+
+
+### Premium Card Studio
+
+- The interface uses locally hosted Manrope, with its OFL license included in `frontend/app/fonts`.
+- **Explore 3 styles** creates three AI alternatives in one provider request. Pick a design, then adjust palette, alignment, decoration and print font without another AI call.
+- **Your Brand Kit** saves company-specific color and font preferences. Existing uploaded logos are applied locally; employee data and images are not sent to Gemini.
+- **Actual PDF preview** renders an unsaved draft or selected template with the same service used after approval. Previews do not issue cards or create database records; preview QR codes do not verify.
+- Enable **Include branded back** to create a two-page PDF per employee, with each side sized 3.5 ? 2 inches. Existing single-sided templates stay single-sided.
+- Apply the brand-kit migration with `cd backend` then `alembic upgrade head` before restarting the backend.

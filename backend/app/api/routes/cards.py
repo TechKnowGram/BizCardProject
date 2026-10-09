@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import Session, selectinload
 from app.api.deps import require_approved_company_admin, require_system_admin
 from app.db.session import get_db
@@ -38,7 +38,8 @@ def create_card_request(
     if user.company.selected_template_id != body.template_id:
         raise HTTPException(status_code=400, detail='Select this template before creating a request')
     template = db.scalar(select(CardTemplate).where(
-        CardTemplate.id == body.template_id, CardTemplate.is_active.is_(True)
+        CardTemplate.id == body.template_id, CardTemplate.is_active.is_(True),
+        or_(CardTemplate.company_id.is_(None), CardTemplate.company_id == user.company_id)
     ))
     if template is None:
         raise HTTPException(status_code=404, detail='Active template not found')
