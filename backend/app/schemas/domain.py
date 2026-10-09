@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator, field_serializer
+from app.schemas.ai import CardDesign
 from app.schemas.auth import UserResponse, CompanySummary
 
 
@@ -104,12 +105,18 @@ class TemplateUpdate(BaseModel):
 
 
 class TemplateResponse(BaseModel):
+    company_id: int | None = None
+    design: CardDesign | None = None
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     description: str
     style_key: str
     is_active: bool
+
+    @field_serializer('name')
+    def display_name(self, value):
+        return self.design.name if self.design else value
 
 
 class CardRequestCreate(BaseModel):
