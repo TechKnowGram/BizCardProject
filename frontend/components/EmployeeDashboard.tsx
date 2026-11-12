@@ -60,6 +60,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   // Card Studio view toggle ('order' or 'vault')
   const [cardSubView, setCardSubView] = useState<'order' | 'vault'>('order');
 
+  // Card Type Selector Pattern ('PERSONAL' or 'COMPANY')
+  const [cardOrderType, setCardOrderType] = useState<'PERSONAL' | 'COMPANY'>('PERSONAL');
+
+  // Request to Change Company workflow state
+  const [changeCompanyOpen, setChangeCompanyOpen] = useState(false);
+
   // Modal state for joining a specific company
   const [targetCompany, setTargetCompany] = useState<any>(null);
   const [joinForm, setJoinForm] = useState({ official_email: '', employee_id: '', payer: 'COMPANY' });
@@ -98,6 +104,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
       if (active) {
         setSelected(String(active.company_id));
         setTemplates((await api(`/employee/templates/${active.company_id}`)) as any[]);
+        setCardOrderType('COMPANY');
       }
     } catch (err: any) {
       setError(err.message);
@@ -127,7 +134,11 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
   function openJoinModal(company: any) {
     setTargetCompany(company);
-    setJoinForm({ official_email: '', employee_id: '', payer: 'COMPANY' });
+    setJoinForm({
+      official_email: activeMembership?.official_email || '',
+      employee_id: activeMembership?.employee_code || '',
+      payer: 'COMPANY',
+    });
     setJoinErrors({});
     setModalApiError('');
   }
@@ -144,7 +155,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!joinForm.official_email.trim()) {
-      errs.official_email = 'Official company email is required.';
+      errs.official_email = 'Official work email is required.';
     } else if (!isValidEmail(joinForm.official_email)) {
       errs.official_email = 'Enter a valid email address.';
     }
@@ -166,6 +177,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         }),
       });
       setTargetCompany(null);
+      setChangeCompanyOpen(false);
       if (result.status === 'APPROVED') {
         setMessage(`Success! Your details matched ${targetCompany.name}'s roster. Membership is now active.`);
       } else {
@@ -189,12 +201,13 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     setBusy(true);
     setError('');
     try {
-      const path = isCompany ? `/employee/checkout/company/${selected}` : '/employee/checkout/personal';
+      const companyId = isCompany ? (selected || activeMembership?.company_id) : null;
+      const path = isCompany ? `/employee/checkout/company/${companyId}` : '/employee/checkout/personal';
       const body = isCompany
         ? { quantity: Number(order.quantity), template_id: Number(order.template_id), payer: order.payer }
         : { ...order, quantity: Number(order.quantity) };
       const result: any = await api(path, { method: 'POST', body: JSON.stringify(body) });
-      setMessage(`Payment complete! ${result.quantity} card${result.quantity > 1 ? 's' : ''} created; total ৳${result.total_amount}.`);
+      setMessage(`Order placed successfully! ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'} generated; total ৳${result.total_amount}.`);
       await load();
       setCardSubView('vault');
     } catch (err: any) {
@@ -213,13 +226,14 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   const filteredCompanies = companies.filter(
     c =>
       (c.name || '').toLowerCase().includes(companySearch.toLowerCase()) ||
-      (c.description || '').toLowerCase().includes(companySearch.toLowerCase())
+      (c.description || '').toLowerCase().includes(companySearch.toLowerCase()) ||
+      String(c.id).includes(companySearch)
   );
 
   const employeeName = user?.username || 'Team Member';
 
   /* ==============================================================================================
-     VIEW: MY PROFILE
+     VIEW A: MY PROFILE (UX Corrections A.1 - A.6)
      ============================================================================================== */
   if (tab === 'profile') {
     return (
@@ -230,67 +244,85 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* User Account Credentials */}
-          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider text-3xs text-royal">
+          {/* Section 1: Account Identifier */}
+          <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <h2 className="text-3xs font-extrabold text-royal uppercase tracking-wider">
               ACCOUNT IDENTIFIER
-            </h3>
+            </h2>
             <div className="mt-4 flex items-center gap-3.5">
               <span className="grid size-12 place-items-center rounded-2xl bg-lilac font-display text-lg font-bold text-royal">
                 {employeeName.charAt(0).toUpperCase()}
               </span>
               <div>
                 <strong className="block text-base font-bold text-slate-900">{employeeName}</strong>
-                <span className="text-xs text-slate-500">{user?.email || 'Individual employee'}</span>
+                <span className="text-xs text-slate-500">ID: #{user?.id || '—'}</span>
               </div>
             </div>
 
             <dl className="mt-6 divide-y divide-slate-100 text-xs">
-              <div className="py-2.5 flex justify-between">
+              <div className="py-2.5 flex justify-between items-center">
                 <dt className="text-slate-500">Account Role</dt>
-                <dd className="font-semibold text-slate-800">Employee Workspace</dd>
+                <dd className="font-semibold text-slate-800">Employee</dd>
               </div>
-              <div className="py-2.5 flex justify-between">
+              <div className="py-2.5 flex justify-between items-center">
+                <dt className="text-slate-500">Account / Login Email</dt>
+                <dd className="font-medium text-slate-800">{user?.email || '—'}</dd>
+              </div>
+              <div className="py-2.5 flex justify-between items-center">
                 <dt className="text-slate-500">Total Cards Ordered</dt>
-                <dd className="font-semibold text-slate-800">{cardRows.length} cards</dd>
+                <dd className="font-semibold text-slate-800">
+                  {cardRows.length} {cardRows.length === 1 ? 'card' : 'cards'}
+                </dd>
               </div>
-              <div className="py-2.5 flex justify-between">
+              <div className="py-2.5 flex justify-between items-center">
                 <dt className="text-slate-500">Order Transactions</dt>
-                <dd className="font-semibold text-slate-800">{orders.length} orders</dd>
+                <dd className="font-semibold text-slate-800">
+                  {orders.length} {orders.length === 1 ? 'order' : 'orders'}
+                </dd>
               </div>
             </dl>
-          </div>
+          </section>
 
-          {/* Organizational Employment Record */}
-          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider text-3xs text-royal">
+          {/* Section 2: Company Association */}
+          <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <h2 className="text-3xs font-extrabold text-royal uppercase tracking-wider">
               COMPANY ASSOCIATION
-            </h3>
+            </h2>
             <div className="mt-4">
               {membershipState === 'ACTIVE' && activeMembership ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <strong className="block text-base font-bold text-slate-900">
                         {activeMembership.company?.name}
                       </strong>
-                      <small className="text-xs text-emerald-700 font-semibold">✓ Verified Active Member</small>
+                      <span className="text-2xs text-slate-500 font-mono">
+                        Workspace ID: #{activeMembership.company_id}
+                      </span>
                     </div>
                     <StatusBadge value="ACTIVE" />
                   </div>
+
                   <dl className="mt-4 divide-y divide-slate-100 text-xs">
-                    <div className="py-2 flex justify-between">
+                    <div className="py-2.5 flex justify-between items-center">
                       <dt className="text-slate-500">Employee ID</dt>
                       <dd className="font-mono font-bold text-slate-900">{activeMembership.employee_code}</dd>
                     </div>
-                    <div className="py-2 flex justify-between">
-                      <dt className="text-slate-500">Official Email</dt>
+                    <div className="py-2.5 flex justify-between items-center">
+                      <dt className="text-slate-500">Official Work Email</dt>
                       <dd className="font-medium text-slate-800">{activeMembership.official_email}</dd>
                     </div>
-                    <div className="py-2 flex justify-between">
-                      <dt className="text-slate-500">Card Sponsorship</dt>
-                      <dd className="font-bold text-emerald-700">
-                        {activeMembership.payer === 'COMPANY' ? 'Company Sponsored (৳0)' : 'Self Paid'}
+                    <div className="py-2.5 flex justify-between items-start">
+                      <dt className="text-slate-500">Billing Responsibility</dt>
+                      <dd className="text-right">
+                        <strong className="block font-bold text-slate-900">
+                          {activeMembership.payer === 'COMPANY' ? 'Company Covered' : 'Employee Self-Paid'}
+                        </strong>
+                        <span className="text-2xs text-slate-500">
+                          {activeMembership.payer === 'COMPANY'
+                            ? 'Employee payable: ৳0 (100% employer sponsored)'
+                            : 'Employee payable: ৳50 per card'}
+                        </span>
                       </dd>
                     </div>
                   </dl>
@@ -302,37 +334,66 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       <strong className="block text-base font-bold text-slate-900">
                         {pendingMembership.company?.name}
                       </strong>
-                      <small className="text-xs text-amber-700 font-medium">⏳ Association Under Review</small>
+                      <span className="text-2xs text-slate-500 font-mono">
+                        Workspace ID: #{pendingMembership.company_id}
+                      </span>
                     </div>
                     <StatusBadge value="PENDING" />
                   </div>
-                  <p className="text-xs text-slate-500">
-                    Employee ID {pendingMembership.employee_code} was submitted for verification.
+                  <dl className="mt-3 divide-y divide-slate-100 text-xs">
+                    <div className="py-2 flex justify-between">
+                      <dt className="text-slate-500">Submitted Employee ID</dt>
+                      <dd className="font-mono font-bold text-slate-800">{pendingMembership.employee_code}</dd>
+                    </div>
+                    <div className="py-2 flex justify-between">
+                      <dt className="text-slate-500">Official Work Email</dt>
+                      <dd className="text-slate-800">{pendingMembership.official_email}</dd>
+                    </div>
+                  </dl>
+                  <p className="mt-2 text-2xs text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                    Association request submitted. Awaiting administrator review.
+                  </p>
+                </div>
+              ) : membershipState === 'REJECTED' && rejectedMembership ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <strong className="block text-base font-bold text-slate-900">
+                        {rejectedMembership.company?.name}
+                      </strong>
+                      <span className="text-2xs text-slate-500 font-mono">
+                        Workspace ID: #{rejectedMembership.company_id}
+                      </span>
+                    </div>
+                    <StatusBadge value="REJECTED" />
+                  </div>
+                  <p className="text-xs text-rose-800 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                    Association request was not approved. Please verify details with your HR team.
                   </p>
                 </div>
               ) : (
-                <div className="text-center py-4">
-                  <p className="text-xs text-slate-500">
-                    No active company linked. You can search and connect with your employer in the Company tab.
+                <div className="text-center py-5">
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    No company currently linked. You are using an independent employee account.
                   </p>
                   <Button
                     variant="secondary"
                     className="mt-4 !text-xs font-bold"
                     onClick={() => setTab?.('company')}
                   >
-                    Browse Companies →
+                    Connect to a Company →
                   </Button>
                 </div>
               )}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     );
   }
 
   /* ==============================================================================================
-     VIEW: COMPANY (Directory & Association Hub)
+     VIEW B: COMPANY PAGE (UX Corrections B.1 - B.8)
      ============================================================================================== */
   if (tab === 'company') {
     return (
@@ -340,108 +401,248 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
 
         <PageTitle
-          title="Company Workspaces"
-          subtitle="Explore registered corporate workspaces, verify your employment credentials, or inspect your connected organization."
+          title="Company Workspace"
+          subtitle="Manage your organizational connection, view verified company credentials, and explore approved workplaces."
         />
 
-        {/* If Active, show Active Company Profile */}
-        {membershipState === 'ACTIVE' && activeMembership && (
-          <div className="rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-6 shadow-2xs">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <span className="grid size-12 place-items-center rounded-2xl bg-white font-extrabold text-royal shadow-xs text-lg">
-                  {activeMembership.company?.name?.charAt(0) || '🏢'}
-                </span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <strong className="text-lg font-bold text-slate-900">{activeMembership.company?.name}</strong>
-                    <StatusBadge value="ACTIVE" />
+        {/* B.2: When membership is ACTIVE, show connected company as PRIMARY content */}
+        {membershipState === 'ACTIVE' && activeMembership ? (
+          <div className="space-y-6">
+            <section className="rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-7 shadow-2xs">
+              <div className="flex flex-wrap items-start justify-between gap-5">
+                <div className="flex items-start gap-4">
+                  {/* B.7: Monogram / Initials fallback */}
+                  <span className="grid size-14 place-items-center rounded-2xl bg-slate-900 font-display text-xl font-bold text-mint shadow-xs">
+                    {activeMembership.company?.name?.charAt(0) || '🏢'}
+                  </span>
+                  <div>
+                    <h2 className="text-xl font-extrabold text-slate-900">{activeMembership.company?.name}</h2>
+                    <p className="text-2xs text-slate-500 font-mono mt-0.5">
+                      Company Workspace ID: #{activeMembership.company_id}
+                    </p>
+
+                    {/* B.8: Clearly distinguish company verification from employee verification */}
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-300 px-3 py-1 text-3xs font-bold text-slate-700 shadow-2xs">
+                        <span className="size-1.5 rounded-full bg-emerald-600" />
+                        Verified Company Workspace
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-mint/30 border border-mint/60 px-3 py-1 text-3xs font-bold text-slate-900 shadow-2xs">
+                        <span className="size-1.5 rounded-full bg-emerald-700" />
+                        Verified Employee Membership
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Verified Employee ID: <strong className="font-mono text-slate-900">{activeMembership.employee_code}</strong> · {activeMembership.official_email}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="sun"
+                    className="!px-5 !py-2.5 !text-xs font-bold"
+                    onClick={() => {
+                      setTab?.('card');
+                      setCardOrderType('COMPANY');
+                    }}
+                  >
+                    Order Company Cards ↗
+                  </Button>
+                </div>
+              </div>
+
+              {/* Company Details Grid */}
+              <div className="mt-6 pt-5 border-t border-[#bfe5d3]/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Employee ID</span>
+                  <strong className="mt-0.5 block font-mono text-slate-900">{activeMembership.employee_code}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Official Work Email</span>
+                  <span className="mt-0.5 block text-slate-800">{activeMembership.official_email}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Website</span>
+                  <span className="mt-0.5 block text-slate-800">{activeMembership.company?.website || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Billing Policy</span>
+                  <strong className="mt-0.5 block text-emerald-800 font-bold">
+                    {activeMembership.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Employee Self-Paid'}
+                  </strong>
+                </div>
+              </div>
+            </section>
+
+            {/* B.3 & B.4: Single Active Membership Policy & Request to Change Company Workflow */}
+            <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Single Active Organization Policy</h3>
+                  <p className="mt-1 text-xs text-slate-500 max-w-2xl leading-relaxed">
+                    Your account is actively linked to <strong>{activeMembership.company?.name}</strong>.
+                    To maintain brand standards and authorization limits, employees hold one active company membership at a time.
                   </p>
                 </div>
-              </div>
 
-              <Button
-                variant="sun"
-                className="!px-5 !py-2 !text-xs font-bold"
-                onClick={() => setTab?.('card')}
-              >
-                Order Company Cards ↗
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Company Directory Search & List */}
-        <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-          <SectionHeading
-            title="Registered Organizations Directory"
-            copy="Search approved organizations to submit credentials and verify employment."
-            action={
-              <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900">
-                <span className="text-sm text-slate-400">⌕</span>
-                <input
-                  className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
-                  placeholder="Search by company name…"
-                  value={companySearch}
-                  onChange={e => setCompanySearch(e.target.value)}
-                />
-              </div>
-            }
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-5">
-            {filteredCompanies.map(company => {
-              const membership = memberships.find(item => item.company_id === company.id);
-              const initials = (company.name || 'C').split(' ').map((p: string) => p[0]).slice(0, 2).join('');
-
-              return (
-                <div
-                  key={company.id}
-                  className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5 transition-all hover:bg-white hover:shadow-xs"
+                <Button
+                  variant="secondary"
+                  className="!text-xs font-bold"
+                  onClick={() => setChangeCompanyOpen(!changeCompanyOpen)}
                 >
-                  <div>
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="grid size-10 place-items-center rounded-xl bg-lilac font-extrabold text-royal text-xs">
-                        {initials}
-                      </span>
-                      {membership && <StatusBadge value={membership.status} />}
-                    </div>
+                  {changeCompanyOpen ? 'Hide Transfer Workflow' : 'Request to Change Company'}
+                </Button>
+              </div>
 
-                    <h3 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h3>
-                    <p className="mt-1 text-xs text-slate-500 line-clamp-2">
-                      {company.description || company.website || 'Verified corporate workspace'}
-                    </p>
+              {changeCompanyOpen && (
+                <div className="mt-6 pt-5 border-t border-slate-200">
+                  <div className="rounded-xl bg-amber-50/80 border border-amber-200 p-4 mb-5 text-xs text-amber-900 leading-relaxed">
+                    <strong>Notice:</strong> Submitting a request to another organization will replace your active membership with <strong>{activeMembership.company?.name}</strong> upon approval by the new company administrator.
                   </div>
 
-                  <div className="mt-5 pt-3.5 border-t border-slate-200/60">
-                    {membership?.status === 'APPROVED' ? (
-                      <span className="text-xs font-semibold text-emerald-700">✓ Connected Member</span>
-                    ) : membership?.status === 'PENDING' ? (
-                      <span className="text-xs font-medium text-amber-700">⏳ Request Pending</span>
-                    ) : (
-                      <Button
-                        variant="secondary"
-                        className="w-full !py-2 !text-xs font-bold"
-                        onClick={() => openJoinModal(company)}
-                      >
-                        Request to join →
-                      </Button>
-                    )}
+                  <SectionHeading
+                    title="Select New Organization to Request Transfer"
+                    copy="Search approved organizations to submit credentials."
+                    action={
+                      <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900">
+                        <span className="text-sm text-slate-400">⌕</span>
+                        <input
+                          className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
+                          placeholder="Search organizations…"
+                          value={companySearch}
+                          onChange={e => setCompanySearch(e.target.value)}
+                        />
+                      </div>
+                    }
+                  />
+
+                  {/* B.5 & B.6: Distinct company records (never merging by name) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-4">
+                    {filteredCompanies
+                      .filter(c => c.id !== activeMembership.company_id)
+                      .map(company => (
+                        <div
+                          key={company.id}
+                          className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5"
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="grid size-10 place-items-center rounded-xl bg-slate-900 font-display text-xs font-bold text-mint">
+                                {company.name?.charAt(0) || '🏢'}
+                              </span>
+                              <span className="text-3xs font-mono text-slate-400">ID: #{company.id}</span>
+                            </div>
+                            <h4 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h4>
+                            <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+                              {company.description || company.website || 'Verified corporate workspace'}
+                            </p>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            className="mt-4 w-full !py-2 !text-xs font-bold"
+                            onClick={() => openJoinModal(company)}
+                          >
+                            Request Transfer →
+                          </Button>
+                        </div>
+                      ))}
                   </div>
                 </div>
-              );
-            })}
+              )}
+            </section>
           </div>
-        </div>
+        ) : (
+          /* When NOT active: Show Pending / Directory with Request to Join */
+          <div className="space-y-6">
+            {membershipState === 'PENDING' && pendingMembership && (
+              <div className="rounded-[24px] border border-amber-300 bg-amber-50/70 p-6 shadow-2xs">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <span className="text-3xs font-extrabold uppercase tracking-wider text-amber-800">
+                      ASSOCIATION PENDING REVIEW
+                    </span>
+                    <h2 className="mt-1 text-base font-bold text-slate-900">
+                      {pendingMembership.company?.name} (Workspace #{pendingMembership.company_id})
+                    </h2>
+                    <p className="mt-2 text-xs text-slate-600">
+                      Submitted Employee ID: <strong className="font-mono">{pendingMembership.employee_code}</strong> · {pendingMembership.official_email}
+                    </p>
+                    <p className="mt-2 text-xs text-amber-900 leading-relaxed">
+                      {MATCH_HINTS[pendingMembership.match_status]?.text ||
+                        'Your details are awaiting review by the company administrator.'}
+                    </p>
+                  </div>
+                  <StatusBadge value="PENDING" />
+                </div>
+              </div>
+            )}
+
+            {/* Organizations Directory */}
+            <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+              <SectionHeading
+                title="Approved Organizations Directory"
+                copy="Find your employer to submit official credentials and unlock verified branding."
+                action={
+                  <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900">
+                    <span className="text-sm text-slate-400">⌕</span>
+                    <input
+                      className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
+                      placeholder="Search company or ID…"
+                      value={companySearch}
+                      onChange={e => setCompanySearch(e.target.value)}
+                    />
+                  </div>
+                }
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-5">
+                {filteredCompanies.map(company => {
+                  const membership = memberships.find(item => item.company_id === company.id);
+                  const isPendingThisCompany = pendingMembership?.company_id === company.id;
+
+                  return (
+                    <div
+                      key={company.id}
+                      className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="grid size-10 place-items-center rounded-xl bg-slate-900 font-display text-xs font-bold text-mint">
+                            {company.name?.charAt(0) || '🏢'}
+                          </span>
+                          <span className="text-3xs font-mono text-slate-400">Workspace #{company.id}</span>
+                        </div>
+
+                        <h3 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h3>
+                        <p className="mt-1 text-xs text-slate-500 line-clamp-2">
+                          {company.description || company.website || 'Verified corporate workspace'}
+                        </p>
+                      </div>
+
+                      <div className="mt-5 pt-3.5 border-t border-slate-200/60">
+                        {isPendingThisCompany ? (
+                          <span className="text-xs font-medium text-amber-700">⏳ Request Pending Review</span>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            className="w-full !py-2 !text-xs font-bold"
+                            onClick={() => openJoinModal(company)}
+                          >
+                            Request to join →
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     );
   }
 
   /* ==============================================================================================
-     VIEW: MY CARD (Visiting Card Studio & Archive)
+     VIEW C: MY CARD PAGE (UX Corrections C.1 - C.9: Card-Type Selection Pattern)
      ============================================================================================== */
   if (tab === 'card') {
     return (
@@ -451,10 +652,10 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         <div className="flex flex-wrap items-center justify-between gap-4">
           <PageTitle
             title="My Visiting Cards"
-            subtitle="Order new physical and digital visiting cards, or download print-ready PDFs."
+            subtitle="Order personal or company-branded visiting cards, and download print-ready vector PDF files."
           />
 
-          {/* Sub-toggle: Order New Card vs Card Vault */}
+          {/* Sub-toggle: Order New Cards vs Card Vault */}
           <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
             <button
               type="button"
@@ -480,23 +681,79 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         </div>
 
         {cardSubView === 'order' ? (
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Option 1: Personal Visiting Card */}
-            <div className="flex flex-col justify-between rounded-[24px] border border-slate-200/80 bg-white p-7 shadow-2xs">
-              <div>
-                <span className="rounded-full bg-lilac px-3 py-1 font-display text-3xs font-bold text-royal uppercase tracking-wider">
-                  Independent
-                </span>
-                <h3 className="mt-3 text-lg font-extrabold text-slate-900">Personal Visiting Card</h3>
-                <p className="mt-1 text-xs text-slate-500">
-                  Custom cards with your personal details without requiring company approval.
+          <div className="space-y-6">
+            {/* C.1 & C.2: Card-Type Selection Pattern */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Type 1: Personal Visiting Card */}
+              <button
+                type="button"
+                onClick={() => setCardOrderType('PERSONAL')}
+                className={cx(
+                  'rounded-2xl border p-5 text-left transition-all',
+                  cardOrderType === 'PERSONAL'
+                    ? 'border-slate-900 bg-white ring-2 ring-slate-900/10 shadow-xs'
+                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300'
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-500">Option 01</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs font-bold text-slate-700">
+                    ৳50 / card
+                  </span>
+                </div>
+                <strong className="mt-2 block text-base font-bold text-slate-900">Personal Visiting Card</strong>
+                <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                  Independent cards with your custom details. Available immediately without requiring company approval.
                 </p>
+              </button>
 
-                <div className="mt-5 space-y-3">
+              {/* Type 2: Company Branded Card */}
+              <button
+                type="button"
+                disabled={membershipState !== 'ACTIVE'}
+                onClick={() => setCardOrderType('COMPANY')}
+                className={cx(
+                  'rounded-2xl border p-5 text-left transition-all',
+                  membershipState !== 'ACTIVE'
+                    ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-50'
+                    : cardOrderType === 'COMPANY'
+                    ? 'border-royal bg-white ring-2 ring-royal/10 shadow-xs'
+                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300'
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xs font-extrabold uppercase tracking-wider text-royal">Option 02</span>
+                  {membershipState === 'ACTIVE' ? (
+                    <span className="rounded-full bg-mint/30 px-2.5 py-0.5 text-3xs font-bold text-slate-900">
+                      {activeMembership?.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Self-Paid'}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-3xs font-bold text-amber-800">
+                      Requires Active Company Member
+                    </span>
+                  )}
+                </div>
+                <strong className="mt-2 block text-base font-bold text-slate-900">Company Branded Card</strong>
+                <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                  Official cards generated using your verified organization&apos;s approved template and brand standard.
+                </p>
+              </button>
+            </div>
+
+            {/* C.3: Show ONLY the Selected Form */}
+            {cardOrderType === 'PERSONAL' ? (
+              /* Personal Card Form */
+              <div className="rounded-[24px] border border-slate-200/80 bg-white p-7 shadow-2xs max-w-2xl mx-auto">
+                <SectionHeading
+                  title="Personal Visiting Card Order"
+                  copy="Enter your contact information for individual cards."
+                />
+
+                <div className="space-y-4 mt-5">
                   {(['name', 'designation', 'department', 'phone'] as const).map(key => (
                     <div key={key}>
                       <label className="mb-1 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                        {key === 'name' ? 'Full name' : key === 'designation' ? 'Title / Role' : key === 'department' ? 'Field' : 'Phone'}
+                        {key === 'name' ? 'Full Name' : key === 'designation' ? 'Title / Designation' : key === 'department' ? 'Department / Field' : 'Phone Number'}
                       </label>
                       <input
                         className={inputClass}
@@ -507,137 +764,179 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                     </div>
                   ))}
 
-                  <div className="mt-4 rounded-xl border border-slate-200 bg-[#fafbfc] p-3.5">
+                  {/* Single Quantity & Price Summary Control */}
+                  <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">Quantity (৳50/card)</span>
-                      <strong className="text-slate-900">৳{Number(order.quantity || 1) * PRICE}</strong>
+                      <label className="font-semibold text-slate-700">Order Quantity</label>
+                      <span className="text-slate-500">Unit Rate: ৳{PRICE} / card</span>
                     </div>
                     <input
-                      className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold"
+                      className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold"
                       min="1"
                       type="number"
                       value={order.quantity}
                       onChange={e => setOrder({ ...order, quantity: Math.max(1, Number(e.target.value)) })}
                     />
+                    <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
+                      <span className="text-xs text-slate-600">Order Price Summary</span>
+                      <strong className="text-sm font-extrabold text-slate-900">
+                        ৳{Number(order.quantity || 1) * PRICE}{' '}
+                        <span className="font-normal text-slate-400 text-xs">
+                          ({Number(order.quantity || 1)} × ৳{PRICE})
+                        </span>
+                      </strong>
+                    </div>
                   </div>
+
+                  {/* Single Primary Action Button */}
+                  <Button
+                    disabled={busy || !order.name.trim()}
+                    variant="primary"
+                    className="w-full !py-3.5 font-bold mt-2"
+                    onClick={() => checkout(false)}
+                  >
+                    {busy ? 'Processing order…' : `Confirm & Order Personal Cards (৳${Number(order.quantity || 1) * PRICE})`}
+                  </Button>
                 </div>
               </div>
-
-              <Button
-                disabled={busy || !order.name.trim()}
-                variant="primary"
-                className="mt-6 w-full !py-3 font-bold"
-                onClick={() => checkout(false)}
-              >
-                {busy ? 'Processing checkout…' : 'Mock Checkout & Create Personal Card'}
-              </Button>
-            </div>
-
-            {/* Option 2: Company Branded Card */}
-            <div className="flex flex-col justify-between rounded-[24px] border-2 border-royal/20 bg-gradient-to-b from-white to-[#faf9fe] p-7 shadow-2xs">
-              <div>
-                <span className="rounded-full bg-mint/30 px-3 py-1 font-display text-3xs font-bold text-slate-900 uppercase tracking-wider">
-                  Official Corporate Branding
-                </span>
-                <h3 className="mt-3 text-lg font-extrabold text-slate-900">Company Branded Card</h3>
-                <p className="mt-1 text-xs text-slate-500">
-                  Verified corporate cards with your company logo and approved brand template.
-                </p>
+            ) : (
+              /* Company Branded Card Form */
+              <div className="rounded-[24px] border border-slate-200/80 bg-white p-7 shadow-2xs max-w-2xl mx-auto">
+                <SectionHeading
+                  title="Company Branded Card Order"
+                  copy={`Official cards for ${activeMembership?.company?.name || 'your company'}.`}
+                />
 
                 {membershipState !== 'ACTIVE' ? (
-                  <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50/70 p-6 text-center">
-                    <span className="grid size-10 place-items-center mx-auto rounded-xl bg-amber-100 text-amber-800 text-lg">
-                      🏢
-                    </span>
-                    <h4 className="mt-3 text-xs font-bold text-amber-900">
-                      {membershipState === 'PENDING' ? 'Company approval in progress' : 'Not linked to a company yet'}
-                    </h4>
-                    <p className="mt-1 text-2xs leading-relaxed text-amber-800">
-                      {membershipState === 'PENDING'
-                        ? 'Your membership request is currently pending administrator review.'
-                        : 'Connect with your company from the Overview or Company tab to unlock corporate cards.'}
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6 text-center mt-5">
+                    <h4 className="text-sm font-bold text-amber-900">Active Membership Required</h4>
+                    <p className="mt-1 text-xs text-amber-800 leading-relaxed max-w-md mx-auto">
+                      Company branded cards require an approved employee membership. Connect with your organization in the Company tab to unlock corporate templates.
                     </p>
                     <Button
                       variant="secondary"
                       className="mt-4 !text-xs font-bold"
                       onClick={() => setTab?.('company')}
                     >
-                      View Company Tab →
+                      Go to Company Tab →
                     </Button>
                   </div>
                 ) : (
-                  <div className="mt-5 space-y-3.5">
+                  <div className="space-y-5 mt-5">
+                    {/* Auto-populated Employee Identity Summary */}
+                    <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4 text-xs">
+                      <span className="text-3xs font-extrabold uppercase tracking-wider text-royal block">
+                        VERIFIED PROFILE DETAILS
+                      </span>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-slate-400 block text-3xs">Name</span>
+                          <strong className="text-slate-800">{user?.username}</strong>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-3xs">Employee ID</span>
+                          <strong className="font-mono text-slate-800">{activeMembership?.employee_code}</strong>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-slate-400 block text-3xs">Official Work Email</span>
+                          <span className="text-slate-800">{activeMembership?.official_email}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Approved Template Selection */}
                     <div>
                       <label className="mb-1 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                        Select template
+                        Approved Company Template <span className="text-red-500">*</span>
                       </label>
                       <select
                         className={inputClass}
                         value={order.template_id}
                         onChange={e => setOrder({ ...order, template_id: e.target.value })}
                       >
-                        <option value="">Choose card template</option>
+                        <option value="">Select an approved company template…</option>
                         {templates.map(t => (
                           <option key={t.id} value={t.id}>
                             {t.name} ({t.style_key || 'Standard'})
                           </option>
                         ))}
                       </select>
+                      {!order.template_id && (
+                        <p className="mt-1.5 text-2xs text-amber-800">
+                          Please select an approved brand template above to proceed with your order.
+                        </p>
+                      )}
                     </div>
 
-                    <div>
-                      <label className="mb-1 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                        Billing preference
-                      </label>
-                      <select
-                        className={inputClass}
-                        value={order.payer}
-                        onChange={e => setOrder({ ...order, payer: e.target.value })}
-                      >
-                        <option value="COMPANY">Company sponsored</option>
-                        <option value="INDIVIDUAL">Pay myself</option>
-                      </select>
+                    {/* Billing Policy Display */}
+                    <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500">Billing Responsibility</span>
+                        <strong className="text-slate-900">
+                          {activeMembership?.payer === 'COMPANY'
+                            ? `Billed to ${activeMembership.company?.name}`
+                            : 'Employee Self-Paid'}
+                        </strong>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-slate-200/70 flex items-center justify-between">
+                        <span className="text-slate-500">Employee Cost</span>
+                        <strong className={activeMembership?.payer === 'COMPANY' ? 'text-emerald-700' : 'text-slate-900'}>
+                          {activeMembership?.payer === 'COMPANY' ? '৳0 (100% Company Covered)' : `৳${PRICE} / card`}
+                        </strong>
+                      </div>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+                    {/* Single Quantity & Price Summary Control */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Quantity</span>
-                        {isCompanySponsored ? (
-                          <span className="font-bold text-emerald-700">৳0 (Company Sponsored)</span>
-                        ) : (
-                          <strong className="text-slate-900">৳{total}</strong>
-                        )}
+                        <label className="font-semibold text-slate-700">Order Quantity</label>
+                        <span className="text-slate-500">Standard batch</span>
                       </div>
                       <input
-                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold"
+                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold"
                         min="1"
                         type="number"
                         value={order.quantity}
                         onChange={e => setOrder({ ...order, quantity: Math.max(1, Number(e.target.value)) })}
                       />
+                      <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+                        <span className="text-slate-600">Order Total Payable</span>
+                        {isCompanySponsored ? (
+                          <span className="font-extrabold text-emerald-700 text-sm">
+                            ৳0 (Covered by {activeMembership?.company?.name})
+                          </span>
+                        ) : (
+                          <strong className="text-sm font-extrabold text-slate-900">
+                            ৳{Number(order.quantity || 1) * PRICE}
+                          </strong>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Single Primary Action Button */}
+                    <Button
+                      disabled={busy || !order.template_id}
+                      variant="sun"
+                      className="w-full !py-3.5 font-bold mt-2"
+                      onClick={() => checkout(true)}
+                    >
+                      {busy
+                        ? 'Processing order…'
+                        : order.template_id
+                        ? 'Confirm & Order Company Cards'
+                        : 'Select a template to place order'}
+                    </Button>
                   </div>
                 )}
               </div>
-
-              {membershipState === 'ACTIVE' && (
-                <Button
-                  disabled={busy || !order.template_id}
-                  variant="sun"
-                  className="mt-6 w-full !py-3 font-bold"
-                  onClick={() => checkout(true)}
-                >
-                  {busy ? 'Processing checkout…' : 'Mock Checkout & Create Branded Card'}
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         ) : (
-          /* Card Vault */
+          /* Card Vault Archive */
           <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
             <SectionHeading
-              title="Generated Visiting Cards"
-              copy="Download high-resolution print PDFs for all your personal and corporate cards."
+              title="Generated Visiting Cards Archive"
+              copy="Download high-resolution 300 DPI print PDFs for all your personal and corporate cards."
             />
 
             {cardRows.length > 0 ? (
@@ -679,8 +978,8 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 ))}
               </div>
             ) : (
-              <div className="text-center py-10 text-xs text-slate-400">
-                No cards generated yet. Switch to &quot;Order New Cards&quot; to create your first card.
+              <div className="text-center py-12 text-xs text-slate-400">
+                No cards generated yet. Click &quot;Order New Cards&quot; to place your first card order.
               </div>
             )}
           </div>
@@ -690,7 +989,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   }
 
   /* ==============================================================================================
-     VIEW: ORDERS (GOV.UK Table Standard)
+     VIEW D: ORDERS (GOV.UK Table Standard)
      ============================================================================================== */
   if (tab === 'orders') {
     return (
@@ -721,7 +1020,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       </td>
                       <td className={tdClass}>
                         <span className="text-xs text-slate-700">
-                          {o.quantity} card{o.quantity > 1 ? 's' : ''} × ৳{o.unit_price}
+                          {o.quantity} {o.quantity === 1 ? 'card' : 'cards'} × ৳{o.unit_price}
                         </span>
                       </td>
                       <td className={tdClass}>
@@ -749,7 +1048,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   }
 
   /* ==============================================================================================
-     VIEW: HELP
+     VIEW E: HELP
      ============================================================================================== */
   if (tab === 'help') {
     return (
@@ -798,7 +1097,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   }
 
   /* ==============================================================================================
-     DEFAULT VIEW: OVERVIEW (Adapting to the 4 Membership States)
+     DEFAULT VIEW: OVERVIEW
      ============================================================================================== */
   return (
     <div className="space-y-6">
@@ -817,9 +1116,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         }
       />
 
-      {/* ------------------------------------------------------------------------------------------
-          STATE B: PENDING REQUEST BANNER
-          ------------------------------------------------------------------------------------------ */}
+      {/* STATE B: PENDING REQUEST BANNER */}
       {membershipState === 'PENDING' && pendingMembership && (
         <div className="rounded-[24px] border border-amber-300 bg-amber-50/70 p-6 shadow-2xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -828,7 +1125,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 MEMBERSHIP REQUEST UNDER REVIEW
               </span>
               <h2 className="mt-1 text-base font-bold text-slate-900">
-                Awaiting approval by {pendingMembership.company?.name}
+                Awaiting approval by {pendingMembership.company?.name} (Workspace #{pendingMembership.company_id})
               </h2>
               <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-600">
                 <div>
@@ -836,7 +1133,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   <strong className="font-mono text-slate-800">{pendingMembership.employee_code}</strong>
                 </div>
                 <div>
-                  <span className="text-slate-400">Official Email: </span>
+                  <span className="text-slate-400">Official Work Email: </span>
                   <span className="text-slate-800">{pendingMembership.official_email}</span>
                 </div>
                 <div>
@@ -854,9 +1151,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------------------------
-          STATE D: REJECTED REQUEST BANNER
-          ------------------------------------------------------------------------------------------ */}
+      {/* STATE D: REJECTED REQUEST BANNER */}
       {membershipState === 'REJECTED' && rejectedMembership && (
         <div className="rounded-[24px] border border-rose-200 bg-rose-50/70 p-6 shadow-2xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -865,13 +1160,13 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 MEMBERSHIP REQUEST NOT APPROVED
               </span>
               <h2 className="mt-1 text-base font-bold text-slate-900">
-                Request rejected by {rejectedMembership.company?.name}
+                Request rejected by {rejectedMembership.company?.name} (Workspace #{rejectedMembership.company_id})
               </h2>
               <p className="mt-2 text-xs text-slate-600">
                 Submitted Employee ID: <strong className="font-mono">{rejectedMembership.employee_code}</strong> · {rejectedMembership.official_email}
               </p>
               <p className="mt-2 text-xs text-rose-800 leading-relaxed max-w-2xl">
-                Please check with your company HR to verify your active employee ID and email, or browse other organizations below.
+                Please check with your company HR to verify your active employee ID and email, or browse other organizations in the Company tab.
               </p>
             </div>
             <StatusBadge value="REJECTED" />
@@ -879,14 +1174,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------------------------
-          STATE C: ACTIVE VERIFIED MEMBERSHIP HUB
-          ------------------------------------------------------------------------------------------ */}
+      {/* STATE C: ACTIVE VERIFIED MEMBERSHIP HUB */}
       {membershipState === 'ACTIVE' && activeMembership && (
         <div className="rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-6 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <span className="grid size-12 place-items-center rounded-2xl bg-white font-extrabold text-royal shadow-xs text-lg">
+              <span className="grid size-12 place-items-center rounded-2xl bg-slate-900 font-extrabold text-mint shadow-xs text-lg">
                 {activeMembership.company?.name?.charAt(0) || '🏢'}
               </span>
               <div>
@@ -897,7 +1190,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <p className="text-xs text-slate-600 mt-1">
                   Employee ID: <strong className="font-mono text-slate-800">{activeMembership.employee_code}</strong> · {activeMembership.official_email} ·{' '}
                   <span className="font-semibold text-emerald-800">
-                    {activeMembership.payer === 'COMPANY' ? 'Company Sponsored (Free ৳0)' : 'Self Paid'}
+                    {activeMembership.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Employee Self-Paid'}
                   </span>
                 </p>
               </div>
@@ -906,7 +1199,10 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             <Button
               variant="sun"
               className="!px-6 !py-3 !text-sm font-bold shadow-xs"
-              onClick={() => setTab?.('card')}
+              onClick={() => {
+                setTab?.('card');
+                setCardOrderType('COMPANY');
+              }}
             >
               Order New Cards ↗
             </Button>
@@ -914,9 +1210,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------------------------
-          2-COLUMN SUMMARY: LATEST CARD & RECENT ORDERS
-          ------------------------------------------------------------------------------------------ */}
+      {/* 2-COLUMN SUMMARY: LATEST CARD & RECENT ORDERS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Latest Card Preview */}
         <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
@@ -999,7 +1293,9 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <div key={o.id} className="py-2.5 flex items-center justify-between text-xs">
                   <div>
                     <strong className="font-mono text-slate-900 font-bold">Order #{o.id}</strong>
-                    <span className="ml-2 text-slate-500">{o.quantity} cards</span>
+                    <span className="ml-2 text-slate-500">
+                      {o.quantity} {o.quantity === 1 ? 'card' : 'cards'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <strong className="font-extrabold text-slate-900">৳{o.total_amount}</strong>
@@ -1016,9 +1312,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------------------------------
-          STATE A / REJECTED: SEARCH & CONNECT TO A COMPANY
-          ------------------------------------------------------------------------------------------ */}
+      {/* STATE A / REJECTED: SEARCH & CONNECT TO A COMPANY */}
       {(membershipState === 'NO_COMPANY' || membershipState === 'REJECTED') && (
         <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
           <SectionHeading
@@ -1029,7 +1323,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <span className="text-sm text-slate-400">⌕</span>
                 <input
                   className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
-                  placeholder="Search by company name…"
+                  placeholder="Search by company or ID…"
                   value={companySearch}
                   onChange={e => setCompanySearch(e.target.value)}
                 />
@@ -1038,37 +1332,35 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-5">
-            {filteredCompanies.slice(0, 6).map(c => {
-              const initials = (c.name || 'C').split(' ').map((p: string) => p[0]).slice(0, 2).join('');
-              return (
-                <div
-                  key={c.id}
-                  className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all"
-                >
-                  <div>
-                    <span className="grid size-10 place-items-center rounded-xl bg-lilac font-extrabold text-royal text-xs">
-                      {initials}
+            {filteredCompanies.slice(0, 6).map(c => (
+              <div
+                key={c.id}
+                className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="grid size-10 place-items-center rounded-xl bg-slate-900 font-display text-xs font-bold text-mint">
+                      {c.name?.charAt(0) || '🏢'}
                     </span>
-                    <h3 className="mt-3 text-sm font-bold text-slate-900">{c.name}</h3>
-                    <p className="mt-1 text-xs text-slate-500 line-clamp-2">{c.description || 'Corporate workspace'}</p>
+                    <span className="text-3xs font-mono text-slate-400">ID: #{c.id}</span>
                   </div>
-                  <Button
-                    variant="secondary"
-                    className="mt-4 w-full !py-2 !text-xs font-bold"
-                    onClick={() => openJoinModal(c)}
-                  >
-                    Connect to {c.name} →
-                  </Button>
+                  <h3 className="mt-3 text-sm font-bold text-slate-900">{c.name}</h3>
+                  <p className="mt-1 text-xs text-slate-500 line-clamp-2">{c.description || 'Corporate workspace'}</p>
                 </div>
-              );
-            })}
+                <Button
+                  variant="secondary"
+                  className="mt-4 w-full !py-2 !text-xs font-bold"
+                  onClick={() => openJoinModal(c)}
+                >
+                  Connect to {c.name} →
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------------------------
-          MODAL: JOIN COMPANY VERIFICATION DIALOG
-          ------------------------------------------------------------------------------------------ */}
+      {/* MODAL: JOIN COMPANY VERIFICATION DIALOG */}
       {targetCompany && (
         <ReviewDialog
           title={`Connect to ${targetCompany.name}`}
@@ -1077,7 +1369,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           onClose={closeJoinModal}
         >
           <p className="mb-5 text-xs leading-relaxed text-slate-600">
-            Enter your official credentials for <strong>{targetCompany.name}</strong>. If your details match the
+            Enter your official credentials for <strong>{targetCompany.name}</strong> (Workspace #{targetCompany.id}). If your details match the
             company roster, your membership activates automatically. Otherwise, it will be forwarded to the company
             administrator for manual review.
           </p>
@@ -1086,7 +1378,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Official Company Email <span className="text-red-500">*</span>
+                  Official Work Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   className={cx(inputClass, joinErrors.official_email && 'border-red-500')}
