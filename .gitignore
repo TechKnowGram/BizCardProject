@@ -22,3 +22,7 @@ venv-active.txt
 
 # Local PostgreSQL data
 .pgdata/
+
+# Internal docs & design research
+important-information.md
+docs/design-research/
