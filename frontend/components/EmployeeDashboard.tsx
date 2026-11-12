@@ -41,6 +41,178 @@ function SectionHeading({ title, copy, action }: { title: string; copy?: string;
   );
 }
 
+function LiveCardPreview({
+  theme = 'navy',
+  name,
+  designation,
+  department,
+  phone,
+  email,
+  companyName,
+  isCompany,
+  templateName,
+}: {
+  theme?: 'navy' | 'clean' | 'royal';
+  name?: string;
+  designation?: string;
+  department?: string;
+  phone?: string;
+  email?: string;
+  companyName?: string;
+  isCompany: boolean;
+  templateName?: string;
+}) {
+  const displayName = name?.trim() || 'Your Full Name';
+  const displayTitle = designation?.trim() || (isCompany ? 'Senior Consultant' : 'Independent Professional');
+  const displayDept = department?.trim() || (isCompany ? 'Engineering & Operations' : 'Strategy & Consulting');
+  const displayPhone = phone?.trim() || '+880 1700 000000';
+  const displayEmail = email?.trim() || 'contact@bizcard.me';
+  const displayOrg = isCompany ? (companyName || 'Verified Organization') : 'BIZCARD INDEPENDENT';
+
+  const isNavy = theme === 'navy';
+  const isRoyal = theme === 'royal';
+  const isClean = theme === 'clean';
+
+  const cardBgClass = isNavy
+    ? 'bg-gradient-to-br from-[#10242f] via-[#0c1c25] to-[#071319] text-white border border-[#1e3c4e] shadow-2xl'
+    : isRoyal
+    ? 'bg-gradient-to-br from-[#1d1338] via-[#140b28] to-[#0d071d] text-white border border-[#3b2b68] shadow-2xl'
+    : 'bg-gradient-to-br from-white via-[#fafbfc] to-[#f1f4f6] text-slate-900 border border-slate-200/90 shadow-xl';
+
+  const accentPillClass = isNavy
+    ? 'bg-mint text-slate-950'
+    : isRoyal
+    ? 'bg-[#efb53e] text-slate-950'
+    : 'bg-slate-900 text-white';
+
+  const secondaryTextClass = isClean ? 'text-slate-600' : 'text-slate-300';
+  const subtleTextClass = isClean ? 'text-slate-400' : 'text-slate-400';
+
+  return (
+    <div className="relative w-full max-w-md mx-auto select-none">
+      {/* Physical Card Mockup with standard 1.75:1 aspect ratio */}
+      <div
+        className={cx(
+          'relative aspect-[1.75/1] w-full rounded-2xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300',
+          cardBgClass
+        )}
+      >
+        {/* Ambient mesh glow */}
+        {!isClean && (
+          <div
+            className="absolute -right-16 -top-16 size-48 rounded-full blur-3xl opacity-20 pointer-events-none"
+            style={{ backgroundColor: isNavy ? '#4dffc8' : '#c084fc' }}
+          />
+        )}
+        <div
+          className="absolute -left-12 -bottom-12 size-36 rounded-full blur-2xl opacity-10 pointer-events-none"
+          style={{ backgroundColor: isNavy ? '#2bbbc4' : '#efb53e' }}
+        />
+
+        {/* Card Header */}
+        <div className="relative z-10 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span
+              className={cx(
+                'grid size-8 place-items-center rounded-lg text-xs font-black shadow-xs shrink-0',
+                accentPillClass
+              )}
+            >
+              {displayOrg.charAt(0)}
+            </span>
+            <div className="min-w-0">
+              <span
+                className={cx(
+                  'block text-2xs font-extrabold uppercase tracking-widest truncate',
+                  accentPillClass.includes('text-slate-950') && !isClean
+                    ? 'text-mint'
+                    : isRoyal
+                    ? 'text-[#efb53e]'
+                    : 'text-slate-900'
+                )}
+              >
+                {displayOrg}
+              </span>
+              <span className={cx('block text-3xs font-mono tracking-tight truncate', subtleTextClass)}>
+                {isCompany ? (templateName ? `Template: ${templateName}` : 'Corporate Workspace') : 'Verified Personal Card'}
+              </span>
+            </div>
+          </div>
+
+          {/* NFC / Prepress badge */}
+          <div className="flex items-center gap-1.5 opacity-70 shrink-0">
+            <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 14.5A2.5 2.5 0 0 0 11 12a2.5 2.5 0 0 0-2.5-2.5M12 17.5a5.5 5.5 0 0 0 0-11M15.5 20.5a8.5 8.5 0 0 0 0-17" />
+            </svg>
+            <span className="text-3xs font-mono font-bold tracking-wider">300 DPI</span>
+          </div>
+        </div>
+
+        {/* Card Body: Name & Title */}
+        <div className="relative z-10 my-auto py-1">
+          <h3
+            className={cx(
+              'text-lg sm:text-xl font-black tracking-tight leading-tight line-clamp-1',
+              isClean ? 'text-slate-900' : 'text-white'
+            )}
+          >
+            {displayName}
+          </h3>
+          <p className={cx('text-2xs sm:text-xs font-semibold tracking-wide uppercase mt-0.5 line-clamp-1', secondaryTextClass)}>
+            {displayTitle}
+          </p>
+          <span className={cx('text-3xs tracking-wider block mt-0.5 line-clamp-1', subtleTextClass)}>
+            {displayDept}
+          </span>
+        </div>
+
+        {/* Card Footer: Contact & QR Code */}
+        <div className="relative z-10 flex items-end justify-between gap-2 border-t pt-2.5 border-current/10">
+          <div className="space-y-0.5 text-3xs min-w-0">
+            <div className="flex items-center gap-1.5 font-mono truncate">
+              <span className="opacity-60 shrink-0">TEL</span>
+              <span className={cx('truncate', secondaryTextClass)}>{displayPhone}</span>
+            </div>
+            <div className="flex items-center gap-1.5 font-mono truncate">
+              <span className="opacity-60 shrink-0">EMAIL</span>
+              <span className={cx('truncate', secondaryTextClass)}>{displayEmail}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div
+              className={cx(
+                'size-8 rounded p-1 grid grid-cols-3 gap-0.5 place-items-center',
+                isClean ? 'bg-slate-900 text-white' : 'bg-white text-slate-950'
+              )}
+              title="Prepress certified QR code"
+            >
+              <span className="size-1.5 bg-current rounded-xs" />
+              <span className="size-1 bg-current" />
+              <span className="size-1.5 bg-current rounded-xs" />
+              <span className="size-1 bg-current" />
+              <span className="size-1 bg-current" />
+              <span className="size-1 bg-current" />
+              <span className="size-1.5 bg-current rounded-xs" />
+              <span className="size-1 bg-current" />
+              <span className="size-1.5 bg-current rounded-xs" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Prepress Specs Note */}
+      <div className="mt-2.5 flex items-center justify-between text-3xs text-slate-500 font-mono px-1">
+        <span>ISO/IEC 7810 ID-1 · 85.6 × 54 mm</span>
+        <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Prepress Vector Ready
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export interface EmployeeDashboardProps {
   tab: string;
   setTab?: (tab: string) => void;
@@ -62,6 +234,9 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
   // Card Type Selector Pattern ('PERSONAL' or 'COMPANY')
   const [cardOrderType, setCardOrderType] = useState<'PERSONAL' | 'COMPANY'>('PERSONAL');
+
+  // Card Theme Palette for Live Interactive Preview
+  const [cardTheme, setCardTheme] = useState<'navy' | 'clean' | 'royal'>('navy');
 
   // Request to Change Company workflow state
   const [changeCompanyOpen, setChangeCompanyOpen] = useState(false);
@@ -201,26 +376,53 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     setBusy(true);
     setError('');
     try {
-      const companyId = isCompany ? (selected || activeMembership?.company_id) : null;
-      const path = isCompany ? `/employee/checkout/company/${companyId}` : '/employee/checkout/personal';
-      const body = isCompany
-        ? { quantity: Number(order.quantity), template_id: Number(order.template_id), payer: order.payer }
-        : { ...order, quantity: Number(order.quantity) };
-      const result: any = await api(path, { method: 'POST', body: JSON.stringify(body) });
-      setMessage(`Order placed successfully! ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'} generated; total ৳${result.total_amount}.`);
+      if (isCompany) {
+        const companyId = selected || activeMembership?.company_id;
+        if (!companyId) throw new Error('No active company selected.');
+        const tId = Number(order.template_id);
+        if (!tId || tId <= 0) throw new Error('Please select an approved company template.');
+        const body = {
+          quantity: Math.max(1, Number(order.quantity) || 1),
+          template_id: tId,
+          payer: order.payer || 'INDIVIDUAL',
+        };
+        const result: any = await api(`/employee/checkout/company/${companyId}`, {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+        setMessage(`Order confirmed! ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'} generated; total ৳${result.total_amount}.`);
+      } else {
+        const nameVal = order.name?.trim() || user?.username || '';
+        if (!nameVal) throw new Error('Full Name is required for personal visiting cards.');
+        // Strictly exclude template_id so backend validation succeeds!
+        const body: Record<string, any> = {
+          quantity: Math.max(1, Number(order.quantity) || 1),
+          payer: 'INDIVIDUAL',
+          name: nameVal,
+        };
+        if (order.designation?.trim()) body.designation = order.designation.trim();
+        if (order.department?.trim()) body.department = order.department.trim();
+        if (order.phone?.trim()) body.phone = order.phone.trim();
+
+        const result: any = await api('/employee/checkout/personal', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+        setMessage(`Personal card order confirmed! ${result.quantity} ${result.quantity === 1 ? 'personal card' : 'personal cards'} generated; total ৳${result.total_amount}.`);
+      }
       await load();
       setCardSubView('vault');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to place card order');
     } finally {
       setBusy(false);
     }
   }
 
   const cardRows = [
-    ...cards.map(card => ({ ...card, kind: 'company' })),
-    ...personal.map(card => ({ ...card, kind: 'personal' })),
-  ];
+    ...cards.map(card => ({ ...card, kind: 'company' as const })),
+    ...personal.map(card => ({ ...card, kind: 'personal' as const })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const latestCard = cardRows[0];
 
   const filteredCompanies = companies.filter(
@@ -642,87 +844,115 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   }
 
   /* ==============================================================================================
-     VIEW C: MY CARD PAGE (UX Corrections C.1 - C.9: Card-Type Selection Pattern)
+     VIEW C: MY CARD PAGE — VISITING CARD STUDIO (Interactive 2-Column Real-time Design Studio)
      ============================================================================================== */
   if (tab === 'card') {
+    const isCompanySponsored = order.payer === 'COMPANY' && activeMembership?.payer === 'COMPANY';
+    const total = isCompanySponsored ? 0 : Number(order.quantity || 1) * PRICE;
+    const selectedTemplateObj = templates.find(t => String(t.id) === String(order.template_id));
+    const QUANTITY_PRESETS = [20, 50, 100, 250, 500];
+
     return (
       <div className="space-y-6">
         <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
 
+        {/* Top Header with Tab Switcher */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <PageTitle
-            title="My Visiting Cards"
-            subtitle="Order personal or company-branded visiting cards, and download print-ready vector PDF files."
+            title="Visiting Card Studio"
+            subtitle="Design, preview in real-time, and order official 300 DPI vector business cards for personal or corporate use."
           />
 
-          {/* Sub-toggle: Order New Cards vs Card Vault */}
-          <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
+          {/* Sub-toggle: Studio Designer vs Card Vault */}
+          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xs">
             <button
               type="button"
               className={cx(
-                'px-4 py-1.5 text-xs font-bold rounded-lg transition-colors',
-                cardSubView === 'order' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'
+                'flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all',
+                cardSubView === 'order'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               )}
               onClick={() => setCardSubView('order')}
             >
-              Order New Cards
+              <span>✦</span> Card Designer
             </button>
             <button
               type="button"
               className={cx(
-                'px-4 py-1.5 text-xs font-bold rounded-lg transition-colors',
-                cardSubView === 'vault' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'
+                'flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all',
+                cardSubView === 'vault'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               )}
               onClick={() => setCardSubView('vault')}
             >
-              Card Vault ({cardRows.length})
+              <span>🗄️</span> Card Vault
+              <span
+                className={cx(
+                  'ml-1 rounded-full px-2 py-0.5 text-3xs font-extrabold',
+                  cardSubView === 'vault' ? 'bg-mint text-slate-900' : 'bg-slate-100 text-slate-700'
+                )}
+              >
+                {cardRows.length}
+              </span>
             </button>
           </div>
         </div>
 
         {cardSubView === 'order' ? (
           <div className="space-y-6">
-            {/* C.1 & C.2: Card-Type Selection Pattern */}
+            {/* Step 1: Card-Type Selection Pattern */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Type 1: Personal Visiting Card */}
+              {/* Option 01: Personal Visiting Card */}
               <button
                 type="button"
                 onClick={() => setCardOrderType('PERSONAL')}
                 className={cx(
-                  'rounded-2xl border p-5 text-left transition-all',
+                  'relative rounded-2xl border p-5 text-left transition-all',
                   cardOrderType === 'PERSONAL'
                     ? 'border-slate-900 bg-white ring-2 ring-slate-900/10 shadow-xs'
-                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300'
+                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300 hover:bg-white'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-500">Option 01</span>
+                  <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-500">
+                    Option 01
+                  </span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs font-bold text-slate-700">
-                    ৳50 / card
+                    ৳{PRICE} / card
                   </span>
                 </div>
-                <strong className="mt-2 block text-base font-bold text-slate-900">Personal Visiting Card</strong>
-                <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-                  Independent cards with your custom details. Available immediately without requiring company approval.
+                <div className="mt-2.5 flex items-center gap-2">
+                  <span className={cx(
+                    'size-2.5 rounded-full',
+                    cardOrderType === 'PERSONAL' ? 'bg-mint' : 'bg-slate-300'
+                  )} />
+                  <strong className="text-base font-bold text-slate-900">Personal Visiting Card</strong>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                  Direct personal contact card. Customize your designation, phone, and styling. Generated instantly without waiting for company approval.
                 </p>
               </button>
 
-              {/* Type 2: Company Branded Card */}
+              {/* Option 02: Company Branded Card */}
               <button
                 type="button"
                 disabled={membershipState !== 'ACTIVE'}
                 onClick={() => setCardOrderType('COMPANY')}
                 className={cx(
-                  'rounded-2xl border p-5 text-left transition-all',
+                  'relative rounded-2xl border p-5 text-left transition-all',
                   membershipState !== 'ACTIVE'
                     ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-50'
                     : cardOrderType === 'COMPANY'
                     ? 'border-royal bg-white ring-2 ring-royal/10 shadow-xs'
-                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300'
+                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300 hover:bg-white'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xs font-extrabold uppercase tracking-wider text-royal">Option 02</span>
+                  <span className="text-3xs font-extrabold uppercase tracking-wider text-royal">
+                    Option 02
+                  </span>
                   {membershipState === 'ACTIVE' ? (
                     <span className="rounded-full bg-mint/30 px-2.5 py-0.5 text-3xs font-bold text-slate-900">
                       {activeMembership?.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Self-Paid'}
@@ -733,253 +963,564 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                     </span>
                   )}
                 </div>
-                <strong className="mt-2 block text-base font-bold text-slate-900">Company Branded Card</strong>
-                <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-                  Official cards generated using your verified organization&apos;s approved template and brand standard.
+                <div className="mt-2.5 flex items-center gap-2">
+                  <span className={cx(
+                    'size-2.5 rounded-full',
+                    cardOrderType === 'COMPANY' ? 'bg-royal' : 'bg-slate-300'
+                  )} />
+                  <strong className="text-base font-bold text-slate-900">Company Branded Card</strong>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                  Official corporate cards formatted to your verified organization&apos;s approved brand standard and verified templates.
                 </p>
               </button>
             </div>
 
-            {/* C.3: Show ONLY the Selected Form */}
-            {cardOrderType === 'PERSONAL' ? (
-              /* Personal Card Form */
-              <div className="rounded-[24px] border border-slate-200/80 bg-white p-7 shadow-2xs max-w-2xl mx-auto">
-                <SectionHeading
-                  title="Personal Visiting Card Order"
-                  copy="Enter your contact information for individual cards."
-                />
-
-                <div className="space-y-4 mt-5">
-                  {(['name', 'designation', 'department', 'phone'] as const).map(key => (
-                    <div key={key}>
-                      <label className="mb-1 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                        {key === 'name' ? 'Full Name' : key === 'designation' ? 'Title / Designation' : key === 'department' ? 'Department / Field' : 'Phone Number'}
-                      </label>
-                      <input
-                        className={inputClass}
-                        placeholder={`Enter your ${key}`}
-                        value={order[key]}
-                        onChange={e => setOrder({ ...order, [key]: e.target.value })}
-                      />
-                    </div>
-                  ))}
-
-                  {/* Single Quantity & Price Summary Control */}
-                  <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <label className="font-semibold text-slate-700">Order Quantity</label>
-                      <span className="text-slate-500">Unit Rate: ৳{PRICE} / card</span>
-                    </div>
-                    <input
-                      className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold"
-                      min="1"
-                      type="number"
-                      value={order.quantity}
-                      onChange={e => setOrder({ ...order, quantity: Math.max(1, Number(e.target.value)) })}
+            {/* Step 2: Interactive 2-Column Studio Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* LEFT COLUMN: Form & Configuration (lg:col-span-7) */}
+              <div className="lg:col-span-7 space-y-6">
+                {cardOrderType === 'PERSONAL' ? (
+                  /* Personal Card Studio Controls */
+                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
+                    <SectionHeading
+                      title="Personal Card Customization"
+                      copy="Fill in your contact and designation details. The live preview updates automatically."
                     />
-                    <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
-                      <span className="text-xs text-slate-600">Order Price Summary</span>
-                      <strong className="text-sm font-extrabold text-slate-900">
-                        ৳{Number(order.quantity || 1) * PRICE}{' '}
-                        <span className="font-normal text-slate-400 text-xs">
-                          ({Number(order.quantity || 1)} × ৳{PRICE})
-                        </span>
-                      </strong>
+
+                    {/* Inputs */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
+                          Full Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          className={inputClass}
+                          placeholder="e.g. Alex Rahman"
+                          value={order.name}
+                          onChange={e => setOrder({ ...order, name: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
+                            Professional Title / Designation
+                          </label>
+                          <input
+                            className={inputClass}
+                            placeholder="e.g. Senior Software Architect"
+                            value={order.designation}
+                            onChange={e => setOrder({ ...order, designation: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
+                            Department / Field
+                          </label>
+                          <input
+                            className={inputClass}
+                            placeholder="e.g. Product Engineering"
+                            value={order.department}
+                            onChange={e => setOrder({ ...order, department: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
+                            Phone Number
+                          </label>
+                          <input
+                            className={inputClass}
+                            placeholder="e.g. +880 1712 345678"
+                            value={order.phone}
+                            onChange={e => setOrder({ ...order, phone: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
+                            Contact Email (Pre-filled)
+                          </label>
+                          <input
+                            className={cx(inputClass, 'bg-slate-50 text-slate-600 cursor-not-allowed')}
+                            disabled
+                            value={user?.email || 'contact@bizcard.me'}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Single Primary Action Button */}
-                  <Button
-                    disabled={busy || !order.name.trim()}
-                    variant="primary"
-                    className="w-full !py-3.5 font-bold mt-2"
-                    onClick={() => checkout(false)}
-                  >
-                    {busy ? 'Processing order…' : `Confirm & Order Personal Cards (৳${Number(order.quantity || 1) * PRICE})`}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              /* Company Branded Card Form */
-              <div className="rounded-[24px] border border-slate-200/80 bg-white p-7 shadow-2xs max-w-2xl mx-auto">
-                <SectionHeading
-                  title="Company Branded Card Order"
-                  copy={`Official cards for ${activeMembership?.company?.name || 'your company'}.`}
-                />
+                    {/* Quantity Presets & Selector */}
+                    <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-800">
+                          Print Batch Quantity
+                        </label>
+                        <span className="text-3xs font-mono text-slate-500">Rate: ৳{PRICE} / card</span>
+                      </div>
 
-                {membershipState !== 'ACTIVE' ? (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6 text-center mt-5">
-                    <h4 className="text-sm font-bold text-amber-900">Active Membership Required</h4>
-                    <p className="mt-1 text-xs text-amber-800 leading-relaxed max-w-md mx-auto">
-                      Company branded cards require an approved employee membership. Connect with your organization in the Company tab to unlock corporate templates.
-                    </p>
+                      {/* Preset Chips */}
+                      <div className="flex flex-wrap gap-2">
+                        {QUANTITY_PRESETS.map(qty => (
+                          <button
+                            key={qty}
+                            type="button"
+                            onClick={() => setOrder({ ...order, quantity: qty })}
+                            className={cx(
+                              'px-3.5 py-2 rounded-xl text-xs font-bold border transition-all',
+                              Number(order.quantity) === qty
+                                ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                            )}
+                          >
+                            {qty} cards
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Custom Stepper Input */}
+                      <div className="pt-2 flex items-center gap-3">
+                        <span className="text-xs text-slate-500">Custom count:</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="1000"
+                          value={order.quantity}
+                          onChange={e =>
+                            setOrder({
+                              ...order,
+                              quantity: Math.max(1, Math.min(1000, Number(e.target.value) || 1)),
+                            })
+                          }
+                          className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-900"
+                        />
+                        <span className="text-3xs text-slate-400 font-mono">(1 - 1,000 max)</span>
+                      </div>
+                    </div>
+
+                    {/* Order Price & Prepress Breakdown */}
+                    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 space-y-2.5 text-xs">
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Unit Rate</span>
+                        <span className="font-mono">৳{PRICE} / card</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Batch Size</span>
+                        <span className="font-semibold text-slate-800">{Number(order.quantity || 1)} cards</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Vector Prepress (300 DPI PDF)</span>
+                        <span className="font-bold text-emerald-700 text-3xs uppercase">Included (Free)</span>
+                      </div>
+                      <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+                        <span className="font-bold text-slate-900">Total Amount Payable</span>
+                        <div className="text-right">
+                          <strong className="text-lg font-extrabold text-slate-900">৳{total}</strong>
+                          <span className="block text-3xs text-slate-400 font-mono">
+                            ({Number(order.quantity || 1)} × ৳{PRICE})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Primary Action Button */}
                     <Button
-                      variant="secondary"
-                      className="mt-4 !text-xs font-bold"
-                      onClick={() => setTab?.('company')}
+                      disabled={busy || !order.name.trim()}
+                      variant="primary"
+                      className="w-full !py-4 !text-sm font-bold shadow-sm"
+                      onClick={() => checkout(false)}
                     >
-                      Go to Company Tab →
+                      {busy
+                        ? 'Generating cards…'
+                        : `Confirm & Order Personal Cards (৳${total}) →`}
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-5 mt-5">
-                    {/* Auto-populated Employee Identity Summary */}
-                    <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4 text-xs">
-                      <span className="text-3xs font-extrabold uppercase tracking-wider text-royal block">
-                        VERIFIED PROFILE DETAILS
-                      </span>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <div>
-                          <span className="text-slate-400 block text-3xs">Name</span>
-                          <strong className="text-slate-800">{user?.username}</strong>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 block text-3xs">Employee ID</span>
-                          <strong className="font-mono text-slate-800">{activeMembership?.employee_code}</strong>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="text-slate-400 block text-3xs">Official Work Email</span>
-                          <span className="text-slate-800">{activeMembership?.official_email}</span>
-                        </div>
-                      </div>
-                    </div>
+                  /* Company Branded Card Studio Controls */
+                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
+                    <SectionHeading
+                      title="Company Branded Card Order"
+                      copy={`Official visiting cards locked to ${activeMembership?.company?.name || 'your company'} brand standard.`}
+                    />
 
-                    {/* Approved Template Selection */}
-                    <div>
-                      <label className="mb-1 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                        Approved Company Template <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        className={inputClass}
-                        value={order.template_id}
-                        onChange={e => setOrder({ ...order, template_id: e.target.value })}
-                      >
-                        <option value="">Select an approved company template…</option>
-                        {templates.map(t => (
-                          <option key={t.id} value={t.id}>
-                            {t.name} ({t.style_key || 'Standard'})
-                          </option>
-                        ))}
-                      </select>
-                      {!order.template_id && (
-                        <p className="mt-1.5 text-2xs text-amber-800">
-                          Please select an approved brand template above to proceed with your order.
+                    {membershipState !== 'ACTIVE' ? (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6 text-center">
+                        <h4 className="text-sm font-bold text-amber-900">Active Membership Required</h4>
+                        <p className="mt-1 text-xs text-amber-800 leading-relaxed max-w-md mx-auto">
+                          Company branded cards require an approved employee membership. Connect with your organization in the Company tab to unlock corporate templates.
                         </p>
-                      )}
-                    </div>
-
-                    {/* Billing Policy Display */}
-                    <div className="rounded-xl border border-slate-200 bg-[#fafbfc] p-4 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Billing Responsibility</span>
-                        <strong className="text-slate-900">
-                          {activeMembership?.payer === 'COMPANY'
-                            ? `Billed to ${activeMembership.company?.name}`
-                            : 'Employee Self-Paid'}
-                        </strong>
+                        <Button
+                          variant="secondary"
+                          className="mt-4 !text-xs font-bold"
+                          onClick={() => setTab?.('company')}
+                        >
+                          Go to Company Tab →
+                        </Button>
                       </div>
-                      <div className="mt-2 pt-2 border-t border-slate-200/70 flex items-center justify-between">
-                        <span className="text-slate-500">Employee Cost</span>
-                        <strong className={activeMembership?.payer === 'COMPANY' ? 'text-emerald-700' : 'text-slate-900'}>
-                          {activeMembership?.payer === 'COMPANY' ? '৳0 (100% Company Covered)' : `৳${PRICE} / card`}
-                        </strong>
-                      </div>
-                    </div>
-
-                    {/* Single Quantity & Price Summary Control */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-4">
-                      <div className="flex items-center justify-between text-xs">
-                        <label className="font-semibold text-slate-700">Order Quantity</label>
-                        <span className="text-slate-500">Standard batch</span>
-                      </div>
-                      <input
-                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold"
-                        min="1"
-                        type="number"
-                        value={order.quantity}
-                        onChange={e => setOrder({ ...order, quantity: Math.max(1, Number(e.target.value)) })}
-                      />
-                      <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
-                        <span className="text-slate-600">Order Total Payable</span>
-                        {isCompanySponsored ? (
-                          <span className="font-extrabold text-emerald-700 text-sm">
-                            ৳0 (Covered by {activeMembership?.company?.name})
+                    ) : (
+                      <div className="space-y-5">
+                        {/* Auto-populated Verified Profile Summary */}
+                        <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-4 text-xs">
+                          <span className="text-3xs font-extrabold uppercase tracking-wider text-royal block">
+                            VERIFIED ROSTER IDENTITY
                           </span>
-                        ) : (
-                          <strong className="text-sm font-extrabold text-slate-900">
-                            ৳{Number(order.quantity || 1) * PRICE}
-                          </strong>
-                        )}
-                      </div>
-                    </div>
+                          <div className="mt-2.5 grid grid-cols-2 gap-3">
+                            <div>
+                              <span className="text-slate-400 block text-3xs">Employee Name</span>
+                              <strong className="text-slate-800">{user?.username}</strong>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-3xs">Verified Employee ID</span>
+                              <strong className="font-mono text-slate-800">{activeMembership?.employee_code}</strong>
+                            </div>
+                            <div className="col-span-2">
+                              <span className="text-slate-400 block text-3xs">Official Work Email</span>
+                              <span className="text-slate-800 font-mono">{activeMembership?.official_email}</span>
+                            </div>
+                          </div>
+                        </div>
 
-                    {/* Single Primary Action Button */}
-                    <Button
-                      disabled={busy || !order.template_id}
-                      variant="sun"
-                      className="w-full !py-3.5 font-bold mt-2"
-                      onClick={() => checkout(true)}
-                    >
-                      {busy
-                        ? 'Processing order…'
-                        : order.template_id
-                        ? 'Confirm & Order Company Cards'
-                        : 'Select a template to place order'}
-                    </Button>
+                        {/* Approved Template Selection */}
+                        <div>
+                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
+                            Approved Company Template <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            className={inputClass}
+                            value={order.template_id}
+                            onChange={e => setOrder({ ...order, template_id: e.target.value })}
+                          >
+                            <option value="">Select an approved company template…</option>
+                            {templates.map(t => (
+                              <option key={t.id} value={t.id}>
+                                {t.name} ({t.style_key || 'Standard'})
+                              </option>
+                            ))}
+                          </select>
+                          {!order.template_id && (
+                            <p className="mt-1.5 text-2xs text-amber-800">
+                              Please select an approved brand template above to proceed with your order.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Billing Policy Display */}
+                        <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-4 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500">Billing Responsibility</span>
+                            <strong className="text-slate-900">
+                              {activeMembership?.payer === 'COMPANY'
+                                ? `Billed to ${activeMembership.company?.name}`
+                                : 'Employee Self-Paid'}
+                            </strong>
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-slate-200/70 flex items-center justify-between">
+                            <span className="text-slate-500">Employee Cost</span>
+                            <strong className={activeMembership?.payer === 'COMPANY' ? 'text-emerald-700' : 'text-slate-900'}>
+                              {activeMembership?.payer === 'COMPANY' ? '৳0 (100% Company Covered)' : `৳${PRICE} / card`}
+                            </strong>
+                          </div>
+                        </div>
+
+                        {/* Quantity Presets & Selector */}
+                        <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-5 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-800">
+                              Print Batch Quantity
+                            </label>
+                            <span className="text-3xs font-mono text-slate-500">Standard batch</span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            {QUANTITY_PRESETS.map(qty => (
+                              <button
+                                key={qty}
+                                type="button"
+                                onClick={() => setOrder({ ...order, quantity: qty })}
+                                className={cx(
+                                  'px-3.5 py-2 rounded-xl text-xs font-bold border transition-all',
+                                  Number(order.quantity) === qty
+                                    ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                                )}
+                              >
+                                {qty} cards
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="pt-2 flex items-center gap-3">
+                            <span className="text-xs text-slate-500">Custom count:</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max="1000"
+                              value={order.quantity}
+                              onChange={e =>
+                                setOrder({
+                                  ...order,
+                                  quantity: Math.max(1, Math.min(1000, Number(e.target.value) || 1)),
+                                })
+                              }
+                              className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-900"
+                            />
+                            <span className="text-3xs text-slate-400 font-mono">(1 - 1,000 max)</span>
+                          </div>
+                        </div>
+
+                        {/* Price Summary */}
+                        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 space-y-2.5 text-xs">
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span>Batch Size</span>
+                            <span className="font-semibold text-slate-800">{Number(order.quantity || 1)} cards</span>
+                          </div>
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span>Vector Prepress (300 DPI PDF)</span>
+                            <span className="font-bold text-emerald-700 text-3xs uppercase">Included (Free)</span>
+                          </div>
+                          <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+                            <span className="font-bold text-slate-900">Total Payable</span>
+                            {isCompanySponsored ? (
+                              <div className="text-right">
+                                <strong className="text-lg font-extrabold text-emerald-700">৳0</strong>
+                                <span className="block text-3xs text-emerald-600">
+                                  100% Covered by {activeMembership?.company?.name}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-right">
+                                <strong className="text-lg font-extrabold text-slate-900">৳{total}</strong>
+                                <span className="block text-3xs text-slate-400 font-mono">
+                                  ({Number(order.quantity || 1)} × ৳{PRICE})
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Primary Action Button */}
+                        <Button
+                          disabled={busy || !order.template_id}
+                          variant="sun"
+                          className="w-full !py-4 !text-sm font-bold shadow-sm"
+                          onClick={() => checkout(true)}
+                        >
+                          {busy
+                            ? 'Generating company cards…'
+                            : order.template_id
+                            ? `Confirm & Order Company Cards (${isCompanySponsored ? '৳0' : '৳' + total}) →`
+                            : 'Select a template to place order'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        ) : (
-          /* Card Vault Archive */
-          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-            <SectionHeading
-              title="Generated Visiting Cards Archive"
-              copy="Download high-resolution 300 DPI print PDFs for all your personal and corporate cards."
-            />
 
-            {cardRows.length > 0 ? (
-              <div className="divide-y divide-slate-100 mt-4">
-                {cardRows.map(c => (
-                  <div key={`${c.kind}-${c.id}`} className="py-4 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5">
-                      <span className="grid size-11 place-items-center rounded-xl bg-lilac text-royal font-bold">
-                        ▤
+              {/* RIGHT COLUMN: Sticky Live Card Preview (lg:col-span-5) */}
+              <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
+                <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+                  <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-700">
+                        Live Interactive Card Studio
                       </span>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <strong className="text-sm font-bold text-slate-900">{c.file_name}</strong>
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-3xs font-semibold text-slate-600">
-                            {c.kind === 'personal' ? 'Personal' : 'Company'}
-                          </span>
-                        </div>
-                        <small className="text-3xs text-slate-400">
-                          Created {new Date(c.created_at).toLocaleDateString()} · Vector PDF
-                        </small>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs font-mono font-bold text-slate-600">
+                      300 DPI Prepress
+                    </span>
+                  </div>
+
+                  {/* Real-time Card Mockup */}
+                  <LiveCardPreview
+                    theme={cardTheme}
+                    name={order.name || user?.username || ''}
+                    designation={order.designation}
+                    department={order.department}
+                    phone={order.phone}
+                    email={
+                      cardOrderType === 'COMPANY'
+                        ? (activeMembership?.official_email || user?.email || '')
+                        : (user?.email || 'contact@bizcard.me')
+                    }
+                    companyName={activeMembership?.company?.name}
+                    isCompany={cardOrderType === 'COMPANY'}
+                    templateName={selectedTemplateObj?.name}
+                  />
+
+                  {/* Theme Switcher for Personal Cards */}
+                  {cardOrderType === 'PERSONAL' && (
+                    <div className="mt-5 pt-4 border-t border-slate-100">
+                      <label className="block text-3xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                        Card Aesthetic Finish
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { key: 'navy', label: 'Obsidian Mint', color: 'bg-[#10242f]', dot: 'bg-mint' },
+                          { key: 'clean', label: 'Pure White', color: 'bg-white border border-slate-300', dot: 'bg-slate-900' },
+                          { key: 'royal', label: 'Imperial Violet', color: 'bg-[#1d1338]', dot: 'bg-[#efb53e]' },
+                        ].map(t => (
+                          <button
+                            key={t.key}
+                            type="button"
+                            onClick={() => setCardTheme(t.key as any)}
+                            className={cx(
+                              'flex items-center gap-2 p-2 rounded-xl text-left border text-3xs font-bold transition-all',
+                              cardTheme === t.key
+                                ? 'border-slate-900 bg-slate-50 ring-2 ring-slate-900/10'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            )}
+                          >
+                            <span className={cx('size-3.5 rounded-full shrink-0 flex items-center justify-center', t.color)}>
+                              <span className={cx('size-1 rounded-full', t.dot)} />
+                            </span>
+                            <span className="truncate text-slate-800">{t.label}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
+                  )}
 
-                    <Button
-                      variant="primary"
-                      className="!px-4 !py-1.5 !text-xs font-bold"
-                      onClick={() =>
-                        download(
-                          c.kind === 'personal'
-                            ? `/employee/personal-cards/${c.id}/download`
-                            : `/employee/cards/${c.id}/download`,
-                          c.file_name
-                        )
-                      }
+                  <p className="mt-4 text-center text-3xs text-slate-400 leading-relaxed">
+                    ✦ Visual card updates in real-time as you enter contact and styling specifications.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Card Vault Archive View */
+          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-extrabold text-slate-900">Visiting Card Archive Vault</h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Download high-resolution 300 DPI vector PDF files ready for professional offset or digital printing.
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                className="!text-xs font-bold"
+                onClick={() => setCardSubView('order')}
+              >
+                + Order More Cards
+              </Button>
+            </div>
+
+            {cardRows.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
+                {cardRows.map(c => {
+                  const isPersonal = c.kind === 'personal';
+                  return (
+                    <div
+                      key={`${c.kind}-${c.id}`}
+                      className="rounded-[22px] border border-slate-200/90 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all flex flex-col justify-between"
                     >
-                      Download PDF ↓
-                    </Button>
-                  </div>
-                ))}
+                      <div>
+                        {/* Mini Card Header */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={cx(
+                              'rounded-full px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
+                              isPersonal
+                                ? 'bg-slate-200/70 text-slate-700'
+                                : 'bg-mint/30 text-slate-900 border border-mint/60'
+                            )}
+                          >
+                            {isPersonal ? 'Personal Card' : 'Company Branded'}
+                          </span>
+                          <span className="text-3xs font-mono text-slate-400">
+                            #{c.id}
+                          </span>
+                        </div>
+
+                        {/* Mini Card Mockup Representation */}
+                        <div
+                          className={cx(
+                            'mt-3.5 aspect-[1.75/1] rounded-xl p-3.5 flex flex-col justify-between text-white shadow-inner select-none',
+                            isPersonal
+                              ? 'bg-gradient-to-br from-[#10242f] to-[#081218] border border-[#1e3c4e]'
+                              : 'bg-gradient-to-br from-[#1c1438] to-[#0e071e] border border-[#392b63]'
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-3xs font-extrabold uppercase tracking-widest text-mint truncate">
+                              {isPersonal ? 'Personal' : (activeMembership?.company?.name || 'Company')}
+                            </span>
+                            <span className="text-3xs font-mono opacity-60">300 DPI</span>
+                          </div>
+                          <div>
+                            <strong className="block text-xs font-bold truncate">
+                              {c.file_name}
+                            </strong>
+                            <span className="block text-3xs opacity-75">
+                              {new Date(c.created_at).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-3xs opacity-70">
+                            <span>Vector Print PDF</span>
+                            <span>✓ Certified</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between text-3xs text-slate-500">
+                          <span className="flex items-center gap-1.5">
+                            Status: <StatusBadge value={c.status} />
+                          </span>
+                          <span className="font-mono">{c.file_size ? `${Math.ceil(c.file_size / 1024)} KB` : 'Vector PDF'}</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="mt-4 pt-3.5 border-t border-slate-200/70 flex items-center gap-2">
+                        <Button
+                          variant="primary"
+                          className="w-full !py-2 !text-xs font-bold"
+                          onClick={() =>
+                            download(
+                              isPersonal
+                                ? `/employee/personal-cards/${c.id}/download`
+                                : `/employee/cards/${c.id}/download`,
+                              c.file_name
+                            )
+                          }
+                        >
+                          Download PDF ↓
+                        </Button>
+                        {!isPersonal && c.verification_token && (
+                          <a
+                            href={`/verify/${c.verification_token}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 rounded-full border border-slate-200 text-3xs font-bold text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
+                          >
+                            Verify ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <div className="text-center py-12 text-xs text-slate-400">
-                No cards generated yet. Click &quot;Order New Cards&quot; to place your first card order.
+              <div className="text-center py-16 text-slate-400">
+                <span className="text-3xl block mb-2">🗄️</span>
+                <p className="text-sm font-bold text-slate-700">No visiting cards generated yet.</p>
+                <p className="mt-1 text-xs text-slate-400">Order your first batch using the Card Designer.</p>
+                <Button
+                  variant="secondary"
+                  className="mt-4 !text-xs font-bold"
+                  onClick={() => setCardSubView('order')}
+                >
+                  Open Card Designer →
+                </Button>
               </div>
             )}
           </div>

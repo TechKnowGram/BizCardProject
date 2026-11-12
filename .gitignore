@@ -5,8 +5,6 @@ __pycache__/
 .test-*/
 pytest-*/
 pytest-cache-files-*/
-.env
-.env.*
 !.env.example
 *.db
 generated_cards/
