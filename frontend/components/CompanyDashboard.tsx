@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api, download } from '../lib/api';
-import type { CardRequest, Company, Employee, GeneratedCard, Template } from '../lib/types';
+import type { CardRequest, Company, Employee, GeneratedCard, Template, User } from '../lib/types';
 import type { EmployeeValues } from '../lib/validation';
 import StatusBadge from './StatusBadge';
 import EmployeeDialog from './EmployeeDialog';
@@ -38,6 +38,7 @@ function StatCard({ label, value, note, tone }: { label: string; value: ReactNod
 export interface CompanyDashboardProps {
   tab: string;
   setTab: (tab: string) => void;
+  user?: User | null;
 }
 
 interface RequestViewerState { request: CardRequest; cards: GeneratedCard[] }

@@ -61,6 +61,6 @@ export default function DashboardPage() {
     onNavigate={setTab}
     onLogout={signOut}
   >
-    {systemAdmin ? <AdminDashboard tab={tab} setTab={setTab} /> : employee ? <EmployeeDashboard tab={tab} setTab={setTab} /> : <CompanyDashboard tab={tab} setTab={setTab} />}
+    {systemAdmin ? <AdminDashboard tab={tab} setTab={setTab} user={user} /> : employee ? <EmployeeDashboard tab={tab} setTab={setTab} user={user} /> : <CompanyDashboard tab={tab} setTab={setTab} user={user} />}
   </DashboardShell>;
 }

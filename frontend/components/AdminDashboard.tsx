@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
 import type { ApiError } from '../lib/api';
-import type { AuditLog, CardRequest, Company, Template } from '../lib/types';
+import type { AuditLog, CardRequest, Company, Template, User } from '../lib/types';
 import StatusBadge from './StatusBadge';
 import CardPreview from './CardPreview';
 import ReviewDialog from './ReviewDialog';
@@ -33,6 +33,7 @@ export interface AdminData {
 export interface AdminDashboardProps {
   tab: string;
   setTab: (tab: string) => void;
+  user?: User | null;
 }
 
 /** A row of any admin list (company, card request or audit entry); only the fields each tab uses are read. */

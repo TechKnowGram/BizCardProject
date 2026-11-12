@@ -4,11 +4,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api, download } from '../lib/api';
+import type { User } from '../lib/types';
 import StatusBadge from './StatusBadge';
 import Toast from './Toast';
 import ReviewDialog from './ReviewDialog';
 import { isValidEmail } from '../lib/validation';
-import { Button, Eyebrow, Panel, PanelHeader, cx, inputClass, tableClass, tdClass, thClass } from './ui';
+import { Button, Panel, PanelHeader, cx, inputClass, tableClass, tdClass, thClass } from './ui';
 
 const PRICE = 50;
 
@@ -55,10 +56,10 @@ function Quantity({
   isCompanySponsored?: boolean;
 }) {
   return (
-    <div className="mt-5 rounded-2xl border border-[#e3e8e6] bg-[#fafbfc] p-4">
+    <div className="mt-5 rounded-2xl border border-[#e3e8e6] bg-[#fafbfc] p-4.5">
       <div className="flex items-center justify-between">
         <label className="block text-xs font-semibold text-slate-700">Card quantity</label>
-        <span className="text-3xs font-bold uppercase tracking-wider text-slate-400">Standard rate: ৳{PRICE}/card</span>
+        <span className="text-3xs font-bold uppercase tracking-wider text-slate-400">Unit rate: ৳{PRICE} / card</span>
       </div>
       <input
         className="mt-2 w-full rounded-xl border border-black/20 bg-white px-3.5 py-2.5 text-sm font-semibold transition focus:border-royal focus:ring-2 focus:ring-lilac focus:outline-none"
@@ -67,15 +68,15 @@ function Quantity({
         value={value}
         onChange={e => onChange(Math.max(1, Number(e.target.value)))}
       />
-      <div className="mt-3 flex items-center justify-between rounded-xl bg-white p-3 border border-slate-100">
-        <span className="text-xs text-slate-500">Order total</span>
+      <div className="mt-3.5 flex items-center justify-between rounded-xl bg-white p-3.5 border border-slate-100 shadow-xs">
+        <span className="text-xs text-slate-500 font-medium">Estimated order total</span>
         {isCompanySponsored ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-mint/20 px-3 py-1 font-display text-xs font-bold text-slate-900">
-            <span className="size-1.5 rounded-full bg-emerald-600" />
+            <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" />
             ৳0 (Free · Sponsored by company)
           </span>
         ) : (
-          <p className="text-sm font-extrabold text-slate-900">
+          <p className="text-base font-extrabold text-slate-900">
             ৳{total} <span className="text-xs font-normal text-slate-400">({value} × ৳{PRICE})</span>
           </p>
         )}
@@ -94,9 +95,10 @@ const MATCH_HINTS: Record<string, { text: string; tone: string }> = {
 export interface EmployeeDashboardProps {
   tab: string;
   setTab?: (tab: string) => void;
+  user?: User | null;
 }
 
-export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProps) {
+export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboardProps) {
   const [companies, setCompanies] = useState<any[]>([]);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [cards, setCards] = useState<any[]>([]);
@@ -117,7 +119,7 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
     quantity: 1,
     template_id: '',
     payer: 'INDIVIDUAL',
-    name: '',
+    name: user?.username || '',
     designation: '',
     department: '',
     phone: '',
@@ -153,6 +155,13 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
   useEffect(() => {
     load();
   }, [load]);
+
+  // Pre-fill name if user prop becomes available
+  useEffect(() => {
+    if (user?.username && !order.name) {
+      setOrder(curr => ({ ...curr, name: user.username }));
+    }
+  }, [user]);
 
   const active = memberships.find(item => item.status === 'APPROVED' && String(item.company_id) === selected);
   const anyActive = memberships.find(item => item.status === 'APPROVED');
@@ -242,6 +251,7 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
     ...cards.map(card => ({ ...card, kind: 'company' })),
     ...personal.map(card => ({ ...card, kind: 'personal' })),
   ];
+  const latestCard = cardRows[0];
 
   const filteredCompanies = companies.filter(
     c =>
@@ -249,6 +259,9 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
       (c.description || '').toLowerCase().includes(companySearch.toLowerCase())
   );
 
+  /* ==============================================================================================
+     VIEW: MY CARDS & BILLING HISTORY (GOV.UK High-Clarity Table Model)
+     ============================================================================================== */
   if (tab === 'cards') {
     return (
       <div className="space-y-6">
@@ -261,15 +274,20 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
           }}
         />
 
+        {/* Card Vault Panel */}
         <Panel>
           <PanelHeader className="max-sm:p-4.5">
             <PanelTitle
-              kicker="CARD ARCHIVE"
-              title="Generated visiting cards"
-              copy="Every card generated for you remains available to download and verify."
+              kicker="CARD VAULT"
+              title="Your visiting cards archive"
+              copy="Every generated visiting card remains archived for high-resolution download and digital QR verification."
             />
-            <Button variant="sun" onClick={() => setTab?.('create')}>
-              Create new card <span className="grid size-5 place-items-center rounded-full bg-[#21183d] text-white">↗</span>
+            <Button
+              variant="sun"
+              className="!px-5 !py-2.5 font-bold shadow-xs flex items-center gap-2"
+              onClick={() => setTab?.('create')}
+            >
+              Order New Cards <span className="grid size-5 place-items-center rounded-full bg-[#10242f] text-white text-3xs">↗</span>
             </Button>
           </PanelHeader>
 
@@ -278,36 +296,36 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
               {cardRows.map(card => (
                 <div
                   key={`${card.kind}-${card.id}`}
-                  className="flex flex-wrap items-center justify-between gap-4 px-6 py-4.5 transition-colors hover:bg-[#f6f8f7]"
+                  className="flex flex-wrap items-center justify-between gap-4 px-6 py-5 transition-colors hover:bg-[#f6f8f7]"
                 >
-                  <div className="flex items-center gap-3.5">
-                    <span className="grid size-11 place-items-center rounded-2xl bg-lilac text-lg text-royal font-bold">
+                  <div className="flex items-center gap-4">
+                    <span className="grid size-12 place-items-center rounded-2xl bg-lilac text-xl text-royal font-bold">
                       ▤
                     </span>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <strong className="block text-sm font-bold text-slate-900">{card.file_name}</strong>
                         <span
                           className={cx(
-                            'rounded-full px-2.5 py-0.5 text-3xs font-semibold uppercase tracking-wider',
+                            'rounded-full px-2.5 py-0.5 text-3xs font-bold uppercase tracking-wider',
                             card.kind === 'personal'
                               ? 'bg-lilac text-royal'
                               : 'bg-mint/30 text-slate-900'
                           )}
                         >
-                          {card.kind === 'personal' ? 'Personal card' : 'Company card'}
+                          {card.kind === 'personal' ? 'Personal' : 'Company'}
                         </span>
                       </div>
                       <small className="mt-1 block text-3xs text-[#7c8a90]">
-                        Generated on {new Date(card.created_at).toLocaleDateString()} · High-resolution PDF ready for print
+                        Generated on {new Date(card.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} · Print-Ready Vector PDF · 300 DPI
                       </small>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <Button
                       variant="primary"
-                      className="!px-4 !py-2 !text-xs"
+                      className="!px-4.5 !py-2 !text-xs font-bold"
                       onClick={() =>
                         download(
                           card.kind === 'personal'
@@ -324,27 +342,32 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
               ))}
             </div>
           ) : (
-            <div className="grid min-h-64 place-items-center content-center p-9 text-center">
+            <div className="grid min-h-64 place-items-center content-center p-10 text-center">
               <span className="mb-4 grid size-16 -rotate-6 place-items-center rounded-[32px] bg-lilac text-2xl text-royal">
                 ◇
               </span>
-              <h3 className="text-base font-extrabold text-slate-800">No cards generated yet</h3>
-              <p className="mt-1.5 max-w-sm text-xs text-[#7c8a90]">
-                Choose between personal or company-branded designs and generate your first set of cards.
+              <h3 className="text-base font-extrabold text-slate-800">No visiting cards generated yet</h3>
+              <p className="mt-1.5 max-w-sm text-xs text-[#7c8a90] leading-relaxed">
+                You haven&apos;t ordered any cards yet. Use the card builder to create your first set of physical or digital visiting cards.
               </p>
-              <Button variant="sun" className="mt-5" onClick={() => setTab?.('create')}>
-                Create card now →
+              <Button
+                variant="sun"
+                className="mt-5 !px-6 !py-2.5 font-bold"
+                onClick={() => setTab?.('create')}
+              >
+                Order New Cards Now →
               </Button>
             </div>
           )}
         </Panel>
 
+        {/* Order History (GOV.UK Table Standards) */}
         <Panel>
           <PanelHeader className="max-sm:p-4.5">
             <PanelTitle
-              kicker="BILLING HISTORY"
-              title="Order and checkout history"
-              copy="Transparent receipt records for personal and company orders."
+              kicker="BILLING & RECEIPTS"
+              title="Order transaction records"
+              copy="Transparent receipt records following financial accounting guidelines."
             />
           </PanelHeader>
 
@@ -353,8 +376,8 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
               <table className={tableClass}>
                 <thead>
                   <tr>
-                    <th className={thClass}>Order ID</th>
-                    <th className={thClass}>Items & Pricing</th>
+                    <th className={thClass}>Order Reference</th>
+                    <th className={thClass}>Items & Rate</th>
                     <th className={thClass}>Payer Account</th>
                     <th className={thClass}>Total Amount</th>
                     <th className={thClass}>Status</th>
@@ -364,7 +387,7 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
                   {orders.map(item => (
                     <tr key={`order-${item.id}`} className="hover:bg-[#f6f8f7] transition-colors">
                       <td className={tdClass}>
-                        <strong className="text-xs font-mono text-slate-800">#{item.id}</strong>
+                        <strong className="text-xs font-mono font-bold text-slate-800">#{item.id}</strong>
                       </td>
                       <td className={tdClass}>
                         <span className="text-xs font-medium text-slate-700">
@@ -388,13 +411,16 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
               </table>
             </div>
           ) : (
-            <div className="p-8 text-center text-xs text-slate-400">No orders placed yet.</div>
+            <div className="p-8 text-center text-xs text-slate-400">No checkout transactions recorded yet.</div>
           )}
         </Panel>
       </div>
     );
   }
 
+  /* ==============================================================================================
+     VIEW: CREATE CARD STUDIO (Deel Side-by-side Guided Ordering)
+     ============================================================================================== */
   if (tab === 'create') {
     return (
       <div className="space-y-6">
@@ -410,22 +436,22 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
         <Panel>
           <PanelHeader className="max-sm:p-4.5">
             <PanelTitle
-              kicker="CREATE VISITING CARDS"
-              title="Personal or company branded"
-              copy="Choose personal styling for independent use, or access official corporate branding once connected to a company."
+              kicker="CARD ORDERING STUDIO"
+              title="Order new visiting cards"
+              copy="Choose between independent personal styling or official corporate templates managed by your verified company."
             />
           </PanelHeader>
 
           <div className="p-6 md:p-8">
             <div className="grid gap-8 lg:grid-cols-2">
-              {/* Option 1: Personal Card */}
+              {/* Option 1: Personal Visiting Card */}
               <div className="flex flex-col justify-between rounded-[28px] border border-[#e3e8e6] bg-white p-7 shadow-xs">
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="rounded-full bg-lilac px-3 py-1 font-display text-3xs font-bold text-royal uppercase tracking-wider">
                       Independent
                     </span>
-                    <span className="text-2xs font-semibold text-slate-400">No approval required</span>
+                    <span className="text-2xs font-semibold text-slate-400">Instant generation</span>
                   </div>
                   <h3 className="mt-3 text-xl font-extrabold text-slate-900">Personal Visiting Card</h3>
                   <p className="mt-1 text-xs text-slate-500">
@@ -458,10 +484,10 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
                 <Button
                   disabled={busy || !order.name.trim()}
                   variant="primary"
-                  className="mt-6 w-full !py-3.5"
+                  className="mt-6 w-full !py-3.5 font-bold"
                   onClick={() => checkout(false)}
                 >
-                  {busy ? 'Processing checkout…' : 'Mock checkout & create card'}
+                  {busy ? 'Processing checkout…' : 'Mock checkout & create personal card'}
                 </Button>
               </div>
 
@@ -490,7 +516,7 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
                       </p>
                       <Button
                         variant="secondary"
-                        className="mt-4 !text-xs"
+                        className="mt-4 !text-xs font-bold"
                         onClick={() => setTab?.('overview')}
                       >
                         Browse registered companies →
@@ -568,7 +594,7 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
                   <Button
                     disabled={busy || !active || !order.template_id}
                     variant="sun"
-                    className="mt-6 w-full !py-3.5"
+                    className="mt-6 w-full !py-3.5 font-bold"
                     onClick={() => checkout(true)}
                   >
                     {busy ? 'Processing checkout…' : 'Mock checkout & create branded card'}
@@ -582,23 +608,10 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
     );
   }
 
-  // Default: Overview Tab
-  const stats: Array<[string, ReactNode, string, StatTone]> = [
-    [
-      'Active workspace',
-      anyActive?.company?.name || 'Independent',
-      anyActive ? `ID: ${anyActive.employee_code}` : 'No company linked',
-      'violet',
-    ],
-    ['Cards ready', cardRows.length, `${cards.length} company · ${personal.length} personal`, 'green'],
-    ['Orders placed', orders.length, 'Receipt records available', 'cyan'],
-    [
-      'Membership status',
-      anyActive ? 'Approved' : pendingMemberships.length > 0 ? 'Pending' : 'Independent',
-      anyActive ? 'Full brand access' : pendingMemberships.length > 0 ? 'Review in progress' : 'Join a company anytime',
-      'amber',
-    ],
-  ];
+  /* ==============================================================================================
+     DEFAULT VIEW: EMPLOYEE PERSONALIZED WORKSPACE (Deel-Inspired Self-Service Hub)
+     ============================================================================================== */
+  const employeeName = user?.username || (anyActive ? anyActive.user?.username : 'Professional');
 
   return (
     <div className="space-y-6">
@@ -611,176 +624,246 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
         }}
       />
 
-      {/* Hero Navy Banner matching public enterprise look */}
-      <section className="relative flex min-h-55 items-center justify-between gap-8 overflow-hidden rounded-[40px] bg-[linear-gradient(#10242f,#10242f)] p-8.5 text-white shadow-xl after:absolute after:-top-17.5 after:right-[33%] after:text-[length:calc(var(--spacing)*55)] after:text-[#ffffff0d] after:content-['✦'] max-md:flex-col max-md:items-start">
-        <div className="relative z-2">
+      {/* ------------------------------------------------------------------------------------------
+          DEEL-INSPIRED PERSONALIZED HERO IDENTITY BANNER
+          ------------------------------------------------------------------------------------------ */}
+      <section className="relative flex min-h-60 items-center justify-between gap-8 overflow-hidden rounded-[36px] bg-[linear-gradient(#10242f,#10242f)] p-8.5 md:p-10 text-white shadow-xl after:absolute after:-top-20 after:right-[30%] after:text-[length:calc(var(--spacing)*60)] after:text-[#ffffff0d] after:content-['✦'] max-lg:flex-col max-lg:items-start">
+        <div className="relative z-2 max-w-xl">
           <div className="flex items-center gap-3">
-            <span className="grid size-12 place-items-center rounded-[28px] border border-[#ffffff4d] bg-[#ffffff24] text-xl font-bold">
-              {anyActive ? anyActive.company?.name.charAt(0) : 'E'}
+            <span className="grid size-12 place-items-center rounded-2xl border border-white/20 bg-white/10 text-xl font-extrabold text-mint">
+              {anyActive ? anyActive.company?.name.charAt(0) : employeeName.charAt(0)}
             </span>
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffffff15] px-3 py-0.5 text-3xs font-extrabold tracking-widest text-mint border border-mint/20">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-0.5 text-3xs font-extrabold tracking-widest text-mint border border-mint/20">
                 <span className="size-1.5 rounded-full bg-mint animate-pulse" />
-                {anyActive ? 'VERIFIED EMPLOYEE WORKSPACE' : 'EMPLOYEE WORKSPACE'}
+                {anyActive ? 'VERIFIED EMPLOYEE IDENTITY' : 'PERSONAL WORKSPACE'}
               </span>
               <h2 className="mt-1 text-3xl font-extrabold tracking-tight">
-                {anyActive ? anyActive.company?.name : 'Your card identity, in one place.'}
+                Welcome, {employeeName}!
               </h2>
             </div>
           </div>
-          <p className="mt-4.5 max-w-147.5 text-sm leading-relaxed text-[#e2d9f7]">
+
+          <p className="mt-4 text-sm leading-relaxed text-[#d2dbe0]">
             {anyActive
-              ? `You are verified with ${anyActive.company?.name}. Create company-branded cards or independent personal cards anytime.`
-              : 'Create independent personal cards or request to join a registered company to access official corporate branding.'}
+              ? `You are verified with ${anyActive.company?.name}. Create company-branded visiting cards or independent personal cards anytime.`
+              : 'Your centralized self-service workspace to order high-resolution visiting cards, track deliveries, and link with company organizations.'}
           </p>
-          <div className="mt-5.5 flex items-center gap-4.5">
-            <Button variant="sun" onClick={() => setTab?.('create')}>
-              Create card <span className="grid size-6 place-items-center rounded-full bg-[#21183d] text-white">↗</span>
+
+          {/* Primary Action Button (Unmissable Mint Accent) */}
+          <div className="mt-6 flex flex-wrap items-center gap-4.5">
+            <Button
+              variant="sun"
+              className="!px-7 !py-3.5 !text-base font-extrabold shadow-lg shadow-mint/20 hover:scale-[1.02] transition-transform flex items-center gap-2.5"
+              onClick={() => setTab?.('create')}
+            >
+              Order New Cards <span className="grid size-6 place-items-center rounded-full bg-[#10242f] text-white text-xs">↗</span>
             </Button>
             <button
-              className="text-xs font-bold text-white underline underline-offset-4 hover:text-mint transition-colors"
+              className="text-xs font-semibold text-white/90 underline underline-offset-4 hover:text-mint transition-colors"
               onClick={() => setTab?.('cards')}
             >
-              View my cards ({cardRows.length})
+              View My Cards ({cardRows.length})
             </button>
           </div>
         </div>
 
-        <div className="relative z-2 flex flex-col gap-3 rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-sm max-md:w-full">
-          <span className="text-3xs font-bold uppercase tracking-wider text-[#a7b5bb]">Identity status</span>
-          <div className="flex items-center gap-3">
-            <div className={cx('size-3 rounded-full', anyActive ? 'bg-mint' : pendingMemberships.length ? 'bg-lemon' : 'bg-slate-400')} />
-            <span className="font-display text-sm font-semibold text-white">
-              {anyActive ? 'Active Company Member' : pendingMemberships.length ? 'Review in progress' : 'Independent Profile'}
+        {/* Deel-Style Interactive Visiting Card Preview Mockup */}
+        <div className="relative z-2 w-full max-w-sm rounded-[24px] border border-white/20 bg-white/10 p-5 backdrop-blur-md shadow-2xl transition-transform hover:-translate-y-1">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <span className="text-3xs font-mono font-bold tracking-widest uppercase text-mint">
+              {anyActive ? anyActive.company?.name : 'BizCard Professional'}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-mint/20 px-2 py-0.5 text-[10px] font-bold text-mint">
+              ✓ VERIFIED
             </span>
           </div>
-          <div className="h-px w-full bg-white/10" />
-          <div className="flex items-center justify-between gap-6 text-2xs text-[#d2dbe0]">
-            <span>
-              Cards ready: <strong className="text-white">{cardRows.length}</strong>
+
+          <div className="my-4">
+            <strong className="block text-lg font-extrabold text-white">{employeeName}</strong>
+            <p className="text-xs text-[#a0b0b8] font-medium">
+              {anyActive ? `ID: ${anyActive.employee_code} · ${anyActive.official_email}` : user?.email || 'Individual Member'}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl bg-black/30 p-2.5 text-2xs text-[#d2dbe0]">
+            <span className="flex items-center gap-1.5 font-mono text-[11px]">
+              <span className="text-mint">●</span> 300 DPI Print PDF
             </span>
-            <span>
-              Orders: <strong className="text-white">{orders.length}</strong>
-            </span>
+            <span className="font-bold text-mint">Ready to print</span>
           </div>
         </div>
       </section>
 
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-4 gap-3.5 max-md:grid-cols-2">
-        {stats.map(([label, value, note, tone]) => (
-          <StatCard key={label} label={label} value={value} note={note} tone={tone} />
-        ))}
-      </div>
-
-      {/* Active memberships banner */}
-      {memberships.some(m => m.status === 'APPROVED') && (
-        <Panel>
+      {/* ------------------------------------------------------------------------------------------
+          2-COLUMN PERSONAL STATUS & WORKSPACE HUB
+          ------------------------------------------------------------------------------------------ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: My Visiting Card & Verification */}
+        <Panel className="min-h-72">
           <PanelHeader className="max-sm:p-4.5">
             <PanelTitle
-              kicker="ACTIVE MEMBERSHIP"
-              title="Connected company workspace"
-              copy="Your verified company connection unlocks official branding and templates."
+              kicker="DIGITAL IDENTITY"
+              title="My active visiting card"
+              copy="Instant access to your latest generated card and print file."
+            />
+            {latestCard && (
+              <Button
+                variant="quiet"
+                className="!text-xs font-bold"
+                onClick={() => setTab?.('cards')}
+              >
+                View all ({cardRows.length}) →
+              </Button>
+            )}
+          </PanelHeader>
+
+          <div className="p-6">
+            {latestCard ? (
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-[#e3e8e6] bg-[#fafbfc] p-5 shadow-xs">
+                <div className="flex items-center gap-3.5">
+                  <span className="grid size-12 place-items-center rounded-2xl bg-lilac text-xl text-royal font-bold">
+                    ▤
+                  </span>
+                  <div>
+                    <strong className="block text-sm font-bold text-slate-900">{latestCard.file_name}</strong>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {latestCard.kind === 'personal' ? 'Personal Card' : 'Company Branded'} · Generated{' '}
+                      {new Date(latestCard.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  variant="primary"
+                  className="!px-4 !py-2 !text-xs font-bold"
+                  onClick={() =>
+                    download(
+                      latestCard.kind === 'personal'
+                        ? `/employee/personal-cards/${latestCard.id}/download`
+                        : `/employee/cards/${latestCard.id}/download`,
+                      latestCard.file_name
+                    )
+                  }
+                >
+                  Download PDF ↓
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-slate-300 bg-white p-7 text-center">
+                <span className="grid size-12 place-items-center mx-auto rounded-2xl bg-slate-100 text-xl text-slate-600">
+                  ◇
+                </span>
+                <h4 className="mt-3 text-sm font-bold text-slate-800">No cards generated yet</h4>
+                <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                  Click the primary &quot;Order New Cards&quot; button above to generate your first custom visiting card in seconds.
+                </p>
+                <Button
+                  variant="secondary"
+                  className="mt-4 !text-xs font-bold"
+                  onClick={() => setTab?.('create')}
+                >
+                  Create your first card →
+                </Button>
+              </div>
+            )}
+          </div>
+        </Panel>
+
+        {/* Right: Company Membership & Sponsorship */}
+        <Panel className="min-h-72">
+          <PanelHeader className="max-sm:p-4.5">
+            <PanelTitle
+              kicker="EMPLOYMENT LINK"
+              title="Company connection"
+              copy="Your organizational membership, verification, and sponsorship."
             />
           </PanelHeader>
+
           <div className="p-6">
-            {memberships
-              .filter(m => m.status === 'APPROVED')
-              .map(m => (
-                <div
-                  key={m.id}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-5.5 shadow-xs"
-                >
+            {anyActive ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-5 shadow-xs">
                   <div className="flex items-center gap-3.5">
                     <span className="grid size-12 place-items-center rounded-2xl bg-white font-extrabold text-royal shadow-xs text-lg">
-                      {m.company?.name ? m.company.name.charAt(0) : '🏢'}
+                      {anyActive.company?.name ? anyActive.company.name.charAt(0) : '🏢'}
                     </span>
                     <div>
                       <strong className="block text-base font-bold text-slate-900">
-                        {m.company?.name || `Company #${m.company_id}`}
+                        {anyActive.company?.name}
                       </strong>
                       <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600">
                         <span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                          ID: {m.employee_code}
+                          ID: {anyActive.employee_code}
                         </span>
                         <span>·</span>
-                        <span>{m.official_email}</span>
-                        <span>·</span>
-                        <span className="font-semibold text-royal">
-                          {m.payer === 'COMPANY' ? 'Company sponsored' : 'Self payer'}
-                        </span>
+                        <span>{anyActive.official_email}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge value="ACTIVE" />
-                    <Button variant="sun" className="!text-xs !px-4 !py-2" onClick={() => setTab?.('create')}>
-                      Create branded card →
-                    </Button>
-                  </div>
+                  <StatusBadge value="ACTIVE" />
                 </div>
-              ))}
-          </div>
-        </Panel>
-      )}
 
-      {/* Pending membership requests */}
-      {memberships.some(m => m.status === 'PENDING') && (
-        <Panel>
-          <PanelHeader className="max-sm:p-4.5">
-            <PanelTitle
-              kicker="PENDING REQUESTS"
-              title="Awaiting company administrator review"
-              copy="Your verification request has been delivered to the company admin."
-            />
-          </PanelHeader>
-          <div className="p-6 space-y-3">
-            {memberships
-              .filter(m => m.status === 'PENDING')
-              .map(m => {
-                const hint = MATCH_HINTS[m.match_status];
-                return (
-                  <div
-                    key={m.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-amber-200 bg-[#fffdf5] p-5 shadow-xs"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <span className="grid size-11 place-items-center rounded-2xl bg-amber-100 text-lg font-bold text-amber-800">
-                        ⏳
-                      </span>
-                      <div>
-                        <strong className="block text-sm font-bold text-slate-900">
-                          {m.company?.name || `Company #${m.company_id}`}
-                        </strong>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                          <span className="font-mono bg-white px-2 py-0.5 rounded border border-amber-200">
-                            ID: {m.employee_code}
-                          </span>
-                          <span>·</span>
-                          <span>{m.official_email}</span>
+                <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4 border border-slate-200/70 text-xs text-slate-600">
+                  <span>Billing sponsorship:</span>
+                  <span className="font-bold text-slate-900">
+                    {anyActive.payer === 'COMPANY' ? 'Company Sponsored (Free ৳0)' : 'Self Paid'}
+                  </span>
+                </div>
+              </div>
+            ) : pendingMemberships.length > 0 ? (
+              <div className="space-y-3">
+                {pendingMemberships.map(m => {
+                  const hint = MATCH_HINTS[m.match_status];
+                  return (
+                    <div
+                      key={m.id}
+                      className="rounded-[24px] border border-amber-200 bg-[#fffdf5] p-5 shadow-xs"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <strong className="block text-sm font-bold text-slate-900">
+                            {m.company?.name || `Company #${m.company_id}`}
+                          </strong>
+                          <small className="text-3xs text-slate-500 font-mono">
+                            ID: {m.employee_code} · {m.official_email}
+                          </small>
                         </div>
-                        {hint && (
-                          <div className={cx('mt-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-3xs font-medium', hint.tone)}>
-                            {hint.text}
-                          </div>
-                        )}
+                        <StatusBadge value="PENDING" />
                       </div>
+                      {hint && (
+                        <div className={cx('mt-3 rounded-lg border px-2.5 py-1 text-3xs font-medium', hint.tone)}>
+                          {hint.text}
+                        </div>
+                      )}
                     </div>
-                    <StatusBadge value="PENDING" />
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-[24px] border border-slate-200 bg-[#fafbfc] p-6 text-center">
+                <span className="grid size-12 place-items-center mx-auto rounded-2xl bg-lilac text-xl text-royal">
+                  🏢
+                </span>
+                <h4 className="mt-3 text-sm font-bold text-slate-800">Not linked to a company</h4>
+                <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                  Join a registered company below to unlock official corporate templates, brand standards, and company-sponsored card orders.
+                </p>
+              </div>
+            )}
           </div>
         </Panel>
-      )}
+      </div>
 
-      {/* Company Directory */}
+      {/* ------------------------------------------------------------------------------------------
+          EXPLORE REGISTERED COMPANIES (Directory Grid)
+          ------------------------------------------------------------------------------------------ */}
       <Panel>
         <PanelHeader className="max-sm:p-4.5">
           <PanelTitle
             kicker="COMPANY DIRECTORY"
-            title="Registered workspaces"
-            copy="Request to join any organization to unlock official cards and verify your position."
+            title="Registered corporate workspaces"
+            copy="Request to join any registered organization to verify your role and unlock official corporate templates."
           />
           <div className="flex items-center rounded-xl border border-[#e3e8e6] bg-white px-3 transition focus-within:border-royal focus-within:ring-3 focus-within:ring-lilac max-sm:w-full">
             <span className="text-base text-slate-400">⌕</span>
@@ -830,8 +913,8 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700">
                             ✓ Active member
                           </span>
-                          <Button variant="secondary" className="!px-3 !py-1 !text-xs" onClick={() => setTab?.('create')}>
-                            Create card →
+                          <Button variant="secondary" className="!px-3 !py-1 !text-xs font-bold" onClick={() => setTab?.('create')}>
+                            Order cards →
                           </Button>
                         </div>
                       ) : membership?.status === 'PENDING' ? (
@@ -845,7 +928,7 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
                       ) : (
                         <Button
                           variant="primary"
-                          className="w-full !text-xs"
+                          className="w-full !text-xs font-bold"
                           onClick={() => openJoinModal(company)}
                         >
                           Request to join →
@@ -862,7 +945,9 @@ export default function EmployeeDashboard({ tab, setTab }: EmployeeDashboardProp
         </div>
       </Panel>
 
-      {/* Join Request Modal */}
+      {/* ------------------------------------------------------------------------------------------
+          MODAL: JOIN COMPANY VERIFICATION (ReviewDialog)
+          ------------------------------------------------------------------------------------------ */}
       {targetCompany && (
         <ReviewDialog
           title={`Join ${targetCompany.name}`}
