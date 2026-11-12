@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 from secrets import token_urlsafe
 from reportlab.lib.colors import HexColor, white
@@ -148,15 +149,96 @@ def fit_card_label(canvas, value, font, size, width):
     return shortened + '...'
 
 
+def star_points(cx, cy, outer, inner, points=5):
+    result = []
+    for i in range(points * 2):
+        angle = math.pi / 2 + i * math.pi / points
+        radius = outer if i % 2 == 0 else inner
+        result.append((cx + math.cos(angle) * radius, cy + math.sin(angle) * radius))
+    return result
+
+
+def draw_star(canvas: Canvas, cx, cy, outer, inner=None, points=5):
+    path = canvas.beginPath()
+    pts = star_points(cx, cy, outer, inner or outer * .42, points)
+    path.moveTo(*pts[0])
+    for point in pts[1:]:
+        path.lineTo(*point)
+    path.close()
+    canvas.drawPath(path, fill=1, stroke=0)
+
+
+def draw_sun(canvas: Canvas, cx, cy, radius, rays=16):
+    canvas.circle(cx, cy, radius * .5, fill=1, stroke=0)
+    canvas.setLineWidth(max(1, radius * .08))
+    for i in range(rays):
+        angle = i * 2 * math.pi / rays
+        canvas.line(cx + math.cos(angle) * radius * .64, cy + math.sin(angle) * radius * .64,
+                    cx + math.cos(angle) * radius, cy + math.sin(angle) * radius)
+
+
+GOVT_GREEN = '#006A4E'
+GOVT_RED = '#F42A41'
+
+
+def render_govt_card(canvas: Canvas, design, company, employee, token, font, bold):
+    """Single-sided green/red identity card in the Bangladesh flag palette. No official emblem or seal."""
+    canvas.setFillColor(HexColor(design.background))
+    canvas.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, fill=1, stroke=0)
+    canvas.setFillColor(HexColor(GOVT_GREEN))
+    canvas.rect(0, 112, CARD_WIDTH, 32, fill=1, stroke=0)
+    canvas.setFillColor(HexColor(GOVT_RED))
+    canvas.circle(24, 128, 9, fill=1, stroke=0)
+    canvas.setFillColor(white)
+    canvas.setFont(bold, 10)
+    canvas.drawString(42, 129, fit_card_label(canvas, company.name.upper(), bold, 10, 190))
+    canvas.setFont(font, 6.5)
+    canvas.drawString(42, 118, 'IDENTITY CARD')
+    canvas.setFillColor(HexColor(GOVT_RED))
+    canvas.rect(0, 109, CARD_WIDTH, 3, fill=1, stroke=0)
+    canvas.setStrokeColor(HexColor(GOVT_GREEN))
+    canvas.setLineWidth(1)
+    canvas.rect(14, 44, 46, 56, fill=0, stroke=1)
+    draw_image(canvas, employee.photo_path, 15, 45, 44, 54)
+    canvas.setFillColor(HexColor(design.text))
+    left = 70
+    canvas.setFont(bold, 11)
+    canvas.drawString(left, 88, fit_card_label(canvas, employee.name, bold, 11, 112))
+    canvas.setFont(font, 7.5)
+    canvas.drawString(left, 77, fit_card_label(canvas, employee.designation, font, 7.5, 112))
+    canvas.drawString(left, 67, fit_card_label(canvas, employee.department, font, 7.5, 112))
+    canvas.setFont(bold, 7.5)
+    canvas.drawString(left, 56, 'ID: ' + fit_card_label(canvas, str(getattr(employee, 'employee_id', '') or '-'), bold, 7.5, 100))
+    canvas.setFont(font, 6.5)
+    canvas.drawString(left, 46, fit_card_label(canvas, employee.email, font, 6.5, 118))
+    draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{token}", 196, 52, 40)
+    canvas.setStrokeColor(HexColor(design.text))
+    canvas.setLineWidth(.5)
+    canvas.line(150, 24, 238, 24)
+    canvas.setFillColor(HexColor(design.text))
+    canvas.setFont(font, 5.5)
+    canvas.drawCentredString(194, 17, 'Authorised signature')
+    canvas.setFillColor(HexColor(GOVT_GREEN))
+    canvas.rect(0, 0, CARD_WIDTH, 6, fill=1, stroke=0)
+    canvas.showPage()
+    canvas.save()
 def render_custom_card(path, company, employee, token, definition):
     from app.schemas.ai import CardDesign
     design = CardDesign.model_validate(definition)
     canvas = Canvas(str(path), pagesize=(CARD_WIDTH, CARD_HEIGHT), pageCompression=1)
+    bold = {'Helvetica': 'Helvetica-Bold', 'Times-Roman': 'Times-Bold', 'Courier': 'Courier-Bold'}[design.font]
+    if design.decoration == 'govt':
+        return render_govt_card(canvas, design, company, employee, token, design.font, bold)
     canvas.setFillColor(HexColor(design.background))
     canvas.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, fill=1, stroke=0)
     canvas.setFillColor(HexColor(design.accent))
     canvas.setStrokeColor(HexColor(design.accent))
-    if design.decoration == 'stripe':
+    if design.decoration == 'star':
+        draw_star(canvas, 222, 122, 26)
+        draw_star(canvas, 196, 134, 8)
+    elif design.decoration == 'sun':
+        draw_sun(canvas, 224, 120, 28)
+    elif design.decoration == 'stripe':
         canvas.rect(0, 136, 252, 8, fill=1, stroke=0)
     elif design.decoration == 'corner':
         canvas.circle(252, 144, 30, fill=1, stroke=0)
@@ -190,7 +272,7 @@ def render_custom_card(path, company, employee, token, definition):
     company_name = fit_card_label(canvas, company.name.upper(), bold, 7, 210)
     canvas.drawRightString(232, 16, company_name)
     canvas.showPage()
-    if design.two_sided:
+    if design.two_sided and design.decoration != 'govt':
         canvas.setFillColor(HexColor(design.background))
         canvas.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, fill=1, stroke=0)
         canvas.setFillColor(HexColor(design.accent))

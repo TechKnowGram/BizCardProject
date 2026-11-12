@@ -34,11 +34,29 @@ def create_system_admin(db, credentials: SystemAdminCredentials):
     return admin
 
 
+def _design(name, description, background, text, accent, decoration, layout='left'):
+    return {'name': name, 'description': description, 'background': background, 'text': text, 'accent': accent,
+            'layout': layout, 'decoration': decoration, 'font': 'Helvetica', 'two_sided': False}
+
+
+SHAPE_TEMPLATES = (
+    ('Bangladesh ID Card', 'Green and red identity card, front only', 'bd_govt_id',
+     _design('Bangladesh ID Card', 'Green and red identity card, front only', '#FFFFFF', '#12261F', '#006A4E', 'govt')),
+    ('Star Badge', 'Five-point star accent', 'shape_star',
+     _design('Star Badge', 'Five-point star accent', '#FFFFFF', '#12261F', '#006A4E', 'star')),
+    ('Sun Rays', 'Radiating sun accent', 'shape_sun',
+     _design('Sun Rays', 'Radiating sun accent', '#FFFFFF', '#12261F', '#F42A41', 'sun')),
+)
+
+
 def seed_templates(db):
     existing = set(db.scalars(select(CardTemplate.style_key)).all())
     for name, description, style_key in DEFAULT_TEMPLATES:
         if style_key not in existing:
             db.add(CardTemplate(name=name, description=description, style_key=style_key, is_active=True))
+    for name, description, style_key, design in SHAPE_TEMPLATES:
+        if style_key not in existing:
+            db.add(CardTemplate(name=name, description=description, style_key=style_key, design=design, is_active=True))
 
 
 def initialize_application():

@@ -12,7 +12,7 @@ class CardDesign(BaseModel):
     text: str = Field(pattern=r'^#[0-9A-Fa-f]{6}$')
     accent: str = Field(pattern=r'^#[0-9A-Fa-f]{6}$')
     layout: Literal['left', 'center']
-    decoration: Literal['stripe', 'corner', 'frame', 'minimal']
+    decoration: Literal['stripe', 'corner', 'frame', 'minimal', 'star', 'sun', 'govt']
     font: Literal['Helvetica', 'Times-Roman', 'Courier']
 
     @model_validator(mode='after')

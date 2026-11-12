@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { parseEmployeeCsv } from '../lib/csv';
+const header='employee_id,name,designation,department,email,phone\n';
+assert.equal(parseEmployeeCsv(header+'E1,"Doe, Jane",Engineer,R&D,jane@example.com,+8801')[0].values.name,'Doe, Jane');
+assert.equal(parseEmployeeCsv(header+'E1,Jane,Engineer,R&D,jane@example.com,+8801\nE1,John,Engineer,R&D,john@example.com,+8802')[1].errors.length,1);
+assert.equal(parseEmployeeCsv(header+'E1,Jane,Engineer,R&D,jane@example.com,+8801',['E1'])[0].errors.length,1);
+assert.ok(parseEmployeeCsv(header+'E1,Jane,Engineer,R&D,invalid,+8801')[0].errors.length);
+assert.throws(()=>parseEmployeeCsv('name\nJane'),/Missing columns/);
+assert.throws(()=>parseEmployeeCsv(header+'E1,"Jane'),/closing quote/);
+assert.equal(parseEmployeeCsv(header+'E1,"Jane\nDoe",Engineer,R&D,jane@example.com,+8801')[0].values.name,'Jane\nDoe');
+console.log('CSV functional checks: 7 passed');
