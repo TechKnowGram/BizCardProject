@@ -28,9 +28,50 @@ const decorationClass: Record<CardDesign['decoration'], string> = {
   corner: '-right-[12%] -top-[21%] aspect-square w-[24%] rounded-full',
   frame: 'inset-[5.5%_3.2%] border-3 border-(color:--ai-accent) bg-transparent!',
   minimal: 'left-[8%] top-[13.2%] h-[2%] w-[12%]',
+  star: 'hidden',
+  sun: 'hidden',
+  govt: 'hidden',
 };
 
 const qrPath = 'M1 1h7v7H1zM13 1h7v7h-7zM1 13h7v7H1zM10 10h3v3h-3zM14 10h2v5h-2zM18 10h2v2h-2zM10 16h3v4h-3zM15 17h5v3h-5zM18 13h2v3h-2z';
+
+const GOVT_GREEN = '#006A4E';
+const GOVT_RED = '#F42A41';
+const starPoints = Array.from({ length: 10 }, (_, i) => {
+  const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+  const radius = i % 2 === 0 ? 48 : 20;
+  return `${(50 + Math.cos(angle) * radius).toFixed(1)},${(50 + Math.sin(angle) * radius).toFixed(1)}`;
+}).join(' ');
+
+/** Star and sun accents, drawn in the top-right corner of the card. */
+function ShapeAccent({ kind }: { kind: 'star' | 'sun' }) {
+  return <svg className="absolute -top-[4%] right-[3%] aspect-square w-[26%] text-(--ai-accent)" viewBox="0 0 100 100" aria-hidden="true">
+    {kind === 'star'
+      ? <polygon points={starPoints} fill="currentColor" />
+      : <><circle cx="50" cy="50" r="22" fill="currentColor" />{Array.from({ length: 16 }, (_, i) => { const a = (i * Math.PI) / 8; return <line key={i} x1={50 + Math.cos(a) * 32} y1={50 + Math.sin(a) * 32} x2={50 + Math.cos(a) * 48} y2={50 + Math.sin(a) * 48} stroke="currentColor" strokeWidth="5" strokeLinecap="round" />; })}</>}
+  </svg>;
+}
+
+/** Single-sided green and red identity card (Bangladesh flag palette, no official emblem or seal). */
+function GovtIdCard({ design, base, cardStyle, name, designation, department, email, company, logoPath, photoPath }: { design: CardDesign; base: string; cardStyle: CSSProperties; name: string; designation: string; department: string; email: string; company: string; logoPath?: string | null; photoPath?: string | null }) {
+  return <div className={base} style={cardStyle} aria-label={`${design.name} ID card preview`}>
+    <div className="absolute inset-x-0 top-0 flex h-[22%] items-center gap-[3%] px-[5%] text-white" style={{ background: GOVT_GREEN }}>
+      {logoPath ? <ProtectedImage path={logoPath} alt="Company logo" className="size-[60%] object-contain" /> : <span className="aspect-square h-[56%] rounded-full" style={{ background: GOVT_RED }} />}
+      <div className="min-w-0"><strong className="block overflow-hidden text-ellipsis whitespace-nowrap uppercase text-[length:4.4cqw]">{company}</strong><small className="block tracking-widest text-[length:2.6cqw]">IDENTITY CARD</small></div>
+    </div>
+    <span className="absolute inset-x-0 top-[22%] h-[2.2%]" style={{ background: GOVT_RED }} />
+    <span className="absolute left-[5.5%] top-[31%] h-[39%] w-[18.5%] border" style={{ borderColor: GOVT_GREEN }}>{photoPath && <ProtectedImage path={photoPath} alt={name} className="size-full object-cover" />}</span>
+    <div className="absolute left-[28%] right-[27%] top-[30%] flex flex-col gap-[2%]">
+      <strong className="overflow-hidden text-ellipsis whitespace-nowrap text-[length:5.2cqw]">{name}</strong>
+      <span className="text-[length:3.3cqw]">{designation}</span>
+      <span className="text-[length:3.3cqw]">{department}</span>
+      <span className="overflow-hidden text-ellipsis whitespace-nowrap text-[length:2.8cqw]">{email}</span>
+    </div>
+    <span className="absolute right-[5.5%] top-[31%] grid aspect-square w-[17%] place-items-center bg-white p-0 text-[#162030]" aria-label="QR placeholder"><svg className="size-[90%]" viewBox="0 0 21 21" aria-hidden="true"><path fill="currentColor" d={qrPath} /></svg></span>
+    <div className="absolute bottom-[10%] right-[5.5%] w-[35%] border-t border-current pt-[0.5%] text-center text-[length:2cqw]">Authorised signature</div>
+    <span className="absolute inset-x-0 bottom-0 h-[4%]" style={{ background: GOVT_GREEN }} />
+  </div>;
+}
 
 const classicStyles: Record<string, string> = {
   classic: 'border border-[#e2e6ed] border-t-7 border-t-[#243e4f] bg-white text-[#243e4f]',
@@ -48,6 +89,7 @@ export default function CardPreview({ style = 'classic', name = 'Alex Morgan', c
       className,
     );
     const cardStyle = { background: design.background, color: design.text, fontFamily: fonts[design.font], '--ai-accent': design.accent } as CSSProperties;
+    if (design.decoration === 'govt') return <GovtIdCard design={design} base={base} cardStyle={cardStyle} name={name} designation={designation} department={department} email={email} company={company} logoPath={logoPath} photoPath={photoPath} />;
     if (back) return <div className={base} style={cardStyle} aria-label="Back of card">
       <span className="absolute left-0 top-0 h-[5.55%] w-full bg-(--ai-accent)" />
       {logoPath && <ProtectedImage path={logoPath} alt="Company logo" className="absolute left-[42%] top-[16%] h-[20%] w-[16%] object-contain" />}
@@ -56,7 +98,7 @@ export default function CardPreview({ style = 'classic', name = 'Alex Morgan', c
       <span className="absolute bottom-[17%] right-[7%] aspect-square w-[17%] bg-white p-0.75 text-[#18233f]" aria-label="Verification QR placeholder"><svg viewBox="0 0 21 21" aria-hidden="true"><path fill="currentColor" d={qrPath} /></svg></span>
     </div>;
     return <div className={base} style={cardStyle} aria-label={`${design.name} template preview`}>
-      <span className={cx('absolute bg-(--ai-accent)', decorationClass[design.decoration])} />
+      {design.decoration === 'star' || design.decoration === 'sun' ? <ShapeAccent kind={design.decoration} /> : <span className={cx('absolute bg-(--ai-accent)', decorationClass[design.decoration])} />}
       {logoPath && <ProtectedImage path={logoPath} alt="Company logo" className="absolute right-[9.5%] top-[12%] h-[11%] w-[13%] object-contain" />}
       {photoPath && <ProtectedImage path={photoPath} alt={name} className="absolute left-[8%] top-[18%] h-[23.6%] w-[13.5%] object-contain" />}
       <div className={cx('absolute right-[8%] top-[26%] flex flex-col', photoPath ? 'left-[24.6%]' : cx('left-[8%]', design.layout === 'center' && 'text-center'))}>

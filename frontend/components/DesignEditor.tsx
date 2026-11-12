@@ -19,7 +19,7 @@ export interface DesignEditorProps {
 }
 
 const colorKeys = ['background', 'text', 'accent'] as const;
-const decorations = ['stripe', 'corner', 'frame', 'minimal'] as const;
+const decorations = ['stripe', 'corner', 'frame', 'minimal', 'star', 'sun', 'govt'] as const;
 const optionLabel = 'text-2xs text-[#7c8a90]';
 
 export default function DesignEditor({ design, onChange, disabled }: DesignEditorProps) {
@@ -33,7 +33,7 @@ export default function DesignEditor({ design, onChange, disabled }: DesignEdito
       <label className={optionLabel}>Alignment<select className={compactSelectClass} disabled={disabled} value={design.layout} onChange={e => update('layout', e.target.value as CardDesign['layout'])}><option value="left">Left aligned</option><option value="center">Centered</option></select></label>
       <label className={optionLabel}>Detail<select className={compactSelectClass} disabled={disabled} value={design.decoration} onChange={e => update('decoration', e.target.value as CardDesign['decoration'])}>{decorations.map(value => <option key={value} value={value}>{value}</option>)}</select></label>
     </div>
-    <label className="mt-4 flex items-center gap-2.25 text-xs text-[#766282]"><input type="checkbox" disabled={disabled} checked={!!design.two_sided} onChange={e => update('two_sided', e.target.checked)} /> Include branded back · two-page PDF</label>
+    <label className="mt-4 flex items-center gap-2.25 text-xs text-[#766282]"><input type="checkbox" disabled={disabled || design.decoration === 'govt'} checked={!!design.two_sided && design.decoration !== 'govt'} onChange={e => update('two_sided', e.target.checked)} /> Include branded back · two-page PDF</label>
     {contrast && <p role="alert" className={aiErrorClass}>{contrast}</p>}
   </div>;
 }

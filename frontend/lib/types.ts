@@ -66,7 +66,7 @@ export interface CardDesign {
   text: string;
   accent: string;
   layout: 'left' | 'center';
-  decoration: 'stripe' | 'corner' | 'frame' | 'minimal';
+  decoration: 'stripe' | 'corner' | 'frame' | 'minimal' | 'star' | 'sun' | 'govt';
   font: CardFont;
   two_sided: boolean;
 }
