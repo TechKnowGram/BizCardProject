@@ -83,6 +83,19 @@ export default function AuthScreen({ register = false }: AuthScreenProps) {
     </section>
 
     <section className="flex min-h-screen flex-col px-14 py-7.5 max-md:p-5.5"><div className="mb-8 lg:hidden"><Link href="/"><Brand /></Link></div><div className="my-auto w-full max-w-md self-center rounded-[40px] bg-white p-10 shadow-sm max-md:px-6 max-md:py-7.5">
+      {register && (
+        <div className="mb-6 flex rounded-full bg-slate-100 p-1">
+          <span className="flex-1 rounded-full bg-navy py-2 text-center text-xs font-semibold text-white shadow-xs">
+            🏢 Company workspace
+          </span>
+          <Link
+            href="/employee/register"
+            className="flex-1 rounded-full py-2 text-center text-xs font-semibold text-slate-600 transition hover:text-black"
+          >
+            👤 Employee account
+          </Link>
+        </div>
+      )}
       <span className={sectionChipClass}>{register ? 'START YOUR WORKSPACE' : 'WELCOME BACK'}</span>
       <h2 className="mt-4 text-4xl leading-tight font-medium tracking-tight">{created ? 'You’re on the list.' : register ? 'Bring your team together.' : 'Good to see you again.'}</h2>
       <p className="mt-4 text-sm leading-relaxed text-[#7c8a90]">{created ? 'Your company has been submitted for review. Here is what happens next.' : register ? 'Create your company account. We’ll review it before you start creating cards.' : 'Sign in to your workspace and pick up where you left off.'}</p>
@@ -90,7 +103,24 @@ export default function AuthScreen({ register = false }: AuthScreenProps) {
         {fields.map(([key, label, placeholder]) => <div key={key}><FieldLabel htmlFor={key}>{label}</FieldLabel><div className="relative"><input id={key} name={key} type={key === 'email' ? 'email' : ['password', 'confirm'].includes(key) ? (show ? 'text' : 'password') : 'text'} autoComplete={key === 'password' ? (register ? 'new-password' : 'current-password') : key === 'confirm' ? 'new-password' : key === 'email' ? 'email' : key === 'username' ? 'name' : 'organization'} maxLength={key === 'username' ? 50 : key === 'company_name' ? 150 : key === 'email' ? 255 : 128} className={cx(inputBase, key === 'password' ? 'pr-16' : 'pr-4', errors[key] ? 'border-[#dc6060]' : 'border-black/60')} placeholder={placeholder} value={values[key]} aria-invalid={Boolean(errors[key])} onKeyUp={(event: KeyboardEvent<HTMLInputElement>) => key === 'password' && setCapsLock(event.getModifierState('CapsLock'))} onChange={(event: ChangeEvent<HTMLInputElement>) => { setValues({ ...values, [key]: event.target.value }); setErrors({ ...errors, [key]: undefined }); }} />{key === 'password' && <button type="button" className="absolute inset-y-0 right-4 text-xs font-semibold text-royal" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(!show)}>{show ? 'Hide' : 'Show'}</button>}</div>{errors[key] && <p className="mt-2 text-xs text-red-600">{errors[key]}</p>}{key === 'password' && capsLock && <p className="mt-1.5 text-3xs font-bold text-[#a66c00]">Caps Lock is on</p>}{register && key === 'email' && <p className="mt-1.5 text-3xs text-[#7c8a90]">Use a valid address ending in @gmail.com.</p>}{register && key === 'password' && <><div className="relative mt-3 h-1 rounded-full bg-[#eee9f1]"><i className="block h-full rounded-[inherit] bg-[linear-gradient(90deg,#ef6a69,#efb43b,#43ae7e)] transition-[width] duration-250 ease-in-out" style={{ width: `${passwordScore * 20}%` }} /><span className="absolute top-2.5 right-0 text-3xs font-bold text-[#908997]">{passwordScore < 3 ? 'Weak' : passwordScore < 5 ? 'Almost there' : 'Strong password'}</span></div><div className="mt-5.5 flex flex-wrap gap-1.5">{passwordRules.map(([ok, text]) => <span key={text} className={cx('rounded-full border px-2 py-1 text-2xs transition-all duration-200', ok ? 'border-[#bce6d2] bg-[#effaf5] text-[#247354]' : 'border-[#e6e7ee] text-[#7c8a90]')}>{ok ? '✓' : '○'} {text}</span>)}</div></>}</div>)}
         {error && <Notice tone="error">{error}</Notice>}<button className={submitButtonClass} disabled={busy}>{busy ? 'Please wait…' : register ? 'Create company account ↗' : 'Sign in to workspace ↗'}</button>
       </form>}
-      {!created && <p className="mt-7 text-center text-sm text-slate-500">{register ? 'Already have a workspace?' : 'New to BizCard?'} <Link href={register ? '/login' : '/register'} className="font-semibold text-royal">{register ? 'Sign in' : 'Register your company'}</Link></p>}
+      {!created && (
+        <div className="mt-7 text-center space-y-2 text-sm text-slate-500">
+          <p>
+            {register ? 'Already have a workspace?' : 'New to BizCard?'} {' '}
+            <Link href={register ? '/login' : '/register'} className="font-semibold text-royal">
+              {register ? 'Sign in' : 'Register your company'}
+            </Link>
+          </p>
+          {register && (
+            <p className="text-xs text-slate-400">
+              Need cards as an individual employee? {' '}
+              <Link href="/employee/register" className="font-semibold text-royal underline underline-offset-2">
+                Register as an Employee →
+              </Link>
+            </p>
+          )}
+        </div>
+      )}
     </div><p className="mt-10 text-center text-xs text-slate-400">© {new Date().getFullYear()} BizCard · A better first impression.</p></section>
   </main>;
 }
