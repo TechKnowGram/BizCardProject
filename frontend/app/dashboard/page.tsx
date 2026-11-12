@@ -10,9 +10,9 @@ import { api, getToken, logout } from '../../lib/api';
 import type { ApiError } from '../../lib/api';
 import type { User } from '../../lib/types';
 
-type NavItem = [key: string, icon: string, label: string];
+type NavItem = readonly [string, string, string];
 
-const companyNav: NavItem[] = [
+const companyNav: readonly NavItem[] = [
   ['overview', '⌂', 'Overview'],
   ['employees', '♙', 'Employees'],
   ['memberships', '♙', 'Memberships'],
@@ -20,14 +20,18 @@ const companyNav: NavItem[] = [
   ['requests', '▤', 'Card requests'],
   ['profile', '⚙', 'Company profile'],
 ];
-const adminNav: NavItem[] = [
+const adminNav: readonly NavItem[] = [
   ['overview', '⌂', 'Overview'],
   ['companies', '▦', 'Companies'],
   ['requests', '▤', 'Card requests'],
   ['templates', '◇', 'Templates'],
   ['audit', '↻', 'Audit log'],
 ];
-const employeeNav = [['overview', '⌂', 'Overview'], ['create', '◇', 'Create card'], ['cards', '▤', 'My cards']];
+const employeeNav: readonly NavItem[] = [
+  ['overview', '⌂', 'Overview'],
+  ['create', '◇', 'Create card'],
+  ['cards', '▤', 'My cards'],
+];
 
 export default function DashboardPage() {
   const router = useRouter();

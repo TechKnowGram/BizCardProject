@@ -1,6 +1,6 @@
 /** Shapes returned by the FastAPI backend (see backend/app/schemas). Dates are ISO strings. */
 
-export type Role = 'SYSTEM_ADMIN' | 'COMPANY_ADMIN';
+export type Role = 'SYSTEM_ADMIN' | 'COMPANY_ADMIN' | 'EMPLOYEE';
 export type CompanyStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED' | (string & {});
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | (string & {});
 export type StyleKey = 'classic' | 'modern' | 'minimal';
@@ -57,6 +57,7 @@ export interface Employee {
   is_active: boolean;
   has_photo: boolean;
   created_at: string;
+  status?: string;
 }
 
 export interface CardDesign {

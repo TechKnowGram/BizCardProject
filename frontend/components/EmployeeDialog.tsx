@@ -29,7 +29,16 @@ const fields: Array<[FieldKey, string, string]> = [
 export default function EmployeeDialog({ employee, busy, apiError, onSave, onClose }: EmployeeDialogProps) {
   const [values, setValues] = useState<EmployeeValues>(empty);
   const [errors, setErrors] = useState<FieldErrors<FieldKey>>({});
-  useEffect(() => { setValues(employee ? Object.fromEntries((Object.keys(empty) as FieldKey[]).map(key => [key, employee[key] || ''])) as unknown as EmployeeValues : empty); }, [employee]);
+  useEffect(() => {
+    setValues(employee ? {
+      employee_id: employee.employee_id || '',
+      name: employee.name || '',
+      designation: employee.designation || '',
+      department: employee.department || '',
+      email: employee.email || '',
+      phone: employee.phone || '',
+    } : empty);
+  }, [employee]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

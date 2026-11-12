@@ -199,7 +199,7 @@ export default function CompanyDashboard({ tab, setTab }: CompanyDashboardProps)
 
     {tab === 'memberships' && <CompanyMemberships />}
 
-    {tab === 'profile' && company && <CompanyProfilePanel company={company} onSaved={async () => { await load(); }} />}
+    {tab === 'profile' && company && <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />}
 
     {csvOpen && <CsvImportDialog employees={employees} onClose={() => setCsvOpen(false)} onComplete={async count => { setCsvOpen(false); setMessage(`${count} employees imported successfully.`); await load(); }} />}
     {wizardOpen && <RequestWizard company={company} employees={employees} templates={templates} initialIds={selectedEmployees} onClose={() => setWizardOpen(false)} onComplete={async () => { setWizardOpen(false); setSelectedEmployees([]); setTab('requests'); await load(); }} />}
