@@ -184,7 +184,6 @@ export default function CompanyDashboard({ tab, setTab }: CompanyDashboardProps)
       </div>
     </div>}
 
-    {tab === 'profile' && <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />}
 
     {tab === 'employees' && <Panel>
       <PanelHeader className={headerClass}><PanelTitle kicker="TEAM DIRECTORY" title="Your people" copy="Add people manually or import a complete team CSV." /><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => download('/employees/export', 'employees.csv')}>Export CSV</Button><Button variant="secondary" onClick={() => { setEmployeeError(''); setEmployeeEditor(null); }}>Add manually</Button><Button onClick={() => setCsvOpen(true)}>Import CSV</Button></div></PanelHeader>
