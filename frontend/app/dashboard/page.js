@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminDashboard from '../../components/AdminDashboard';
 import CompanyDashboard from '../../components/CompanyDashboard';
+import EmployeeDashboard from '../../components/EmployeeDashboard';
 import DashboardShell from '../../components/DashboardShell';
 import { api, getToken, logout } from '../../lib/api';
 
 const companyNav = [
   ['overview', '⌂', 'Overview'],
   ['employees', '♙', 'Employees'],
+  ['memberships', '♙', 'Memberships'],
   ['templates', '◇', 'Templates'],
   ['requests', '▤', 'Card requests'],
   ['profile', '⚙', 'Company profile'],
@@ -21,6 +23,7 @@ const adminNav = [
   ['templates', '◇', 'Templates'],
   ['audit', '↻', 'Audit log'],
 ];
+const employeeNav = [['overview', '⌂', 'Overview'], ['create', '◇', 'Create card'], ['cards', '▤', 'My cards']];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -40,16 +43,16 @@ export default function DashboardPage() {
   if (error) return <main className="grid min-h-screen place-items-center p-8 text-red-700">{error}</main>;
   if (!user) return <main className="workspace-loader"><i /><p>Preparing your workspace…</p></main>;
 
-  const systemAdmin = user.role === 'SYSTEM_ADMIN';
+  const systemAdmin = user.role === 'SYSTEM_ADMIN'; const employee = user.role === 'EMPLOYEE';
   return <DashboardShell
     user={user}
-    title={systemAdmin ? 'System Administration' : 'Company Dashboard'}
-    subtitle={systemAdmin ? 'Review companies, approve card requests and protect every workspace.' : 'Manage your people, brand and card delivery from one place.'}
-    navigation={systemAdmin ? adminNav : companyNav}
+    title={systemAdmin ? 'System Administration' : employee ? 'Employee Dashboard' : 'Company Dashboard'}
+    subtitle={systemAdmin ? 'Review companies, approve card requests and protect every workspace.' : employee ? 'Join your company once and create professional cards whenever you need them.' : 'Manage your people, brand and card delivery from one place.'}
+    navigation={systemAdmin ? adminNav : employee ? employeeNav : companyNav}
     activeTab={tab}
     onNavigate={setTab}
     onLogout={signOut}
   >
-    {systemAdmin ? <AdminDashboard tab={tab} setTab={setTab} /> : <CompanyDashboard tab={tab} setTab={setTab} />}
+    {systemAdmin ? <AdminDashboard tab={tab} setTab={setTab} /> : employee ? <EmployeeDashboard tab={tab} /> : <CompanyDashboard tab={tab} setTab={setTab} />}
   </DashboardShell>;
 }

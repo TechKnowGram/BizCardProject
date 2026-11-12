@@ -25,9 +25,11 @@ export function validateAuth(values, register = false) {
   return errors;
 }
 
-export function validateEmployee(values) {
+export function validateEmployee(values, csvMode = false) {
   const errors = {};
-  for (const key of ['employee_id', 'name', 'designation', 'department', 'phone']) {
+  // In CSV mode, only employee_id and name are strictly required; designation/department/phone are optional
+  const required = csvMode ? ['employee_id', 'name'] : ['employee_id', 'name', 'designation', 'department', 'phone'];
+  for (const key of required) {
     if (!values[key]?.trim()) errors[key] = 'This field is required.';
   }
   if (!isValidEmail(values.email)) errors.email = 'Enter a valid employee email address.';

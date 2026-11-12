@@ -140,3 +140,63 @@ class AuditLog(Base):
     entity_id: Mapped[str] = mapped_column(String(64), nullable=False)
     details: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+
+class Membership(Base):
+    __tablename__ = 'memberships'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey('companies.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id: Mapped[PythonUUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=True, index=True)
+    employee_id: Mapped[int | None] = mapped_column(ForeignKey('employees.id', ondelete='SET NULL'), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default='PENDING', index=True)
+    official_email: Mapped[str] = mapped_column(String(255), nullable=False)
+    employee_code: Mapped[str] = mapped_column(String(50), nullable=False)
+    payer: Mapped[str] = mapped_column(String(20), nullable=False, default='COMPANY')
+    match_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    user = relationship('User', back_populates='memberships')
+    company = relationship('Company')
+    employee = relationship('Employee')
+    __table_args__ = (
+        UniqueConstraint('company_id', 'user_id', name='uq_membership_company_user'),
+        UniqueConstraint('company_id', 'employee_id', name='uq_membership_company_employee'),
+        CheckConstraint("status IN ('PENDING','PRE_APPROVED','APPROVED','REJECTED','REVOKED')", name='check_membership_status'),
+        CheckConstraint("payer IN ('COMPANY','INDIVIDUAL')", name='check_membership_payer'),
+    )
+
+
+class CardOrder(Base):
+    __tablename__ = 'card_orders'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_id: Mapped[int | None] = mapped_column(ForeignKey('companies.id', ondelete='CASCADE'), nullable=True, index=True)
+    user_id: Mapped[PythonUUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    membership_id: Mapped[int | None] = mapped_column(ForeignKey('memberships.id', ondelete='SET NULL'), nullable=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_price: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    payer: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default='PAID')
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    __table_args__ = (CheckConstraint('quantity > 0', name='check_order_quantity'),
+                      CheckConstraint("payer IN ('COMPANY','INDIVIDUAL')", name='check_order_payer'),)
+
+
+class PaymentRecord(Base):
+    __tablename__ = 'payment_records'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey('card_orders.id', ondelete='CASCADE'), nullable=False, unique=True)
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    method: Mapped[str] = mapped_column(String(30), nullable=False, default='MOCK_CHECKOUT')
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default='PAID')
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class PersonalCard(Base):
+    __tablename__ = 'personal_cards'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[PythonUUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey('card_orders.id', ondelete='CASCADE'), nullable=False)
+    file_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

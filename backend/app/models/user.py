@@ -14,10 +14,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     company_id: Mapped[int | None] = mapped_column(ForeignKey('companies.id'), nullable=True, index=True)
     company = relationship('Company', back_populates='admins')
+    memberships = relationship('Membership', back_populates='user', cascade='all, delete-orphan')
     __table_args__ = (
-        CheckConstraint("role IN ('SYSTEM_ADMIN', 'COMPANY_ADMIN')", name='check_user_role'),
+        CheckConstraint("role IN ('SYSTEM_ADMIN', 'COMPANY_ADMIN', 'EMPLOYEE')", name='check_user_role'),
         CheckConstraint(
-            "(role = 'SYSTEM_ADMIN' AND company_id IS NULL) OR "
+            "(role IN ('SYSTEM_ADMIN', 'EMPLOYEE') AND company_id IS NULL) OR "
             "(role = 'COMPANY_ADMIN' AND company_id IS NOT NULL)",
             name='check_user_company',
         ),

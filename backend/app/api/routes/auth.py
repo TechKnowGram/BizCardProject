@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_roles
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_db
-from app.models import Company, User
-from app.models.constants import COMPANY_ADMIN
-from app.schemas.auth import CompanySummary, LoginRequest, RegisterRequest, RegistrationResponse, TokenResponse, UserResponse
+from app.models import Company, Membership, User
+from app.models.constants import COMPANY_ADMIN, EMPLOYEE
+from app.schemas.auth import CompanySummary, EmployeeRegisterRequest, LoginRequest, RegisterRequest, RegistrationResponse, TokenResponse, UserResponse
 from app.services.activity import add_audit, add_notification, notify_system_admins
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
@@ -47,6 +48,25 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
                             headers={'WWW-Authenticate': 'Bearer'})
     token = create_access_token({'user_id': str(user.id), 'role': user.role})
     return {'access_token': token}
+
+
+@router.post('/employee/register', response_model=UserResponse, status_code=201)
+def register_employee(body: EmployeeRegisterRequest, db: Session = Depends(get_db)):
+    user = User(username=body.username, email=str(body.email).lower(),
+                password_hash=hash_password(body.password), role=EMPLOYEE, company_id=None)
+    db.add(user)
+    try:
+        db.flush()
+        for membership in db.scalars(select(Membership).where(Membership.user_id.is_(None),
+            Membership.official_email == user.email, Membership.status == 'PRE_APPROVED')):
+            membership.user_id = user.id
+            membership.status = 'APPROVED'
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail='Email already registered') from None
+    db.refresh(user)
+    return user
 
 
 @router.get('/me', response_model=UserResponse)

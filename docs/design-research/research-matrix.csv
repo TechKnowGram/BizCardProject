@@ -1,0 +1,51 @@
+Site Number,Site Name,Category,URL,Visual Hierarchy,Typography,Color Palette,Spacing Alignment,Page Layout,Navigation Structure,Button Design,Form Design,Table Design,Component Consistency,Data Presentation,Interaction Patterns,Responsive Behavior,Accessibility,Brand Identity,Average Score
+1,MOO,Printing Platforms,https://www.moo.com/,5,5,5,5,5,5,5,4,4,5,5,5,5,4,5,4.80
+2,VistaPrint,Printing Platforms,https://www.vistaprint.com/,4,4,4,4,4,4,4,4,4,4,4,4,5,4,5,4.13
+3,Canva,Printing Platforms,https://www.canva.com/create/business-cards/,5,5,5,5,5,5,5,5,4,5,5,5,5,4,5,4.87
+4,Adobe Express,Printing Platforms,https://www.adobe.com/express/create/business-card,5,5,5,5,5,4,5,4,4,5,5,5,4,4,5,4.67
+5,Zazzle,Printing Platforms,https://www.zazzle.com/,3,3,3,3,3,3,3,3,3,3,3,3,4,3,4,3.27
+6,Jukebox Print,Printing Platforms,https://www.jukeboxprint.com/,5,5,5,5,5,4,5,4,4,5,5,4,4,4,5,4.60
+7,GotPrint,Printing Platforms,https://www.gotPrint.com/,3,3,3,4,3,3,3,4,5,3,4,3,4,3,4,3.47
+8,PrintRunner,Printing Platforms,https://www.printrunner.com/,3,3,3,3,3,3,3,3,4,3,4,3,4,3,3,3.27
+9,PsPrint,Printing Platforms,https://www.psprint.com/,3,3,3,3,3,3,3,3,4,3,4,3,3,3,3,3.13
+10,UPrinting,Printing Platforms,https://www.uprinting.com/,4,4,3,4,4,4,4,4,5,4,4,4,4,3,4,3.93
+11,Stripe,Premium B2B SaaS,https://stripe.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+12,Linear,Premium B2B SaaS,https://linear.app/,5,5,5,5,5,5,5,5,5,5,5,5,4,4,5,4.87
+13,Ramp,Premium B2B SaaS,https://ramp.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,4,5,4.93
+14,Mercury,Premium B2B SaaS,https://mercury.com/,5,5,5,5,5,5,5,4,5,5,5,5,5,5,5,4.93
+15,Brex,Premium B2B SaaS,https://brex.com/,5,5,4,5,5,5,5,5,5,5,5,4,5,4,5,4.80
+16,Notion,Premium B2B SaaS,https://notion.com/,5,5,5,5,5,5,5,5,5,5,4,5,5,4,5,4.87
+17,Figma,Premium B2B SaaS,https://figma.com/,5,5,5,5,5,5,5,5,5,5,5,5,4,4,5,4.87
+18,Webflow,Premium B2B SaaS,https://webflow.com/,5,5,5,5,5,4,5,5,4,5,5,5,5,4,5,4.80
+19,Framer,Premium B2B SaaS,https://framer.com/,5,5,5,5,5,4,5,5,4,5,5,5,5,4,5,4.80
+20,Vercel,Premium B2B SaaS,https://vercel.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,4,5,4.93
+21,Shopify,Real SaaS Dashboards,https://shopify.com/,5,5,5,5,5,5,5,5,5,5,4,5,5,5,5,4.93
+22,Square,Real SaaS Dashboards,https://squareup.com/,5,5,5,5,5,5,5,4,5,5,5,4,5,5,5,4.87
+23,HubSpot,Real SaaS Dashboards,https://hubspot.com/,4,4,4,4,4,4,4,4,5,4,4,4,4,4,4,4.07
+24,Intercom,Real SaaS Dashboards,https://intercom.com/,5,5,5,5,5,5,5,5,4,5,4,5,4,4,5,4.73
+25,Airtable,Real SaaS Dashboards,https://airtable.com/,5,5,5,5,5,5,4,5,5,5,5,5,4,4,5,4.80
+26,Asana,Real SaaS Dashboards,https://asana.com/,5,5,5,5,5,5,5,4,5,5,5,5,4,5,5,4.87
+27,Monday.com,Real SaaS Dashboards,https://monday.com/,4,4,4,4,4,4,4,4,5,4,4,4,4,4,4,4.07
+28,ClickUp,Real SaaS Dashboards,https://clickup.com/,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4.00
+29,Zendesk,Real SaaS Dashboards,https://zendesk.com/,5,4,5,5,5,5,5,5,5,5,5,5,4,5,5,4.87
+30,Freshdesk,Real SaaS Dashboards,https://freshworks.com/freshdesk/,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4.00
+31,Attio,Business Applications,https://attio.com/,5,5,5,5,5,5,5,5,5,5,5,5,4,4,5,4.87
+32,Gusto,Business Applications,https://gusto.com/,5,5,5,5,5,5,5,5,5,5,4,5,5,5,5,4.93
+33,Rippling,Business Applications,https://rippling.com/,5,5,5,5,5,5,5,5,5,5,5,5,4,4,5,4.87
+34,Deel,Business Applications,https://deel.com/,5,5,5,5,5,5,5,5,5,5,4,5,5,5,5,4.93
+35,Slack,Business Applications,https://slack.com/,5,5,5,5,5,5,4,4,4,5,4,5,5,5,5,4.73
+36,Dropbox,Business Applications,https://dropbox.com/,5,5,5,5,5,5,5,4,5,5,4,5,5,5,5,4.87
+37,DocuSign,Business Applications,https://docusign.com/,4,4,4,4,4,4,4,4,5,4,4,4,4,5,5,4.27
+38,PandaDoc,Business Applications,https://pandadoc.com/,4,4,5,4,4,4,5,4,4,4,4,4,4,4,5,4.20
+39,Calendly,Business Applications,https://calendly.com/,5,5,5,5,5,5,5,5,4,5,4,5,5,5,5,4.87
+40,PostHog,Business Applications,https://posthog.com/,5,5,5,5,5,5,5,5,5,5,5,5,4,4,5,4.87
+41,Material Design 3,Design Systems,https://m3.material.io/,5,5,5,5,5,5,5,5,4,5,4,5,5,5,5,4.87
+42,Shopify Polaris,Design Systems,https://polaris.shopify.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+43,IBM Carbon,Design Systems,https://carbondesignsystem.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+44,Atlassian Design System,Design Systems,https://atlassian.design/,5,5,5,5,5,5,5,5,5,5,5,5,4,5,5,4.93
+45,Adobe Spectrum,Design Systems,https://spectrum.adobe.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+46,GitHub Primer,Design Systems,https://primer.style/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+47,Microsoft Fluent 2,Design Systems,https://fluent2.microsoft.design/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+48,Radix UI,Design Systems,https://radix-ui.com/,5,5,5,5,5,5,5,5,4,5,4,5,5,5,5,4.87
+49,shadcn/ui,Design Systems,https://ui.shadcn.com/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00
+50,GOV.UK Design System,Design Systems,https://design-system.service.gov.uk/,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5.00

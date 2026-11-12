@@ -1,0 +1,21 @@
+employee_id,full_name,official_email,department,designation,status
+BSH-1001,Rahim Ahmed,rahim.ahmed@bashundhara.com,Information Technology,Lead Software Engineer,ACTIVE
+BSH-1002,Karim Hasan,karim.hasan@bashundhara.com,Human Resources,HR Business Partner,ACTIVE
+BSH-1003,Tanvir Islam,tanvir.islam@bashundhara.com,Finance & Accounts,Senior Financial Analyst,ACTIVE
+BSH-1004,Nusrat Jahan,nusrat.jahan@bashundhara.com,Marketing,Brand Communications Lead,ACTIVE
+BSH-1005,Shahadat Hossain,shahadat.hossain@bashundhara.com,Operations,Operations Manager,ACTIVE
+BSH-1006,Farhana Akter,farhana.akter@bashundhara.com,Information Technology,UI/UX Product Designer,ACTIVE
+BSH-1007,Mahmudur Rahman,mahmudur.rahman@bashundhara.com,Supply Chain,Procurement Specialist,ACTIVE
+BSH-1008,Sultana Razia,sultana.razia@bashundhara.com,Legal & Compliance,Corporate Legal Officer,ACTIVE
+BSH-1009,Ariful Haque,ariful.haque@bashundhara.com,Information Technology,DevOps Engineer,ACTIVE
+BSH-1010,Sadia Afrin,sadia.afrin@bashundhara.com,Customer Relations,Support Operations Lead,ACTIVE
+BSH-1011,Zubair Al Mahmud,zubair.mahmud@bashundhara.com,Engineering,Quality Assurance Lead,ACTIVE
+BSH-1012,Mehedi Hasan,mehedi.hasan@bashundhara.com,Sales & Business Development,Regional Sales Manager,ACTIVE
+BSH-1013,Tasnim Anjum,tasnim.anjum@bashundhara.com,Information Technology,Data Engineer,ACTIVE
+BSH-1014,Imran Nazir,imran.nazir@bashundhara.com,Administration,Facilities Supervisor,ACTIVE
+BSH-1015,Rashedul Karim,rashedul.karim@bashundhara.com,Finance & Accounts,Internal Auditor,ACTIVE
+BSH-1016,Fahmida Sultana,fahmida.sultana@bashundhara.com,Human Resources,Talent Acquisition Executive,ACTIVE
+BSH-1017,Ashiqur Rahman,ashiqur.rahman@bashundhara.com,Marketing,Content & Social Media Strategist,ACTIVE
+BSH-1018,Kazi Moniruzzaman,kazi.monir@bashundhara.com,Operations,Logistics Coordinator,ACTIVE
+BSH-1019,Afroza Parvin,afroza.parvin@bashundhara.com,Legal & Compliance,Compliance Auditor,ACTIVE
+BSH-1020,Sabbir Bin Tariq,sabbir.tariq@bashundhara.com,Engineering,Network Security Specialist,ACTIVE

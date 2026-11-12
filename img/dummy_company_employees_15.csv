@@ -1,0 +1,16 @@
+﻿employee_id,full_name,official_email,department,designation,status
+BSH-10001,Rahim Ahmed,rahim.ahmed@example.com,IT,Software Engineer,ACTIVE
+BSH-10002,Karim Hasan,karim.hasan@example.com,Human Resources,HR Executive,ACTIVE
+BSH-10003,Nusrat Jahan,nusrat.jahan@example.com,Finance,Accounts Officer,ACTIVE
+BSH-10004,Sabbir Hossain,sabbir.hossain@example.com,Marketing,Marketing Executive,ACTIVE
+BSH-10005,Farzana Akter,farzana.akter@example.com,Administration,Admin Officer,ACTIVE
+BSH-10006,Tanvir Islam,tanvir.islam@example.com,IT,System Analyst,ACTIVE
+BSH-10007,Maliha Rahman,maliha.rahman@example.com,Legal,Legal Associate,ACTIVE
+BSH-10008,Imran Hossain,imran.hossain@example.com,Sales,Sales Executive,ACTIVE
+BSH-10009,Sadia Sultana,sadia.sultana@example.com,Procurement,Procurement Officer,ACTIVE
+BSH-10010,Arif Mahmud,arif.mahmud@example.com,Operations,Operations Officer,ACTIVE
+BSH-10011,Jannatul Ferdous,jannatul.ferdous@example.com,Customer Support,Support Executive,ACTIVE
+BSH-10012,Mehedi Hasan,mehedi.hasan@example.com,IT,Backend Developer,ACTIVE
+BSH-10013,Sumaiya Islam,sumaiya.islam@example.com,Finance,Senior Accountant,ACTIVE
+BSH-10014,Rakibul Karim,rakibul.karim@example.com,Logistics,Logistics Coordinator,INACTIVE
+BSH-10015,Tanjim Chowdhury,tanjim.chowdhury@example.com,Engineering,Project Engineer,ACTIVE

@@ -235,3 +235,121 @@ Company AI designs remain private and are listed separately from the shared admi
 - **Actual PDF preview** renders an unsaved draft or selected template with the same service used after approval. Previews do not issue cards or create database records; preview QR codes do not verify.
 - Enable **Include branded back** to create a two-page PDF per employee, with each side sized 3.5 ? 2 inches. Existing single-sided templates stay single-sided.
 - Apply the brand-kit migration with `cd backend` then `alembic upgrade head` before restarting the backend.
+
+### Employee Portal
+
+Employees register at `/employee/register`, then sign in and select an approved company from their dashboard. A company administrator approves the membership once from **Memberships**. Approved employees can create and download their own visiting cards using active company templates. Their membership remains active until the company administrator revokes it.
+
+Run the latest migration before using this feature:
+
+```powershell
+cd backend
+.venv/Scripts/python.exe -m alembic upgrade head
+```
+
+### Verified Membership and Mock Checkout
+
+## Current Project Handoff
+
+This section is the source of truth for the next developer or AI model. Read it before changing the project.
+
+### Roles and registration
+
+| Role | Responsibility | Registration |
+| --- | --- | --- |
+| `SYSTEM_ADMIN` | Approves companies and requests; manages shared templates | Bootstrap only from environment variables |
+| `COMPANY_ADMIN` | Owns one company and manages its people, brand, requests and memberships | `/register` → Company → `/register/company` |
+| `EMPLOYEE` | Has a personal account/cards and may join an approved company | `/register` → Employee → `/employee/register` |
+
+Never expose System Admin in public registration. Public company registration must create `COMPANY_ADMIN`, and employee registration must create `EMPLOYEE`.
+
+`/register` is intentionally an account-type selection page. Keep links labelled “Register” pointing there so a visitor consciously chooses their Company or Employee workspace.
+
+### Domain model and ownership
+
+- `User`: login identity and role. An employee user is separate from an imported company employee record.
+- `Company`: tenant boundary and owner of company branding.
+- `Employee`: company-owned directory/contact record with employee ID and official email. CSV import is optional.
+- `Membership`: connects a user to a company, with `PENDING`, `PRE_APPROVED`, `APPROVED`, `REJECTED`, or `REVOKED` status.
+- `CardRequest` and `CardRequestItem`: normal company card approval workflow.
+- `GeneratedCard` / `PersonalCard`: PDF metadata; PDF files stay on local storage, never in PostgreSQL.
+- `CardOrder` and `PaymentRecord`: mock checkout audit trail, not a real payment integration.
+
+### Membership workflows that must continue working
+
+1. **Employee first**: employee registers → searches company → submits official email and employee ID → Company Admin approves → active membership.
+2. **Imported, not registered**: company imports employee → `PRE_APPROVED` membership has no user → matching user registers → account links and activates membership.
+3. **Imported, already registered**: verified official email and employee ID link the existing employee account and activate membership according to the import.
+
+Do not permit duplicate memberships. A user must never retrieve another company's employees, memberships, requests or files.
+
+### Card generation and mock billing
+
+- Employees can create personal cards before joining a company.
+- Approved company membership unlocks company templates/branding; normal card creation does not require repeat approval.
+- System Admin approving a request generates each PDF exactly once. Repeated approval must not make duplicate cards.
+- Checkout accepts any `quantity`; total is `quantity × unit_price`.
+- Record mock orders/payments for card generation only, never for registration or CSV import.
+- Real billing is intentionally deferred. Do not add a payment gateway unless explicitly requested.
+
+### Important files
+
+| Concern | Location |
+| --- | --- |
+| FastAPI app and router registration | `backend/app/main.py` |
+| Auth | `backend/app/api/routes/auth.py` |
+| Membership API | `backend/app/api/routes/memberships.py` |
+| Employee portal/personal cards/checkout | `backend/app/api/routes/employee_portal.py` |
+| Database models | `backend/app/models/domain.py` |
+| Request and response schemas | `backend/app/schemas/domain.py` |
+| CSV and PDF services | `backend/app/services/` |
+| Latest migrations | `backend/alembic/versions/20261111_05_employee_memberships.py`, `backend/alembic/versions/20261112_06_flexible_membership_checkout.py` |
+| Registration choice UI | `frontend/app/register/page.js` |
+| Company registration UI | `frontend/app/register/company/page.js`, `frontend/components/AuthScreen.js` |
+| Employee registration UI | `frontend/app/employee/register/page.js` |
+| Dashboard role router | `frontend/app/dashboard/page.js` |
+| Company and employee dashboards | `frontend/components/CompanyDashboard.js`, `frontend/components/EmployeeDashboard.js` |
+| Company membership UI | `frontend/components/CompanyMemberships.js` |
+| API client and global design | `frontend/lib/api.js`, `frontend/app/globals.css` |
+
+### Rules for future changes
+
+1. Inspect models, routes, schemas and migrations before adding a feature; reuse the current flow.
+2. Use existing JWT/RBAC dependencies. Never trust a role or company ID from the browser.
+3. Scope all tenant-owned queries by authenticated `company_id` or verified membership.
+4. Add a new Alembic migration for database changes; never edit an applied migration.
+5. Keep PDF generation and CSV logic in services, not routes.
+6. Add/update tests for authentication, isolation, membership state and duplicate prevention.
+
+### Run and verify
+
+```powershell
+# Terminal 1
+cd backend
+.venv\Scripts\python.exe -m alembic upgrade head
+.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8001
+
+# Terminal 2
+cd frontend
+npm run dev -- --port 3001
+```
+
+Verify these pages after starting:
+
+- `http://localhost:3001/register` — professional Company/Employee choice
+- `http://localhost:3001/register/company` — company registration
+- `http://localhost:3001/employee/register` — employee registration
+- `http://localhost:8001/docs` — API documentation
+
+Backend check:
+
+```powershell
+cd backend
+.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
+```
+
+Employees can create personal cards without joining a company. To use company branding, they select a company and submit the official company email plus employee ID recorded by that company. The platform validates both values against the company employee record before sending a request to the Company Admin.
+
+CSV import is optional. Each imported employee creates a `PRE_APPROVED` membership. If that employee already has an account with the same official email, the account is linked and approved immediately. If they register later with the same official email, their pre-approved membership activates automatically.
+
+Employee card checkout is a development mock. The employee selects any quantity, sees `quantity × unit price`, and the system records a paid mock order and payment record with the correct company or individual payer. Default individual unit price is `৳50`; company-sponsored orders are recorded at `৳0`.

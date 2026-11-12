@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator, field_serializer
 from app.schemas.ai import CardDesign
@@ -180,6 +181,68 @@ class NotificationResponse(BaseModel):
     message: str
     is_read: bool
     created_at: datetime
+
+
+class CompanyDirectoryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    description: str | None
+    website: str | None
+
+
+class MembershipResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    company_id: int
+    user_id: UUID | None
+    employee_id: int | None
+    status: str
+    official_email: str
+    employee_code: str
+    payer: str
+    match_status: str | None = None
+    requested_at: datetime
+    decided_at: datetime | None
+    company: CompanyDirectoryResponse | None = None
+    user: UserResponse | None = None
+
+
+class MembershipDecision(BaseModel):
+    decision: Literal['APPROVED', 'REJECTED', 'REVOKED']
+
+
+class MembershipRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    official_email: EmailStr
+    employee_id: str = Field(min_length=1, max_length=50)
+    payer: Literal['COMPANY', 'INDIVIDUAL'] = 'COMPANY'
+
+    @field_validator('official_email')
+    @classmethod
+    def normalized_official_email(cls, value: EmailStr) -> str:
+        return str(value).lower().strip()
+
+
+class CardCheckout(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    quantity: int = Field(ge=1, le=1000)
+    template_id: int | None = Field(default=None, gt=0)
+    payer: Literal['COMPANY', 'INDIVIDUAL'] = 'INDIVIDUAL'
+    name: str | None = Field(default=None, max_length=120)
+    designation: str | None = Field(default=None, max_length=120)
+    department: str | None = Field(default=None, max_length=120)
+    phone: str | None = Field(default=None, max_length=50)
+
+
+class CheckoutResponse(BaseModel):
+    order_id: int
+    quantity: int
+    unit_price: int
+    total_amount: int
+    payer: str
+    payment_status: str
+    card_ids: list[int]
 
 
 class AuditLogResponse(BaseModel):

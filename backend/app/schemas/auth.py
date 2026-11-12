@@ -2,7 +2,7 @@ from typing import Literal
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-Role = Literal['SYSTEM_ADMIN', 'COMPANY_ADMIN']
+Role = Literal['SYSTEM_ADMIN', 'COMPANY_ADMIN', 'EMPLOYEE']
 
 
 class RegisterRequest(BaseModel):
@@ -50,6 +50,30 @@ class SystemAdminCredentials(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1, max_length=128)
+
+
+class EmployeeRegisterRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    username: str = Field(min_length=1, max_length=50)
+    email: EmailStr = Field(max_length=255)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator('username')
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError('Cannot be blank')
+        return value.strip()
+
+    @field_validator('email')
+    @classmethod
+    def normalize_email(cls, value: EmailStr) -> str:
+        return str(value).strip().lower()
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        return RegisterRequest.validate_password(value)
 
 
 class UserResponse(BaseModel):
