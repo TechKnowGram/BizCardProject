@@ -21,10 +21,14 @@ export interface DashboardShellProps {
 
 export default function DashboardShell({ user, title, subtitle, navigation, activeTab, onNavigate, onLogout, children }: DashboardShellProps) {
   const admin = user.role === 'SYSTEM_ADMIN';
+  const employee = user.role === 'EMPLOYEE';
   return <main className="grid min-h-screen grid-cols-[calc(var(--spacing)*62.5)_minmax(0,1fr)] bg-mist max-lg:grid-cols-[minmax(0,1fr)]">
     <aside className="sticky top-0 flex h-screen flex-col bg-navy px-5.5 py-7.5 max-lg:hidden">
       <Brand light className="flex-wrap" />
-      <div className="mt-13 flex items-center gap-2.5 rounded-full border border-white/15 px-4 py-2.5 text-xs font-medium text-white"><i className="size-2 rounded-full bg-mint" /> {admin ? 'System administrator' : 'Company administrator'}</div>
+      <div className="mt-13 flex items-center gap-2.5 rounded-full border border-white/15 px-4 py-2.5 text-xs font-medium text-white">
+        <i className={cx('size-2 rounded-full', admin ? 'bg-lemon' : employee ? 'bg-mint' : 'bg-cyan')} />
+        {admin ? 'System administrator' : employee ? 'Employee workspace' : 'Company administrator'}
+      </div>
       <nav className="mt-7 grid gap-1" aria-label="Workspace navigation">
         {navigation.map(([value, , label]) => {
           const active = activeTab === value;

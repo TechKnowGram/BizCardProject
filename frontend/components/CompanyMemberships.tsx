@@ -4,18 +4,24 @@ import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import StatusBadge from './StatusBadge';
 import Toast from './Toast';
+import { Button, Panel, PanelHeader, cx, tableClass, tdClass, thClass } from './ui';
+import { PanelTitle, compactSelectClass } from './CompanyDashboardParts';
 
 const MATCH_LABELS: Record<string, { label: string; tone: string }> = {
-  ROSTER_MATCHED: { label: 'Roster verified', tone: 'text-emerald-700 bg-emerald-50' },
-  ID_MISMATCH: { label: 'Email mismatch', tone: 'text-amber-700 bg-amber-50' },
-  NOT_FOUND: { label: 'Not in roster', tone: 'text-orange-700 bg-orange-50' },
-  INACTIVE_EMPLOYEE: { label: 'Inactive in roster', tone: 'text-red-700 bg-red-50' },
+  ROSTER_MATCHED: { label: 'Roster verified', tone: 'bg-mint text-black border-mint' },
+  ID_MISMATCH: { label: 'Email mismatch', tone: 'bg-lemon text-black border-lemon' },
+  NOT_FOUND: { label: 'Not in roster', tone: 'bg-blush text-black border-blush' },
+  INACTIVE_EMPLOYEE: { label: 'Inactive roster', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
 
 function MatchBadge({ value }: { value: string }) {
   const info = MATCH_LABELS[value];
   if (!info) return null;
-  return <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${info.tone}`}>{info.label}</span>;
+  return (
+    <span className={cx('inline-flex items-center rounded-full border px-2.5 py-0.5 text-2xs font-semibold', info.tone)}>
+      {info.label}
+    </span>
+  );
 }
 
 export default function CompanyMemberships() {
@@ -26,98 +32,175 @@ export default function CompanyMemberships() {
   const [filter, setFilter] = useState('ALL');
 
   async function load() {
-    try { setRows(await api('/company/memberships')); }
-    catch (err: any) { setError(err.message); }
+    try {
+      setRows(await api('/company/memberships'));
+    } catch (err: any) {
+      setError(err.message);
+    }
   }
-  useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    load();
+  }, []);
 
   async function decide(id: number, decision: string) {
-    setBusy(true); setError('');
+    setBusy(true);
+    setError('');
     try {
       await api(`/company/memberships/${id}`, { method: 'PATCH', body: JSON.stringify({ decision }) });
       setMessage(`Membership ${decision.toLowerCase()} successfully.`);
       await load();
-    } catch (err: any) { setError(err.message); }
-    finally { setBusy(false); }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   const filtered = filter === 'ALL' ? rows : rows.filter(r => r.status === filter);
   const pendingCount = rows.filter(r => r.status === 'PENDING').length;
 
   return (
-    <section className="panel">
+    <Panel>
       <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
-      <div className="panel-header">
-        <div>
-          <span className="panel-kicker">TEAM ACCESS</span>
-          <h2>Employee requests {pendingCount > 0 && <span className="inline-flex ml-2 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-sm font-medium">{pendingCount} pending</span>}</h2>
-          <p>Review and decide on employee membership requests. Approved employees can use company branding and templates.</p>
+      <PanelHeader className="max-sm:p-4.5">
+        <PanelTitle
+          kicker="TEAM ACCESS & VERIFICATION"
+          title="Employee membership requests"
+          copy="Review submitted credentials against your company roster. Approved employees unlock verified branding and templates."
+        />
+        <div className="flex items-center gap-3">
+          {pendingCount > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-lemon px-3 py-1 font-display text-xs font-semibold text-black">
+              <span className="size-1.5 rounded-full bg-amber-700" />
+              {pendingCount} pending review
+            </span>
+          )}
+          <select className={compactSelectClass} value={filter} onChange={e => setFilter(e.target.value)}>
+            <option value="ALL">All statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="REVOKED">Revoked</option>
+            <option value="PRE_APPROVED">Pre-approved</option>
+          </select>
         </div>
-        <select className="input compact" value={filter} onChange={e => setFilter(e.target.value)}>
-          <option value="ALL">All statuses</option>
-          <option value="PENDING">Pending</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="REVOKED">Revoked</option>
-          <option value="PRE_APPROVED">Pre-approved</option>
-        </select>
-      </div>
+      </PanelHeader>
+
       {filtered.length ? (
         <div className="overflow-x-auto">
-          <table className="data-table">
+          <table className={tableClass}>
             <thead>
               <tr>
-                <th>Employee</th>
-                <th>Submitted details</th>
-                <th>Verification</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
+                <th className={cx(thClass, 'max-md:p-3.5')}>Employee User</th>
+                <th className={cx(thClass, 'max-md:p-3.5')}>Submitted Details</th>
+                <th className={cx(thClass, 'max-md:p-3.5')}>Verification</th>
+                <th className={cx(thClass, 'max-md:p-3.5')}>Status</th>
+                <th className={cx(thClass, 'max-md:p-3.5')}>Requested</th>
+                <th className={cx(thClass, 'max-md:p-3.5')}>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(row => (
-                <tr key={row.id}>
-                  <td>
-                    <div className="employee-cell">
-                      <span className="employee-avatar">{(row.user?.username || 'E').split(' ').map((p: string) => p[0]).slice(0, 2).join('')}</span>
-                      <div>
-                        <strong>{row.user?.username || 'Unlinked'}</strong>
-                        <small>{row.user?.email || '—'}</small>
+              {filtered.map(row => {
+                const td = cx(tdClass, 'max-md:p-3.5');
+                const initials = (row.user?.username || 'E').split(' ').map((p: string) => p[0]).slice(0, 2).join('');
+                return (
+                  <tr key={row.id} className="hover:bg-[#f6f8f7] transition-colors">
+                    <td className={td}>
+                      <div className="flex items-center gap-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[linear-gradient(145deg,#e9e5fb,#e9e5fb)] text-2xs font-extrabold text-[#6130bd]">
+                          {initials}
+                        </span>
+                        <div>
+                          <strong className="block text-xs font-bold text-slate-900">{row.user?.username || 'Unlinked'}</strong>
+                          <small className="block text-3xs text-[#7c8a90]">{row.user?.email || '—'}</small>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div><small className="text-slate-500">Employee ID:</small> <strong>{row.employee_code || '—'}</strong></div>
-                    <div><small className="text-slate-500">Official email:</small> {row.official_email || '—'}</div>
-                    <div><small className="text-slate-500">Payer:</small> {row.payer}</div>
-                  </td>
-                  <td><MatchBadge value={row.match_status} /></td>
-                  <td><StatusBadge value={row.status} /></td>
-                  <td><small>{row.requested_at ? new Date(row.requested_at).toLocaleDateString() : '—'}</small></td>
-                  <td>
-                    <div className="row-actions">
-                      {row.status === 'PENDING' && (
-                        <>
-                          <button className="btn-primary" disabled={busy} onClick={() => decide(row.id, 'APPROVED')}>Approve</button>
-                          <button className="btn-secondary" disabled={busy} onClick={() => decide(row.id, 'REJECTED')}>Reject</button>
-                        </>
-                      )}
-                      {row.status === 'APPROVED' && <button className="btn-danger" disabled={busy} onClick={() => decide(row.id, 'REVOKED')}>Revoke</button>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className={td}>
+                      <div className="space-y-0.5 text-xs">
+                        <p>
+                          <span className="text-[#8c8594] text-3xs uppercase font-medium">ID:</span>{' '}
+                          <strong className="text-slate-800 font-mono text-xs">{row.employee_code || '—'}</strong>
+                        </p>
+                        <p className="text-[#7c8a90] text-3xs">{row.official_email || '—'}</p>
+                        <span className="inline-block text-[10px] uppercase font-semibold text-royal bg-lilac px-2 py-0.5 rounded-md">
+                          {row.payer === 'COMPANY' ? 'Company sponsored' : 'Individual payer'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className={td}>
+                      <MatchBadge value={row.match_status} />
+                    </td>
+                    <td className={td}>
+                      <StatusBadge value={row.status} />
+                    </td>
+                    <td className={cx(td, 'text-[#7c8a90] text-3xs')}>
+                      {row.requested_at ? new Date(row.requested_at).toLocaleDateString() : '—'}
+                    </td>
+                    <td className={td}>
+                      <div className="flex items-center gap-2">
+                        {row.status === 'PENDING' && (
+                          <>
+                            <Button
+                              variant="sun"
+                              className="!px-3 !py-1.5 !text-xs !min-h-0"
+                              disabled={busy}
+                              onClick={() => decide(row.id, 'APPROVED')}
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              className="!px-3 !py-1.5 !text-xs !min-h-0"
+                              disabled={busy}
+                              onClick={() => decide(row.id, 'REJECTED')}
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        {row.status === 'APPROVED' && (
+                          <Button
+                            variant="danger"
+                            className="!px-3 !py-1.5 !text-xs !min-h-0"
+                            disabled={busy}
+                            onClick={() => decide(row.id, 'REVOKED')}
+                          >
+                            Revoke
+                          </Button>
+                        )}
+                        {['REJECTED', 'REVOKED'].includes(row.status) && (
+                          <Button
+                            variant="secondary"
+                            className="!px-3 !py-1.5 !text-xs !min-h-0"
+                            disabled={busy}
+                            onClick={() => decide(row.id, 'APPROVED')}
+                          >
+                            Re-approve
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       ) : (
-        <div className="premium-empty">
-          <span>♙</span>
-          <h3>{filter === 'ALL' ? 'No membership requests yet' : `No ${filter.toLowerCase()} requests`}</h3>
-          <p>When employees request to join your company, their requests will appear here for review.</p>
+        <div className="grid min-h-80 place-items-center content-center p-9 text-center">
+          <span className="mb-5 grid size-16 -rotate-6 place-items-center rounded-[32px] bg-lilac text-2xl text-royal">
+            ♙
+          </span>
+          <h3 className="text-base font-extrabold text-[#3d3745]">
+            {filter === 'ALL' ? 'No membership requests yet' : `No ${filter.toLowerCase()} requests`}
+          </h3>
+          <p className="mt-2 max-w-sm text-xs leading-relaxed text-[#7c8a90]">
+            When registered users request to join your company workspace, their requests appear here for verification.
+          </p>
         </div>
       )}
-    </section>
+    </Panel>
   );
 }
