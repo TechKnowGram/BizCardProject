@@ -60,6 +60,9 @@ def draw_image(canvas: Canvas, file_path: str | None, x: float, y: float, width:
 
 
 def render_card_pdf(path: Path, company, employee, style_key: str, verification_token: str, design: dict | None = None):
+    if design and design.get('kind') == 'image':
+        from app.services.image_template_render import render_image_template
+        return render_image_template(path, company, employee, verification_token, design, design.get('company_id'))
     if design:
         return render_custom_card(path, company, employee, verification_token, design)
     style = STYLES.get(style_key, STYLES['classic'])
@@ -103,6 +106,13 @@ def render_card_pdf(path: Path, company, employee, style_key: str, verification_
     canvas.save()
 
 
+def safe_file_stem(value: str) -> str:
+    """A file-name-safe version of free text (no slashes, drive letters or leading dots)."""
+    import re
+    stem = re.sub(r'[^A-Za-z0-9._-]+', '-', str(value or '')).strip('.-')[:60]
+    return stem or 'employee'
+
+
 def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
     output_dir = storage_root() / f'company_{request.company_id}' / f'request_{request.id}'
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -114,7 +124,8 @@ def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
                 cards.append(item.generated_card)
                 continue
             employee = item.employee
-            filename = f'{employee.employee_id}_card.pdf'
+            # employee_id is free text: never let it shape the path on disk.
+            filename = f'{safe_file_stem(employee.employee_id)}_card.pdf'
             path = output_dir / filename
             verification_token = token_urlsafe(24)
             render_card_pdf(path, request.company, employee, request.template.style_key, verification_token, request.template.design)

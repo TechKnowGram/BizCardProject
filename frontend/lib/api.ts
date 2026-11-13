@@ -56,3 +56,12 @@ export async function download(path: string, filename: string): Promise<void> {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+/** Download a file and report a readable error instead of failing silently. */
+export async function downloadOrReport(path: string, filename: string, report: (message: string) => void): Promise<void> {
+  try {
+    await download(path, filename);
+  } catch {
+    report('The file could not be downloaded. Please try again.');
+  }
+}

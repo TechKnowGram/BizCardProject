@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import { api, download } from '../lib/api';
+import { api, downloadOrReport } from '../lib/api';
 import type { User } from '../lib/types';
 import StatusBadge from './StatusBadge';
 import Toast from './Toast';
@@ -67,6 +67,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
@@ -90,6 +91,8 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
       }
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -337,6 +340,20 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     return <p className="text-sm text-slate-600">You are not linked to a company. Join your company to order cards with its approved designs.</p>;
   }
 
+  /* ---------- First load: show the page shape, not a wrong "no company" state ---------- */
+  if (loading && tab !== 'help') {
+    return (
+      <div className="space-y-6" aria-busy="true" aria-label="Loading">
+        <div className="h-24 animate-pulse rounded-2xl bg-white" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-56 animate-pulse rounded-2xl bg-white" />
+          <div className="h-56 animate-pulse rounded-2xl bg-white" />
+        </div>
+        <div className="h-48 animate-pulse rounded-2xl bg-white" />
+      </div>
+    );
+  }
+
   /* ---------- My profile ---------- */
   if (tab === 'profile') {
     const memberSince = (user as any)?.created_at;
@@ -567,6 +584,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           busy={busy}
           onCheckout={checkout}
           onGoToCompany={() => setTab?.('company')}
+          onError={setError}
         />
       </>
     );
@@ -758,7 +776,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <StatusBadge value={latestCard.status} />
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Button onClick={() => download(cardDownloadPath(latestCard), latestCard.file_name)}>Download PDF</Button>
+                <Button onClick={() => downloadOrReport(cardDownloadPath(latestCard), latestCard.file_name, setError)}>Download PDF</Button>
                 {latestCard.kind !== 'personal' && latestCard.verification_token && (
                   <a href={`/verify/${latestCard.verification_token}`} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary')}>
                     Verify card

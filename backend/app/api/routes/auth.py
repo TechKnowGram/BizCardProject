@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+import threading
+import time
+from collections import defaultdict, deque
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -11,6 +15,25 @@ from app.schemas.auth import CompanySummary, EmployeeRegisterRequest, LoginReque
 from app.services.activity import add_audit, add_notification, notify_system_admins
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
+
+# --- Sign-in protection -----------------------------------------------------
+# Failed sign-ins are counted per (client IP, email). After MAX_FAILURES within
+# WINDOW_SECONDS further attempts are refused for the rest of the window. This is
+# an in-process limiter; behind several workers use a shared store (e.g. Redis).
+MAX_FAILURES = 8
+WINDOW_SECONDS = 10 * 60
+_failures: dict[tuple[str, str], deque] = defaultdict(deque)
+_failures_lock = threading.Lock()
+# Verified against when the email is unknown, so timing does not reveal which emails exist.
+_DUMMY_HASH = hash_password('not-a-real-password-placeholder')
+
+
+def _recent_failures(key: tuple[str, str]) -> deque:
+    attempts = _failures[key]
+    cutoff = time.monotonic() - WINDOW_SECONDS
+    while attempts and attempts[0] < cutoff:
+        attempts.popleft()
+    return attempts
 
 
 @router.post('/register', response_model=RegistrationResponse, status_code=201)
@@ -41,11 +64,21 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post('/login', response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == str(body.email).lower()).first()
-    if user is None or not verify_password(body.password, user.password_hash):
+def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    email = str(body.email).lower()
+    key = (request.client.host if request.client else 'unknown', email)
+    with _failures_lock:
+        if len(_recent_failures(key)) >= MAX_FAILURES:
+            raise HTTPException(status_code=429, detail='Too many sign-in attempts. Please wait a few minutes and try again.')
+    user = db.query(User).filter(User.email == email).first()
+    valid = verify_password(body.password, user.password_hash if user else _DUMMY_HASH) and user is not None
+    if not valid:
+        with _failures_lock:
+            _recent_failures(key).append(time.monotonic())
         raise HTTPException(status_code=401, detail='Invalid credentials',
                             headers={'WWW-Authenticate': 'Bearer'})
+    with _failures_lock:
+        _failures.pop(key, None)
     token = create_access_token({'user_id': str(user.id), 'role': user.role})
     return {'access_token': token}
 

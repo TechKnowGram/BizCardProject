@@ -10,7 +10,7 @@ export const facts = [
 
 export const features = [
   { icon: 'lucide:users', title: 'Staff list', text: 'Add people one by one or import a CSV. Rows with problems are flagged before anything is saved.' },
-  { icon: 'lucide:layout-template', title: 'Card templates', text: 'Classic, modern, minimal and ID-style layouts, or a design suggested from a short description.' },
+  { icon: 'lucide:layout-template', title: 'Your own design', text: 'Upload a card made in Photoshop or Canva. Machine learning reads it and marks where every detail goes.' },
   { icon: 'lucide:clipboard-check', title: 'Requests and approval', text: 'Employees ask for a card, an admin checks it. Nothing goes to print without a yes.' },
   { icon: 'lucide:file-down', title: 'Print-ready files', text: 'Approved cards come out as vector PDFs at the standard 3.5 × 2 inch size.' },
 ];
@@ -30,9 +30,9 @@ export const reasons = [
 ];
 
 export const templates = [
-  { look: 'classic', label: 'Classic', note: 'Formal, with a solid colour edge.' },
-  { look: 'modern', label: 'Modern', note: 'Dark background and a clear accent.' },
-  { look: 'minimal', label: 'Minimal', note: 'Plenty of space, easy to read.' },
+  { look: 'classic', label: 'Upload your design', note: 'Export the card from Photoshop or Canva. Machine learning finds the name, title, contact details and photo frame.' },
+  { look: 'modern', label: 'Add a back if you want one', note: 'Upload the back design too, or let us print your logo, name, website and QR code on a colour you pick.' },
+  { look: 'minimal', label: 'Every card filled in for you', note: 'Each employee’s details, photo and QR code go into the right place, ready to print.' },
 ] as const;
 
 export const roles = [
@@ -57,7 +57,7 @@ export const faqs: FaqItem[] = [
   { question: 'What is BizCard?', answer: 'BizCard is a workspace where a company keeps its staff list, chooses a card design and gets approved, print-ready business cards. Every card has a QR code that anyone can scan to check it is real.' },
   { question: 'How do I add my employees?', answer: 'Add them one at a time, or upload a CSV file. Each row is checked and you see what needs fixing before anything is saved.' },
   { question: 'How do I request cards?', answer: 'Choose a template, select the employees and send the request. An admin reviews it, and once approved the PDFs are ready to download.' },
-  { question: 'Can we use our own design?', answer: 'Yes. Save your colours, fonts and logo in the brand kit, adjust a template, or describe the look you want and pick from a few suggestions.' },
+  { question: 'Can we use our own design?', answer: 'Yes, that is how it works. Upload a finished design and machine learning finds where the name, title, contact details and photo go. The back is optional: upload it too, or use a simple back made from your logo and website. You check everything before saving.' },
   { question: 'How does QR verification work?', answer: 'Scanning a card opens a public page showing the name, role and company printed on it, and whether the card is still active.' },
   { question: 'Who can see our staff data?', answer: 'Only your company admins and the platform admins. Verification pages show just the details that are already printed on the card; emails and phone numbers stay private.' },
 ];

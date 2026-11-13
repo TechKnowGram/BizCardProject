@@ -52,7 +52,8 @@ def import_employees(db: Session, company_id: int, content: bytes) -> int:
     parsed = []
     seen = set()
     for row_number, row in enumerate(reader, start=2):
-        row_normalized = {header_map.get(k, k): (v or '').strip() for k, v in row.items()}
+        # A leading apostrophe is how our own export (and Excel) marks text such as '+880...; drop it on import.
+        row_normalized = {header_map.get(k, k): (v or '').strip().removeprefix("'") for k, v in row.items()}
         values = {
             'employee_id': row_normalized.get('employee_id', '').strip(),
             'name': row_normalized.get('name', '').strip(),
