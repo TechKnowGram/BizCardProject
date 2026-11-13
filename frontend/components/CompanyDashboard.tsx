@@ -13,54 +13,144 @@ import Toast from './Toast';
 import CardStudio from './CardStudio';
 import CsvImportDialog from './CsvImportDialog';
 import RequestWizard from './RequestWizard';
-import CompanyMemberships from './CompanyMemberships';
+import CompanyAdminShell from './CompanyAdminShell';
 import { Button, Eyebrow, Panel, PanelHeader, buttonClass, cx, tableClass, tdClass, thClass } from './ui';
-import { PanelTitle, cellNoteClass, compactSelectClass, errorMessage, requestIconClass } from './CompanyDashboardParts';
+import { cellNoteClass, compactSelectClass, errorMessage, requestIconClass } from './CompanyDashboardParts';
 
-const PAGE_SIZE = 8;
-const formatDate = (value?: string | null) => value ? new Date(value).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+const formatDate = (value?: string | null) =>
+  value
+    ? new Date(value).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : '';
 
-const headerClass = 'max-sm:p-4.5';
-const rowActionClass = 'cursor-pointer rounded-lg bg-[#f6f8f7] px-2.5 py-2 text-3xs font-bold text-[#625a6c] hover:bg-[#e9e5fb] hover:text-[#5928b6]';
-const checkboxClass = 'size-4 accent-violet';
-const pagerButtonClass = 'rounded-lg border border-[#e3e8e6] bg-white px-2.5 py-2 text-[#655e6d] disabled:cursor-not-allowed disabled:opacity-40';
-const detailHeadingClass = 'mt-6 mb-3 text-sm font-extrabold';
-const skeletonItem = 'h-32.5 rounded-[28px] bg-[linear-gradient(90deg,#e3e8e6,#f6f8f7,#e3e8e6)] bg-[length:200%_100%] animate-skeleton';
-const requestMetaSmall = 'mt-1.5 block text-3xs text-[#7c8a90]';
+const rowActionClass =
+  'cursor-pointer rounded-lg bg-[#f6f8f7] px-2.5 py-1.5 text-3xs font-bold text-[#625a6c] hover:bg-[#e9e5fb] hover:text-[#5928b6] transition-colors';
+const checkboxClass = 'size-4 accent-slate-900 rounded cursor-pointer';
+const pagerButtonClass =
+  'rounded-lg border border-[#e3e8e6] bg-white px-3 py-1.5 text-xs font-semibold text-[#655e6d] hover:bg-[#f6f8f7] disabled:cursor-not-allowed disabled:opacity-40 transition-colors';
 
-type StatTone = 'violet' | 'cyan' | 'amber' | 'green';
-const toneAccent: Record<StatTone, string> = { violet: 'bg-[#7c4be3]', cyan: 'bg-[#2bbbc4]', amber: 'bg-[#efb53e]', green: 'bg-[#47ae80]' };
+const MATCH_LABELS: Record<string, { label: string; tone: string }> = {
+  ROSTER_MATCHED: { label: 'Roster verified', tone: 'bg-mint text-black border-mint' },
+  ID_MISMATCH: { label: 'Email mismatch', tone: 'bg-lemon text-black border-lemon' },
+  NOT_FOUND: { label: 'Not in roster', tone: 'bg-blush text-black border-blush' },
+  INACTIVE_EMPLOYEE: { label: 'Inactive roster', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
+};
 
-function StatCard({ label, value, note, tone }: { label: string; value: ReactNode; note: string; tone: StatTone }) {
-  return <article className="relative min-h-34 overflow-hidden rounded-[28px] border border-[#e3e8e6] bg-white p-5.5 shadow-md transition-[transform,box-shadow] duration-200 hover:-translate-y-0.75 hover:shadow-lg max-sm:min-h-30 max-sm:p-4.5"><div className={cx('absolute top-0 left-0 h-1 w-full', toneAccent[tone])} /><p className="text-xs font-semibold text-[#756f80]">{label}</p><strong className="mt-4.5 block overflow-hidden text-3xl leading-none font-extrabold tracking-tighter text-ellipsis whitespace-nowrap">{value}</strong><small className="mt-2.5 block text-2xs text-[#7c8a90]">{note}</small></article>;
+function MatchBadge({ value }: { value: string }) {
+  const info = MATCH_LABELS[value];
+  if (!info) return null;
+  return (
+    <span className={cx('inline-flex items-center rounded-full border px-2.5 py-0.5 text-3xs font-bold uppercase tracking-wider', info.tone)}>
+      {info.label}
+    </span>
+  );
 }
+
+function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 className="text-2xl font-black tracking-tight text-slate-900">{title}</h1>
+        {subtitle && <p className="mt-1 text-xs text-slate-500 max-w-2xl leading-relaxed">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  note,
+  tone = 'slate',
+}: {
+  label: string;
+  value: ReactNode;
+  note: string;
+  tone?: 'slate' | 'mint' | 'amber' | 'violet';
+}) {
+  const toneBar = {
+    slate: 'bg-slate-900',
+    mint: 'bg-mint',
+    amber: 'bg-amber-400',
+    violet: 'bg-royal',
+  }[tone];
+
+  return (
+    <div className="relative overflow-hidden rounded-[22px] border border-slate-200/90 bg-white p-5 shadow-2xs transition-all hover:shadow-xs">
+      <div className={cx('absolute top-0 left-0 h-1 w-full', toneBar)} />
+      <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">{label}</span>
+      <strong className="mt-2.5 block text-2xl font-black tracking-tight text-slate-900">{value}</strong>
+      <small className="mt-1 block text-3xs text-slate-500 font-medium">{note}</small>
+    </div>
+  );
+}
+
+export const companyNav = [
+  ['overview', 'overview', 'Overview'],
+  ['employees', 'employees', 'Employees'],
+  ['memberships', 'memberships', 'Membership Requests'],
+  ['requests', 'requests', 'Card Orders'],
+  ['templates', 'templates', 'Templates'],
+  ['profile', 'profile', 'Company Profile'],
+  ['billing', 'billing', 'Billing'],
+  ['settings', 'settings', 'Settings'],
+] as const;
 
 export interface CompanyDashboardProps {
   tab: string;
   setTab: (tab: string) => void;
   user?: User | null;
+  onLogout?: () => void;
 }
 
-interface RequestViewerState { request: CardRequest; cards: GeneratedCard[] }
+interface RequestViewerState {
+  request: CardRequest;
+  cards: GeneratedCard[];
+}
 
-export default function CompanyDashboard({ tab, setTab }: CompanyDashboardProps) {
+export default function CompanyDashboard({ tab, setTab, user, onLogout }: CompanyDashboardProps) {
   const [company, setCompany] = useState<Company | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [requests, setRequests] = useState<CardRequest[]>([]);
+  const [memberships, setMemberships] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [membershipFilter, setMembershipFilter] = useState('ALL');
+  const [ordersSubView, setOrdersSubView] = useState<'requests' | 'checkouts'>('requests');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Dialogs
   const [employeeEditor, setEmployeeEditor] = useState<Employee | null | undefined>(undefined);
   const [employeeError, setEmployeeError] = useState('');
   const [requestViewer, setRequestViewer] = useState<RequestViewerState | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
+
+  // Sponsorship policy setting
+  const [defaultSponsorship, setDefaultSponsorship] = useState<'COMPANY' | 'INDIVIDUAL'>('COMPANY');
 
   const load = useCallback(async () => {
     setError('');
@@ -68,150 +158,1415 @@ export default function CompanyDashboard({ tab, setTab }: CompanyDashboardProps)
       const companyData = await api<Company>('/company/profile');
       setCompany(companyData);
       if (companyData.status === 'APPROVED') {
-        const [employeeData, templateData, requestData] = await Promise.all([api<Employee[]>('/employees'), api<Template[]>('/templates'), api<CardRequest[]>('/card-requests')]);
-        setEmployees(employeeData); setTemplates(templateData); setRequests(requestData);
-
+        const [employeeData, templateData, requestData, membershipData, orderData] = await Promise.all([
+          api<Employee[]>('/employees'),
+          api<Template[]>('/templates'),
+          api<CardRequest[]>('/card-requests'),
+          api<any[]>('/company/memberships').catch(() => []),
+          api<any[]>('/company/card-orders').catch(() => []),
+        ]);
+        setEmployees(employeeData);
+        setTemplates(templateData);
+        setRequests(requestData);
+        setMemberships(membershipData);
+        setOrders(orderData);
       }
-    } catch (requestError) { setError(errorMessage(requestError)); }
-    finally { setLoading(false); }
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [search, department]);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, department, statusFilter]);
 
   async function saveEmployee(values: EmployeeValues) {
-    setBusy(true); setEmployeeError('');
+    setBusy(true);
+    setEmployeeError('');
     const editing = Boolean(employeeEditor?.id);
     try {
-      await api(editing ? `/employees/${employeeEditor!.id}` : '/employees', { method: editing ? 'PUT' : 'POST', body: JSON.stringify(values) });
-      setEmployeeEditor(undefined); setMessage(editing ? 'Employee details updated.' : 'Employee added successfully.'); await load();
-    } catch (requestError) { setEmployeeError(errorMessage(requestError)); }
-    finally { setBusy(false); }
+      await api(editing ? `/employees/${employeeEditor!.id}` : '/employees', {
+        method: editing ? 'PUT' : 'POST',
+        body: JSON.stringify(values),
+      });
+      setEmployeeEditor(undefined);
+      setMessage(editing ? 'Employee details updated.' : 'Employee added successfully.');
+      await load();
+    } catch (requestError) {
+      setEmployeeError(errorMessage(requestError));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function uploadPhoto(employee: Employee, file: File | undefined) {
     if (!file) return;
-    const form = new FormData(); form.append('file', file); setBusy(true); setError('');
-    try { await api(`/employees/${employee.id}/photo`, { method: 'POST', body: form }); setMessage(`${employee.name}’s photo was updated.`); await load(); }
-    catch (requestError) { setError(errorMessage(requestError)); }
-    finally { setBusy(false); }
+    const form = new FormData();
+    form.append('file', file);
+    setBusy(true);
+    setError('');
+    try {
+      await api(`/employees/${employee.id}/photo`, { method: 'POST', body: form });
+      setMessage(`${employee.name}’s photo was updated.`);
+      await load();
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function changeEmployeeStatus(employee: Employee) {
-    if (employee.is_active && !window.confirm(`Deactivate ${employee.name}? Existing cards will also become inactive.`)) return;
-    setBusy(true); setError('');
+    if (employee.is_active && !window.confirm(`Deactivate ${employee.name}? Existing cards will also become inactive.`))
+      return;
+    setBusy(true);
+    setError('');
     try {
-      await api(`/employees/${employee.id}/status`, { method: 'PATCH', body: JSON.stringify({ is_active: !employee.is_active }) });
+      await api(`/employees/${employee.id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_active: !employee.is_active }),
+      });
       setSelectedEmployees(current => current.filter(id => id !== employee.id));
-      setMessage(`${employee.name} is now ${employee.is_active ? 'inactive' : 'active'}.`); await load();
-    } catch (requestError) { setError(errorMessage(requestError)); }
-    finally { setBusy(false); }
+      setMessage(`${employee.name} is now ${employee.is_active ? 'inactive' : 'active'}.`);
+      await load();
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function selectTemplate(id: number) {
-    setBusy(true); setError('');
-    try { await api(`/templates/${id}/select`, { method: 'POST' }); setMessage('Your card template has been updated.'); await load(); }
-    catch (requestError) { setError(errorMessage(requestError)); }
-    finally { setBusy(false); }
+    setBusy(true);
+    setError('');
+    try {
+      await api(`/templates/${id}/select`, { method: 'POST' });
+      setMessage('Your brand card template standard has been updated.');
+      await load();
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function decideMembership(id: number, decision: string) {
+    setBusy(true);
+    setError('');
+    try {
+      await api(`/company/memberships/${id}`, { method: 'PATCH', body: JSON.stringify({ decision }) });
+      setMessage(`Membership ${decision.toLowerCase()} successfully.`);
+      await load();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   function toggleEmployee(id: number) {
-    setSelectedEmployees(current => current.includes(id) ? current.filter(value => value !== id) : [...current, id]);
+    setSelectedEmployees(current => (current.includes(id) ? current.filter(value => value !== id) : [...current, id]));
   }
 
-  function createRequest() { setWizardOpen(true); }
+  function createRequest() {
+    setWizardOpen(true);
+  }
 
   async function openRequest(request: CardRequest) {
     let cards: GeneratedCard[] = [];
     if (request.status === 'COMPLETED') {
-      try { cards = await api<GeneratedCard[]>(`/card-requests/${request.id}/cards`); }
-      catch (requestError) { setError(errorMessage(requestError)); return; }
+      try {
+        cards = await api<GeneratedCard[]>(`/card-requests/${request.id}/cards`);
+      } catch (requestError) {
+        setError(errorMessage(requestError));
+        return;
+      }
     }
     setRequestViewer({ request, cards });
   }
 
+  // Filtered employees
   const departments = useMemo(() => [...new Set(employees.map(item => item.department))].sort(), [employees]);
-  const visibleEmployees = useMemo(() => employees.filter(employee => {
-    const term = search.toLowerCase();
-    return (department === 'ALL' || employee.department === department) &&
-      [employee.name, employee.employee_id, employee.email, employee.designation].some(value => value.toLowerCase().includes(term));
-  }), [employees, search, department]);
-  const pageCount = Math.max(1, Math.ceil(visibleEmployees.length / PAGE_SIZE));
-  const pageEmployees = visibleEmployees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const visibleEmployees = useMemo(
+    () =>
+      employees.filter(employee => {
+        const term = search.toLowerCase();
+        const matchesTerm =
+          !term ||
+          [employee.name, employee.employee_id, employee.email, employee.designation].some(val =>
+            (val || '').toLowerCase().includes(term)
+          );
+        const matchesDept = department === 'ALL' || employee.department === department;
+        const matchesStatus =
+          statusFilter === 'ALL' ||
+          (statusFilter === 'ACTIVE' && employee.is_active) ||
+          (statusFilter === 'INACTIVE' && !employee.is_active);
+        return matchesTerm && matchesDept && matchesStatus;
+      }),
+    [employees, search, department, statusFilter]
+  );
+
+  const pageCount = Math.max(1, Math.ceil(visibleEmployees.length / pageSize));
+  const pageEmployees = visibleEmployees.slice((page - 1) * pageSize, page * pageSize);
   const activeOnPage = pageEmployees.filter(item => item.is_active);
   const pageSelected = activeOnPage.length > 0 && activeOnPage.every(item => selectedEmployees.includes(item.id));
 
-  if (loading) return <div className="grid grid-cols-4 gap-4 max-md:grid-cols-2"><i className={skeletonItem} /><i className={skeletonItem} /><i className={skeletonItem} /><div className={cx(skeletonItem, 'col-span-full h-90')} /></div>;
-  if (!company) return <Panel className="px-6 py-16.5 text-center text-sm text-[#8991a3]">{error ? <><p role="alert">{error}</p><Button variant="secondary" className="mt-4" onClick={load}>Try again</Button></> : 'Loading company workspace…'}</Panel>;
+  // Key metrics
+  const activeEmployees = useMemo(() => employees.filter(e => e.is_active), [employees]);
+  const pendingMemberships = useMemo(() => memberships.filter(m => m.status === 'PENDING'), [memberships]);
+  const pendingRequests = useMemo(() => requests.filter(r => r.status === 'PENDING'), [requests]);
+  const completedRequests = useMemo(() => requests.filter(r => r.status === 'COMPLETED'), [requests]);
+  const selectedTemplate = templates.find(template => template.id === company?.selected_template_id);
 
-  if (company.status !== 'APPROVED') return <>
-    <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
-    <Panel className="relative max-w-190 p-10.5 after:absolute after:-top-17.5 after:-right-17.5 after:size-55 after:rounded-full after:border-35 after:border-[#f1eaff] after:content-['']"><div className="mb-5 grid size-16 place-items-center rounded-[28px] bg-[#e9e5fb] text-2xl text-[#6330c2]">{company.status === 'PENDING' ? '⌛' : '!'}</div><StatusBadge value={company.status} /><Eyebrow className="mt-6.5">COMPANY REVIEW</Eyebrow><h2 className="mt-2.5 text-3xl font-extrabold tracking-tighter">{company.status === 'PENDING' ? 'Your workspace is being reviewed.' : 'Your workspace needs attention.'}</h2><p className="mt-4 max-w-150 text-sm leading-relaxed text-[#736c7b]">{company.status === 'PENDING' ? 'Complete the profile while the System Admin reviews your company. Employee and card tools unlock immediately after approval.' : `Your company is not currently approved.${company.rejection_reason ? ` Reason: ${company.rejection_reason}` : ''}`}</p><div className="mt-6.5 flex gap-2.5"><Button onClick={() => setTab('profile')}>Complete company profile</Button><Button variant="secondary" onClick={load}>Check status</Button></div></Panel>
-    <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />
-  </>;
+  // Billing calculation
+  const totalSpend = useMemo(() => orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0), [orders]);
+  const companySponsoredOrders = useMemo(() => orders.filter(o => o.payer === 'COMPANY'), [orders]);
+  const companySponsoredTotal = useMemo(
+    () => companySponsoredOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0),
+    [companySponsoredOrders]
+  );
+  const selfPaidOrders = useMemo(() => orders.filter(o => o.payer === 'INDIVIDUAL'), [orders]);
+  const selfPaidTotal = useMemo(
+    () => selfPaidOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0),
+    [selfPaidOrders]
+  );
 
-  const selectedTemplate = templates.find(template => template.id === company.selected_template_id);
+  if (loading) {
+    return (
+      <CompanyAdminShell
+        user={user || { username: 'Admin', role: 'COMPANY_ADMIN' }}
+        navigation={companyNav}
+        activeTab={tab}
+        onNavigate={setTab}
+        onLogout={onLogout || (() => {})}
+      >
+        <div className="grid grid-cols-4 gap-4 animate-pulse">
+          <div className="h-28 rounded-2xl bg-slate-200" />
+          <div className="h-28 rounded-2xl bg-slate-200" />
+          <div className="h-28 rounded-2xl bg-slate-200" />
+          <div className="h-28 rounded-2xl bg-slate-200" />
+          <div className="col-span-full h-96 rounded-2xl bg-slate-200 mt-4" />
+        </div>
+      </CompanyAdminShell>
+    );
+  }
 
-  const profileComplete = Boolean(company.phone && company.address && company.website && company.description && company.has_logo);
+  if (!company) {
+    return (
+      <CompanyAdminShell
+        user={user || { username: 'Admin', role: 'COMPANY_ADMIN' }}
+        navigation={companyNav}
+        activeTab={tab}
+        onNavigate={setTab}
+        onLogout={onLogout || (() => {})}
+      >
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
+          {error ? (
+            <>
+              <p role="alert" className="text-rose-600 font-semibold mb-3">
+                {error}
+              </p>
+              <Button variant="secondary" onClick={load}>
+                Retry loading workspace
+              </Button>
+            </>
+          ) : (
+            'Loading company workspace…'
+          )}
+        </div>
+      </CompanyAdminShell>
+    );
+  }
+
+  // If company is not yet approved
+  if (company.status !== 'APPROVED') {
+    return (
+      <CompanyAdminShell
+        user={user || { username: 'Admin', role: 'COMPANY_ADMIN' }}
+        companyName={company.name}
+        companyStatus={company.status}
+        navigation={companyNav}
+        activeTab={tab}
+        onNavigate={setTab}
+        onLogout={onLogout || (() => {})}
+      >
+        <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
+        <div className="space-y-6">
+          <div className="rounded-[24px] border border-amber-300 bg-amber-50/70 p-8 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <span className="grid size-12 place-items-center rounded-2xl bg-amber-500 text-white font-bold text-xl">
+                ⏳
+              </span>
+              <div>
+                <StatusBadge value={company.status} />
+                <h2 className="mt-1 text-2xl font-black text-slate-900">
+                  {company.status === 'PENDING' ? 'Workspace Under Review' : 'Workspace Requires Attention'}
+                </h2>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-slate-600 max-w-2xl leading-relaxed">
+              {company.status === 'PENDING'
+                ? 'Your company profile has been submitted and is currently being verified by the System Administrator. Complete your company profile information below while review is in progress.'
+                : `Your workspace is not currently approved. Reason: ${company.rejection_reason || 'Under administrative check'}`}
+            </p>
+            <div className="mt-5 flex gap-3">
+              <Button variant="primary" onClick={() => setTab('profile')}>
+                Complete Company Profile
+              </Button>
+              <Button variant="secondary" onClick={load}>
+                Check Status
+              </Button>
+            </div>
+          </div>
+          <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />
+        </div>
+      </CompanyAdminShell>
+    );
+  }
+
+  // Setup completion steps
+  const profileComplete = Boolean(
+    company.phone && company.address && company.website && company.description && company.has_logo
+  );
   const setupSteps: Array<[string, boolean, string]> = [
-    ['Company approved', true, 'profile'],
-    ['Complete company profile', profileComplete, 'profile'],
-    ['Add your employees', employees.length > 0, 'employees'],
-    ['Choose a card template', Boolean(selectedTemplate), 'templates'],
-    ['Create your first request', requests.length > 0, 'employees'],
+    ['Company workspace approved', true, 'overview'],
+    ['Complete company branding profile', profileComplete, 'profile'],
+    ['Add or import employee roster', employees.length > 0, 'employees'],
+    ['Set active card template standard', Boolean(selectedTemplate), 'templates'],
+    ['Review membership requests', pendingMemberships.length === 0 && memberships.length > 0, 'memberships'],
   ];
-  const completeCount = setupSteps.filter(item => item[1]).length;
-  const stats: Array<[string, string | number, string, StatTone]> = [
-    ['Active people', employees.filter(item => item.is_active).length, `${employees.length} total records`, 'violet'],
-    ['Card style', selectedTemplate?.name || 'Not selected', selectedTemplate ? 'Brand standard ready' : 'Action needed', 'cyan'],
-    ['Awaiting approval', requests.filter(request => request.status === 'PENDING').length, 'With System Admin', 'amber'],
-    ['Ready to download', requests.filter(request => request.status === 'COMPLETED').length, 'Completed requests', 'green'],
-  ];
+  const completedSetupCount = setupSteps.filter(s => s[1]).length;
 
-  const stepBase = 'relative grid size-9.5 place-items-center rounded-full border text-xs font-bold';
-  const stepClass = (state: 'done' | 'current' | ''): string => cx(stepBase, state === 'done' ? 'border-[#bef264] bg-[#bef264] text-[#312e81]' : state === 'current' ? 'border-white bg-white text-[#4338ca] ring-5 ring-[#ffffff1f]' : 'border-[#ffffff4d] text-[#c7d2fe]');
-  const stepLabel = 'absolute top-11.5 text-2xs font-medium text-[#c7d2fe]';
-  const recentRowClass = 'grid w-full grid-cols-[calc(var(--spacing)*9.5)_1fr_auto] items-center gap-3 border-t border-[#e3e8e6] px-5 py-3.5 text-left transition-colors duration-180 hover:bg-[#f6f8f7]';
+  return (
+    <CompanyAdminShell
+      user={user || { username: 'Admin', role: 'COMPANY_ADMIN' }}
+      companyName={company.name}
+      companyStatus={company.status}
+      pendingMembershipsCount={pendingMemberships.length}
+      pendingRequestsCount={pendingRequests.length}
+      navigation={companyNav}
+      activeTab={tab}
+      onNavigate={setTab}
+      onLogout={onLogout || (() => {})}
+    >
+      <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
 
-  return <>
-    <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
+      {/* ==============================================================================================
+         TAB 1: OVERVIEW
+         ============================================================================================== */}
+      {tab === 'overview' && (
+        <div className="space-y-6">
+          {/* Workspace Hero Banner */}
+          <div className="relative overflow-hidden rounded-[24px] bg-[#10242f] text-white p-7 sm:p-8 shadow-xs border border-[#1d3c4e]">
+            <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
+              <div className="flex items-center gap-4">
+                <span className="grid size-14 place-items-center rounded-2xl bg-white/10 text-mint font-display text-2xl font-black border border-white/15 shrink-0">
+                  {company.name.charAt(0).toUpperCase()}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-3xs font-extrabold tracking-widest uppercase text-mint">
+                      VERIFIED WORKSPACE #{company.id}
+                    </span>
+                    <span className="size-1.5 rounded-full bg-emerald-400" />
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+                    {company.name}
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-300 max-w-xl leading-relaxed">
+                    Corporate headquarters workspace is operational. Manage roster verification, issue card requests, and oversee team branding.
+                  </p>
+                </div>
+              </div>
 
-    {tab === 'overview' && <div className="grid gap-5.5">
-      <section className="relative flex min-h-55 items-center justify-between gap-8 overflow-hidden rounded-[40px] bg-[linear-gradient(#10242f,#10242f)] p-8.5 text-white shadow-xl after:absolute after:-top-17.5 after:right-[33%] after:text-[length:calc(var(--spacing)*55)] after:text-[#ffffff0d] after:content-['✦'] max-md:flex-col max-md:items-start"><div className="relative z-2"><div className="flex items-center gap-3"><span className="grid size-12 place-items-center rounded-[28px] border border-[#ffffff4d] bg-[#ffffff24] text-xl font-bold">{company.name.charAt(0)}</span><div><p className="text-3xs font-extrabold tracking-widest text-[#cfc1f3]">APPROVED WORKSPACE</p><h2 className="mt-1 text-3xl font-extrabold tracking-tight">{company.name}</h2></div></div><p className="mt-4.5 max-w-147.5 text-sm leading-relaxed text-[#e2d9f7]">Your team’s brand workspace is ready. Keep the profile current, add people and create your next card request.</p><div className="mt-5.5 flex items-center gap-4.5"><Button variant="sun" onClick={() => setTab('employees')}>Add employees <span className="grid size-6 place-items-center rounded-full bg-[#21183d] text-white">↗</span></Button><button className="text-xs font-bold text-white underline underline-offset-4" onClick={() => setTab('requests')}>View requests</button></div></div><div className="relative z-2 flex min-w-88 items-center max-md:mb-4 max-md:w-full max-md:min-w-0"><span className={stepClass(employees.length ? 'done' : 'current')}>1 <small className={stepLabel}>People</small></span><i className="h-px flex-1 bg-[#ffffff40]" /><span className={stepClass(selectedTemplate ? 'done' : employees.length ? 'current' : '')}>2 <small className={stepLabel}>Design</small></span><i className="h-px flex-1 bg-[#ffffff40]" /><span className={stepClass(requests.length ? 'done' : selectedTemplate ? 'current' : '')}>3 <small className={stepLabel}>Request</small></span></div></section>
-      <div className="grid grid-cols-4 gap-3.5 max-md:grid-cols-2">{stats.map(([label, value, note, tone]) => <StatCard key={label} label={label} value={value} note={note} tone={tone} />)}</div>
-      <div className="grid grid-cols-2 gap-4.5 max-lg:grid-cols-1">
-        <Panel className="min-h-100"><PanelHeader className={headerClass}><PanelTitle kicker="GET STARTED" title="Workspace setup" copy={`${completeCount} of ${setupSteps.length} steps complete`} /><strong className="text-2xl text-violet">{Math.round((completeCount / setupSteps.length) * 100)}%</strong></PanelHeader><div className="mx-6 mb-4.5 h-2 overflow-hidden rounded-full bg-[#eee9f3]"><i className="block h-full rounded-[inherit] bg-[linear-gradient(#4dffc8,#4dffc8)] transition-[width] duration-400 ease-in-out" style={{ width: `${(completeCount / setupSteps.length) * 100}%` }} /></div><div className="grid px-4 pb-4">{setupSteps.map(([label, done, target]) => <button key={label} className="grid grid-cols-[calc(var(--spacing)*7.5)_1fr_calc(var(--spacing)*5)] items-center gap-2.5 rounded-xl px-2.5 py-3 text-left transition-colors duration-180 hover:bg-[#f6f8f7]" onClick={() => setTab(target)}><span className={cx('grid size-6.5 place-items-center rounded-full border text-xs', done ? 'border-[#bfe5d3] bg-[#eaf8f1] font-black text-[#23815c]' : 'border-[#ded7e6] text-[#a29aa9]')}>{done ? '✓' : '○'}</span><p className={cx('text-xs font-semibold', done ? 'text-[#8c8593] line-through' : 'text-[#504a59]')}>{label}</p><b className="text-[#a8a1ae]">→</b></button>)}</div></Panel>
-        <Panel className="min-h-100"><PanelHeader className={headerClass}><PanelTitle kicker="RECENT ACTIVITY" title="Latest requests" /><Button variant="quiet" onClick={() => setTab('requests')}>View all</Button></PanelHeader>{requests.slice(0, 4).map(request => <button className={recentRowClass} key={request.id} onClick={() => openRequest(request)}><span className={requestIconClass}>▤</span><div><strong className="block text-xs text-[#393341]">Request #{request.id}</strong><small className="mt-1 block text-3xs text-[#7c8a90]">{request.items.length} card{request.items.length === 1 ? '' : 's'} · {formatDate(request.created_at)}</small></div><StatusBadge value={request.status} /></button>)}{!requests.length && <div className="grid min-h-67.5 place-items-center content-center p-7.5 text-center"><span className="mb-3.5 grid size-14.5 -rotate-4 place-items-center rounded-[28px] bg-[#e9e5fb] text-2xl text-[#6330c4]">◇</span><p className="text-sm font-bold text-[#4e4856]">No requests yet.</p><button className="mt-2 text-2xs text-[#766e80]" onClick={() => setTab('employees')}>Select employees to begin</button></div>}</Panel>
-      </div>
-    </div>}
+              {/* Action shortcuts */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Button
+                  variant="sun"
+                  className="!text-xs font-bold shadow-xs"
+                  onClick={() => setTab('employees')}
+                >
+                  + Add Employees
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="!text-xs font-bold !bg-white/10 !text-white !border-white/20 hover:!bg-white/20"
+                  onClick={() => setTab('requests')}
+                >
+                  Card Orders →
+                </Button>
+              </div>
+            </div>
 
+            {/* Quick Setup Progression */}
+            <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-300">Workspace Setup:</span>
+                <strong className="text-mint font-mono font-bold">
+                  {completedSetupCount} of {setupSteps.length} complete ({Math.round((completedSetupCount / setupSteps.length) * 100)}%)
+                </strong>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {setupSteps.map(([label, done, target]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setTab(target)}
+                    title={label}
+                    className={cx(
+                      'size-3 rounded-full transition-transform',
+                      done ? 'bg-mint' : 'bg-white/20 hover:scale-125'
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
 
-    {tab === 'employees' && <Panel>
-      <PanelHeader className={headerClass}><PanelTitle kicker="TEAM DIRECTORY" title="Your people" copy="Add people manually or import a complete team CSV." /><div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => download('/employees/export', 'employees.csv')}>Export CSV</Button><Button variant="secondary" onClick={() => { setEmployeeError(''); setEmployeeEditor(null); }}>Add manually</Button><Button onClick={() => setCsvOpen(true)}>Import CSV</Button></div></PanelHeader>
-      {employees.length ? <><div className="flex flex-wrap items-center gap-2.5 border-b border-[#eceef3] bg-[#fbf9fd] px-5.5 py-3.5 max-sm:items-stretch"><div className="flex min-w-60 items-center rounded-xl border border-[#e3e8e6] bg-white px-3 transition focus-within:border-[#8a5edf] focus-within:ring-3 focus-within:ring-[#e9e5fb] max-sm:w-full max-sm:min-w-0"><span className="text-lg text-[#958d9e]">⌕</span><input className="w-full bg-transparent px-2 py-2.5 text-xs outline-none" aria-label="Search employees" placeholder="Search name, ID, email…" value={search} onChange={event => setSearch(event.target.value)} /></div><select className={compactSelectClass} value={department} onChange={event => setDepartment(event.target.value)}><option value="ALL">All departments</option>{departments.map(value => <option key={value}>{value}</option>)}</select>{(search || department !== 'ALL') && <Button variant="quiet" onClick={() => { setSearch(''); setDepartment('ALL'); }}>Clear filters</Button>}<span className="ml-auto text-xs text-[#8a90a0] max-sm:ml-0">{visibleEmployees.length} result{visibleEmployees.length === 1 ? '' : 's'}</span></div>
-      <div className="overflow-x-auto"><table className={tableClass}><thead><tr><th className={cx(thClass, 'max-md:p-3.5')}><input className={checkboxClass} aria-label="Select all employees on this page" type="checkbox" checked={pageSelected} onChange={() => setSelectedEmployees(current => pageSelected ? current.filter(id => !activeOnPage.some(item => item.id === id)) : [...new Set([...current, ...activeOnPage.map(item => item.id)])])} /></th>{['Employee', 'Role', 'Contact', 'Status', 'Actions'].map(heading => <th key={heading} className={cx(thClass, 'max-md:p-3.5')}>{heading}</th>)}</tr></thead><tbody>{pageEmployees.map(employee => { const td = cx(tdClass, 'max-md:p-3.5'); return <tr key={employee.id} className={cx('hover:bg-[#f6f8f7]', selectedEmployees.includes(employee.id) && 'bg-[#eef2ff]')}><td className={td}><input className={checkboxClass} disabled={!employee.is_active} aria-label={`Select ${employee.name}`} type="checkbox" checked={selectedEmployees.includes(employee.id)} onChange={() => toggleEmployee(employee.id)} /></td><td className={td}><div className="flex items-center gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[linear-gradient(145deg,#e9e5fb,#e9e5fb)] text-2xs font-extrabold text-[#6130bd]">{employee.name.split(' ').map(part => part[0]).slice(0, 2).join('')}</span><div><strong className="block">{employee.name}</strong><small className={cellNoteClass}>{employee.employee_id}{employee.has_photo ? ' · Photo ready' : ''}</small></div></div></td><td className={td}>{employee.designation}<small className={cellNoteClass}>{employee.department}</small></td><td className={td}>{employee.email}<small className={cellNoteClass}>{employee.phone}</small></td><td className={td}><StatusBadge value={employee.is_active ? 'ACTIVE' : 'INACTIVE'} /></td><td className={td}><div className="flex flex-wrap gap-1.5"><button className={rowActionClass} onClick={() => { setEmployeeError(''); setEmployeeEditor(employee); }}>Edit</button><label className={rowActionClass}>Photo<input className="hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={event => uploadPhoto(employee, event.target.files?.[0])} /></label><button className={rowActionClass} onClick={() => changeEmployeeStatus(employee)}>{employee.is_active ? 'Deactivate' : 'Activate'}</button></div></td></tr>; })}</tbody></table></div>
-      <div className="flex items-center justify-between border-t border-[#efebf2] px-5.5 py-3.5 text-2xs text-[#8f8896] max-sm:flex-col max-sm:items-start max-sm:gap-2.5"><span>Page {page} of {pageCount}</span><div className="flex gap-1.5"><button className={pagerButtonClass} disabled={page === 1} onClick={() => setPage(value => value - 1)}>← Previous</button><button className={pagerButtonClass} disabled={page === pageCount} onClick={() => setPage(value => value + 1)}>Next →</button></div></div>
-      <div className="flex items-center justify-between gap-4 border-t border-[#e7e0ec] bg-[#f8f4fd] px-6 py-4 text-sm text-[#475569] max-md:flex-col max-md:items-stretch max-sm:sticky max-sm:bottom-0 max-sm:z-5"><p><strong>{selectedEmployees.length}</strong> active employee{selectedEmployees.length !== 1 ? 's' : ''} selected</p><Button disabled={busy || !selectedEmployees.length} onClick={createRequest}>{busy ? 'Submitting…' : 'Create card request'}</Button></div></> : <PremiumEmpty icon="♙" title="Add your team to get started" copy="Add one employee manually or import a validated CSV file." action="Add first employee" onAction={() => setEmployeeEditor(null)} />}</Panel>}
+          {/* 4 Key Operational Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              label="Active Employees"
+              value={activeEmployees.length}
+              note={`${employees.length} total team records`}
+              tone="mint"
+            />
+            <StatCard
+              label="Pending Memberships"
+              value={pendingMemberships.length}
+              note={pendingMemberships.length ? 'Action required in requests' : 'All requests resolved'}
+              tone={pendingMemberships.length ? 'amber' : 'slate'}
+            />
+            <StatCard
+              label="Active Card Style"
+              value={selectedTemplate?.name || 'Not Selected'}
+              note={selectedTemplate ? 'Brand standard active' : 'Template configuration needed'}
+              tone="violet"
+            />
+            <StatCard
+              label="Completed Requests"
+              value={completedRequests.length}
+              note={`${requests.length} total card requests`}
+              tone="slate"
+            />
+          </div>
 
-    {tab === 'templates' && <CardStudio onSaved={async () => { await load(); }} company={company} employees={employees} templates={templates} templateId={company.selected_template_id} onChoose={selectTemplate} busy={busy} />}
+          {/* 2-Column Operational Grid: Pending Requests & Recent Card Delivery */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {/* Left Queue: Pending Membership Requests */}
+            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">Pending Membership Requests</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Employees waiting for workspace verification.</p>
+                </div>
+                {pendingMemberships.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setTab('memberships')}
+                    className="text-xs font-bold text-royal hover:underline"
+                  >
+                    View all ({pendingMemberships.length}) →
+                  </button>
+                )}
+              </div>
 
-    {tab === 'requests' && <Panel><PanelHeader className={headerClass}><PanelTitle kicker="CARD DELIVERY" title="Card request history" copy="Follow every decision and download completed cards." /><Button variant="secondary" onClick={createRequest}>Create new request</Button></PanelHeader>{requests.length ? <div className="grid">{requests.map(request => <button className="grid w-full grid-cols-[calc(var(--spacing)*10.5)_1fr_calc(var(--spacing)*30)_calc(var(--spacing)*26.25)_calc(var(--spacing)*25)] items-center gap-4 border-t border-[#e3e8e6] px-6 py-4.5 text-left transition hover:bg-[#f6f8f7] max-md:grid-cols-[calc(var(--spacing)*10)_1fr_auto]" key={request.id} onClick={() => openRequest(request)}><span className={requestIconClass}>▤</span><div><strong className="block text-xs">Request #{request.id}</strong><small className={requestMetaSmall}>{formatDate(request.created_at)} · {request.items.length} employee{request.items.length === 1 ? '' : 's'}</small></div><span className="text-xs text-[#6b6473] max-md:hidden">{request.template?.name || `Template #${request.template_id}`}</span><StatusBadge value={request.status} /><b className="text-right text-3xs text-[#6632c2] max-md:hidden">View details →</b></button>)}</div> : <PremiumEmpty icon="▤" title="No card requests yet" copy="Select active employees and send your first card request." action="Choose employees" onAction={() => setTab('employees')} />}</Panel>}
+              {pendingMemberships.length > 0 ? (
+                <div className="space-y-3">
+                  {pendingMemberships.slice(0, 4).map(m => (
+                    <div
+                      key={m.id}
+                      className="p-3.5 rounded-xl border border-slate-200/90 bg-[#fafbfc] flex flex-wrap items-center justify-between gap-3"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <strong className="text-xs font-bold text-slate-900">
+                            {m.user?.username || m.official_email}
+                          </strong>
+                          <MatchBadge value={m.match_status} />
+                        </div>
+                        <p className="text-3xs text-slate-500 font-mono mt-0.5">
+                          ID: {m.employee_code} · {m.official_email}
+                        </p>
+                      </div>
 
-    {tab === 'memberships' && <CompanyMemberships />}
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => decideMembership(m.id, 'APPROVED')}
+                          className="px-2.5 py-1 rounded-lg bg-mint text-slate-950 font-bold text-3xs hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => decideMembership(m.id, 'REJECTED')}
+                          className="px-2.5 py-1 rounded-lg border border-slate-300 text-slate-700 font-semibold text-3xs hover:bg-slate-100 disabled:opacity-50 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-slate-400 text-xs">
+                  <span className="text-2xl block mb-1">✓</span>
+                  No pending membership requests awaiting review.
+                </div>
+              )}
+            </div>
 
-    {tab === 'profile' && company && <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />}
+            {/* Right Queue: Recent Card Delivery Requests */}
+            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">Recent Card Orders</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Status of batch printing and digital PDF deliveries.</p>
+                </div>
+                {requests.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setTab('requests')}
+                    className="text-xs font-bold text-royal hover:underline"
+                  >
+                    View all ({requests.length}) →
+                  </button>
+                )}
+              </div>
 
-    {csvOpen && <CsvImportDialog employees={employees} onClose={() => setCsvOpen(false)} onComplete={async count => { setCsvOpen(false); setMessage(`${count} employees imported successfully.`); await load(); }} />}
-    {wizardOpen && <RequestWizard company={company} employees={employees} templates={templates} initialIds={selectedEmployees} onClose={() => setWizardOpen(false)} onComplete={async () => { setWizardOpen(false); setSelectedEmployees([]); setTab('requests'); await load(); }} />}
-    {employeeEditor !== undefined && <EmployeeDialog employee={employeeEditor} busy={busy} apiError={employeeError} onSave={saveEmployee} onClose={() => setEmployeeEditor(undefined)} />}
-    {requestViewer && <RequestDetails viewer={requestViewer} onClose={() => setRequestViewer(null)} onDownload={download} />}
-  </>;
-}
+              {requests.length > 0 ? (
+                <div className="divide-y divide-slate-100">
+                  {requests.slice(0, 4).map(req => (
+                    <div
+                      key={req.id}
+                      className="py-3 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <strong className="font-mono font-bold text-slate-900">
+                            Request #{req.id}
+                          </strong>
+                          <StatusBadge value={req.status} />
+                        </div>
+                        <small className="text-3xs text-slate-500 mt-0.5 block">
+                          {req.items.length} employee{req.items.length === 1 ? '' : 's'} · {formatDate(req.created_at)}
+                        </small>
+                      </div>
 
-interface PremiumEmptyProps { icon: string; title: string; copy: string; action?: string; onAction: () => void }
+                      <button
+                        type="button"
+                        onClick={() => openRequest(req)}
+                        className="text-3xs font-bold text-royal hover:underline shrink-0"
+                      >
+                        Inspect details →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-slate-400 text-xs">
+                  <span className="text-2xl block mb-1">▤</span>
+                  No card delivery requests created yet.
+                  <div className="mt-3">
+                    <Button variant="secondary" className="!text-xs font-bold" onClick={() => setTab('employees')}>
+                      Select employees to begin →
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-function PremiumEmpty({ icon, title, copy, action, onAction }: PremiumEmptyProps) {
-  return <div className="grid min-h-90 place-items-center content-center p-9 text-center"><span className="mb-5 grid size-18 -rotate-5 place-items-center rounded-[40px] bg-[linear-gradient(145deg,#e9e5fb,#e9e5fb)] text-3xl text-[#6734c5]">{icon}</span><h3 className="text-lg font-extrabold text-[#3d3745]">{title}</h3><p className="mt-2 max-w-90 text-xs leading-relaxed text-[#7c8a90]">{copy}</p>{action && <Button className="mt-5" onClick={onAction}>{action} →</Button>}</div>;
+      {/* ==============================================================================================
+         TAB 2: EMPLOYEES DIRECTORY
+         ============================================================================================== */}
+      {tab === 'employees' && (
+        <div className="space-y-6">
+          <PageHeader
+            title="Employees Directory"
+            subtitle="Manage your company people roster, upload photos, and select verified employees for card printing."
+            actions={
+              <>
+                <Button variant="secondary" className="!text-xs font-bold" onClick={() => download('/employees/export', 'employees.csv')}>
+                  Export CSV
+                </Button>
+                <Button variant="secondary" className="!text-xs font-bold" onClick={() => setCsvOpen(true)}>
+                  Import CSV
+                </Button>
+                <Button
+                  variant="primary"
+                  className="!text-xs font-bold"
+                  onClick={() => {
+                    setEmployeeError('');
+                    setEmployeeEditor(null);
+                  }}
+                >
+                  + Add Employee
+                </Button>
+              </>
+            }
+          />
+
+          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+            {/* Filter Toolbar (ikelma style) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-[#fafbfc] px-6 py-4">
+              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
+                {/* Search */}
+                <div className="flex min-w-64 items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900 focus-within:ring-2 focus-within:ring-slate-900/10">
+                  <span className="text-sm text-slate-400">⌕</span>
+                  <input
+                    className="w-full bg-transparent px-2 py-2 text-xs outline-none"
+                    placeholder="Search name, ID, email, role…"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                </div>
+
+                {/* Department filter */}
+                <select
+                  className={compactSelectClass}
+                  value={department}
+                  onChange={e => setDepartment(e.target.value)}
+                >
+                  <option value="ALL">All departments</option>
+                  {departments.map(d => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Status filter */}
+                <select
+                  className={compactSelectClass}
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value as any)}
+                >
+                  <option value="ALL">All statuses</option>
+                  <option value="ACTIVE">Active employees</option>
+                  <option value="INACTIVE">Inactive employees</option>
+                </select>
+
+                {(search || department !== 'ALL' || statusFilter !== 'ALL') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setDepartment('ALL');
+                      setStatusFilter('ALL');
+                    }}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-900 underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+
+              <span className="text-xs text-slate-500 font-medium shrink-0">
+                Showing {visibleEmployees.length} of {employees.length} records
+              </span>
+            </div>
+
+            {/* High-efficiency Data Table */}
+            {employees.length > 0 ? (
+              <>
+                <div className="overflow-x-auto">
+                  <table className={tableClass}>
+                    <thead>
+                      <tr>
+                        <th className={cx(thClass, 'w-12 text-center')}>
+                          <input
+                            type="checkbox"
+                            className={checkboxClass}
+                            aria-label="Select all on this page"
+                            checked={pageSelected}
+                            onChange={() =>
+                              setSelectedEmployees(curr =>
+                                pageSelected
+                                  ? curr.filter(id => !activeOnPage.some(item => item.id === id))
+                                  : [...new Set([...curr, ...activeOnPage.map(item => item.id)])]
+                              )
+                            }
+                          />
+                        </th>
+                        <th className={thClass}>Employee</th>
+                        <th className={thClass}>Role & Department</th>
+                        <th className={thClass}>Contact</th>
+                        <th className={thClass}>Status</th>
+                        <th className={cx(thClass, 'text-right')}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pageEmployees.map(emp => {
+                        const isSelected = selectedEmployees.includes(emp.id);
+                        return (
+                          <tr
+                            key={emp.id}
+                            className={cx(
+                              'hover:bg-[#fafbfc] transition-colors',
+                              isSelected && 'bg-[#f0fdf4]'
+                            )}
+                          >
+                            <td className={cx(tdClass, 'text-center')}>
+                              <input
+                                type="checkbox"
+                                disabled={!emp.is_active}
+                                checked={isSelected}
+                                onChange={() => toggleEmployee(emp.id)}
+                                className={checkboxClass}
+                              />
+                            </td>
+                            <td className={tdClass}>
+                              <div className="flex items-center gap-3">
+                                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-900 text-mint font-display text-2xs font-bold">
+                                  {emp.name
+                                    .split(' ')
+                                    .map(p => p[0])
+                                    .slice(0, 2)
+                                    .join('')}
+                                </span>
+                                <div>
+                                  <strong className="block text-xs font-bold text-slate-900">{emp.name}</strong>
+                                  <span className="text-3xs text-slate-500 font-mono">
+                                    {emp.employee_id} {emp.has_photo ? '· Photo ready' : ''}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className={tdClass}>
+                              <span className="block text-xs font-medium text-slate-800">{emp.designation}</span>
+                              <span className="block text-3xs text-slate-500">{emp.department}</span>
+                            </td>
+                            <td className={tdClass}>
+                              <span className="block text-xs font-mono text-slate-700">{emp.email}</span>
+                              <span className="block text-3xs text-slate-400 font-mono">{emp.phone}</span>
+                            </td>
+                            <td className={tdClass}>
+                              <StatusBadge value={emp.is_active ? 'ACTIVE' : 'INACTIVE'} />
+                            </td>
+                            <td className={cx(tdClass, 'text-right')}>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  className={rowActionClass}
+                                  onClick={() => {
+                                    setEmployeeError('');
+                                    setEmployeeEditor(emp);
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <label className={rowActionClass}>
+                                  Photo
+                                  <input
+                                    className="hidden"
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp"
+                                    onChange={e => uploadPhoto(emp, e.target.files?.[0])}
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  className={rowActionClass}
+                                  onClick={() => changeEmployeeStatus(emp)}
+                                >
+                                  {emp.is_active ? 'Deactivate' : 'Activate'}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4 text-xs text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <span>Rows per page:</span>
+                    <select
+                      className="rounded border border-slate-200 bg-white px-2 py-1 text-xs"
+                      value={pageSize}
+                      onChange={e => setPageSize(Number(e.target.value))}
+                    >
+                      <option value={8}>8</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span className="ml-2 font-mono">
+                      Page {page} of {pageCount}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      className={pagerButtonClass}
+                      disabled={page === 1}
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                    >
+                      ← Previous
+                    </button>
+                    <button
+                      type="button"
+                      className={pagerButtonClass}
+                      disabled={page === pageCount}
+                      onClick={() => setPage(p => Math.min(pageCount, p + 1))}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sticky Selection Action Bar */}
+                {selectedEmployees.length > 0 && (
+                  <div className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t border-slate-900 bg-slate-900 text-white px-6 py-3.5 shadow-xl">
+                    <p className="text-xs font-semibold">
+                      <strong className="text-mint font-bold">{selectedEmployees.length}</strong> active employee
+                      {selectedEmployees.length !== 1 ? 's' : ''} selected for card printing
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedEmployees([])}
+                        className="text-xs text-slate-400 hover:text-white underline mr-2"
+                      >
+                        Clear
+                      </button>
+                      <Button
+                        variant="sun"
+                        disabled={busy}
+                        onClick={createRequest}
+                        className="!text-xs font-bold"
+                      >
+                        {busy ? 'Submitting…' : `Create Card Request (${selectedEmployees.length}) →`}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="py-16 text-center text-slate-400">
+                <span className="text-3xl block mb-2">♙</span>
+                <p className="text-sm font-bold text-slate-700">No employees added yet.</p>
+                <p className="mt-1 text-xs text-slate-500">Add an employee manually or import a team CSV.</p>
+                <Button
+                  variant="primary"
+                  className="mt-4 !text-xs font-bold"
+                  onClick={() => setEmployeeEditor(null)}
+                >
+                  + Add First Employee
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================================================================
+         TAB 3: MEMBERSHIP REQUESTS
+         ============================================================================================== */}
+      {tab === 'memberships' && (
+        <div className="space-y-6">
+          <PageHeader
+            title="Membership Requests"
+            subtitle="Review submitted employee credentials against your company roster. Approved employees unlock verified branding and templates."
+            actions={
+              <select
+                className={compactSelectClass}
+                value={membershipFilter}
+                onChange={e => setMembershipFilter(e.target.value)}
+              >
+                <option value="ALL">All requests</option>
+                <option value="PENDING">Pending review</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            }
+          />
+
+          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+            {memberships.filter(m => (membershipFilter === 'ALL' ? true : m.status === membershipFilter)).length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className={tableClass}>
+                  <thead>
+                    <tr>
+                      <th className={thClass}>Employee User</th>
+                      <th className={thClass}>Submitted Credentials</th>
+                      <th className={thClass}>Roster Verification</th>
+                      <th className={thClass}>Status</th>
+                      <th className={thClass}>Requested</th>
+                      <th className={cx(thClass, 'text-right')}>Decision Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {memberships
+                      .filter(m => (membershipFilter === 'ALL' ? true : m.status === membershipFilter))
+                      .map(m => (
+                        <tr key={m.id} className="hover:bg-[#fafbfc] transition-colors">
+                          <td className={tdClass}>
+                            <strong className="block text-xs font-bold text-slate-900">
+                              {m.user?.username || m.official_email}
+                            </strong>
+                            <span className="text-3xs text-slate-400 font-mono">
+                              User Account #{m.user_id}
+                            </span>
+                          </td>
+                          <td className={tdClass}>
+                            <span className="block text-xs font-mono font-bold text-slate-800">
+                              ID: {m.employee_code}
+                            </span>
+                            <span className="block text-3xs font-mono text-slate-500">
+                              {m.official_email}
+                            </span>
+                          </td>
+                          <td className={tdClass}>
+                            <MatchBadge value={m.match_status} />
+                          </td>
+                          <td className={tdClass}>
+                            <StatusBadge value={m.status} />
+                          </td>
+                          <td className={tdClass}>
+                            <span className="text-xs text-slate-600 font-mono">
+                              {new Date(m.requested_at).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td className={cx(tdClass, 'text-right')}>
+                            {m.status === 'PENDING' ? (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="sun"
+                                  className="!px-3 !py-1 !text-2xs font-bold"
+                                  disabled={busy}
+                                  onClick={() => decideMembership(m.id, 'APPROVED')}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  className="!px-3 !py-1 !text-2xs font-semibold"
+                                  disabled={busy}
+                                  onClick={() => decideMembership(m.id, 'REJECTED')}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
+                            ) : m.status === 'APPROVED' ? (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => decideMembership(m.id, 'REVOKED')}
+                                className="text-3xs font-bold text-rose-600 hover:underline"
+                              >
+                                Revoke Access
+                              </button>
+                            ) : (
+                              <span className="text-3xs text-slate-400">Archived</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-16 text-center text-slate-400">
+                <span className="text-3xl block mb-2">✓</span>
+                <p className="text-sm font-bold text-slate-700">No membership requests found.</p>
+                <p className="mt-1 text-xs text-slate-500">When employees submit requests to link with your company, they will appear here.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================================================================
+         TAB 4: CARD ORDERS & REQUESTS
+         ============================================================================================== */}
+      {tab === 'requests' && (
+        <div className="space-y-6">
+          <PageHeader
+            title="Card Orders & Delivery"
+            subtitle="Follow batch request status, inspect generated employee cards, and review checkout records."
+            actions={
+              <Button variant="primary" className="!text-xs font-bold" onClick={createRequest}>
+                + Create New Card Request
+              </Button>
+            }
+          />
+
+          {/* Sub-view switcher */}
+          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xs max-w-md">
+            <button
+              type="button"
+              onClick={() => setOrdersSubView('requests')}
+              className={cx(
+                'flex-1 py-1.5 text-xs font-bold rounded-xl transition-all text-center',
+                ordersSubView === 'requests' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              )}
+            >
+              Batch Card Requests ({requests.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setOrdersSubView('checkouts')}
+              className={cx(
+                'flex-1 py-1.5 text-xs font-bold rounded-xl transition-all text-center',
+                ordersSubView === 'checkouts' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              )}
+            >
+              Employee Orders ({orders.length})
+            </button>
+          </div>
+
+          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+            {ordersSubView === 'requests' ? (
+              requests.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className={tableClass}>
+                    <thead>
+                      <tr>
+                        <th className={thClass}>Request ID</th>
+                        <th className={thClass}>Submitted</th>
+                        <th className={thClass}>Employees</th>
+                        <th className={thClass}>Design Template</th>
+                        <th className={thClass}>Status</th>
+                        <th className={cx(thClass, 'text-right')}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {requests.map(req => (
+                        <tr key={req.id} className="hover:bg-[#fafbfc] transition-colors">
+                          <td className={tdClass}>
+                            <strong className="font-mono text-xs font-bold text-slate-900">
+                              #{req.id}
+                            </strong>
+                          </td>
+                          <td className={tdClass}>
+                            <span className="text-xs text-slate-700 font-mono">
+                              {formatDate(req.created_at)}
+                            </span>
+                          </td>
+                          <td className={tdClass}>
+                            <span className="text-xs font-semibold text-slate-800">
+                              {req.items.length} employee{req.items.length === 1 ? '' : 's'}
+                            </span>
+                          </td>
+                          <td className={tdClass}>
+                            <span className="text-xs text-slate-600">
+                              {req.template?.name || `Template #${req.template_id}`}
+                            </span>
+                          </td>
+                          <td className={tdClass}>
+                            <StatusBadge value={req.status} />
+                          </td>
+                          <td className={cx(tdClass, 'text-right')}>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="secondary"
+                                className="!px-3 !py-1 !text-2xs font-bold"
+                                onClick={() => openRequest(req)}
+                              >
+                                View Details
+                              </Button>
+                              {req.status === 'COMPLETED' && (
+                                <Button
+                                  variant="primary"
+                                  className="!px-3 !py-1 !text-2xs font-bold"
+                                  onClick={() =>
+                                    download(
+                                      `/card-requests/${req.id}/cards/download`,
+                                      `card-request-${req.id}.zip`
+                                    )
+                                  }
+                                >
+                                  Download ZIP ↓
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-16 text-center text-slate-400">
+                  <span className="text-3xl block mb-2">▤</span>
+                  <p className="text-sm font-bold text-slate-700">No card requests created yet.</p>
+                  <p className="mt-1 text-xs text-slate-500">Select active employees from the directory to create your first batch card request.</p>
+                </div>
+              )
+            ) : orders.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className={tableClass}>
+                  <thead>
+                    <tr>
+                      <th className={thClass}>Order Reference</th>
+                      <th className={thClass}>Created</th>
+                      <th className={thClass}>Batch Quantity</th>
+                      <th className={thClass}>Billing Account</th>
+                      <th className={thClass}>Total Amount</th>
+                      <th className={thClass}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {orders.map(o => (
+                      <tr key={o.id} className="hover:bg-[#fafbfc] transition-colors">
+                        <td className={tdClass}>
+                          <strong className="font-mono text-xs font-bold text-slate-900">
+                            #{o.id}
+                          </strong>
+                        </td>
+                        <td className={tdClass}>
+                          <span className="text-xs text-slate-700 font-mono">
+                            {formatDate(o.created_at)}
+                          </span>
+                        </td>
+                        <td className={tdClass}>
+                          <span className="text-xs text-slate-800 font-semibold">
+                            {o.quantity} {o.quantity === 1 ? 'card' : 'cards'}
+                          </span>
+                        </td>
+                        <td className={tdClass}>
+                          <span
+                            className={cx(
+                              'inline-block rounded px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
+                              o.payer === 'COMPANY'
+                                ? 'bg-mint/30 text-slate-900 border border-mint/60'
+                                : 'bg-slate-100 text-slate-700'
+                            )}
+                          >
+                            {o.payer === 'COMPANY' ? 'Company Covered' : 'Employee Self-Paid'}
+                          </span>
+                        </td>
+                        <td className={tdClass}>
+                          <strong className="text-sm font-extrabold text-slate-900">
+                            ৳{o.total_amount}
+                          </strong>
+                        </td>
+                        <td className={tdClass}>
+                          <StatusBadge value={o.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-16 text-center text-slate-400">
+                <span className="text-3xl block mb-2">💳</span>
+                <p className="text-sm font-bold text-slate-700">No checkout orders placed yet.</p>
+                <p className="mt-1 text-xs text-slate-500">Employee self-service orders will appear here automatically.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================================================================
+         TAB 5: TEMPLATES STUDIO
+         ============================================================================================== */}
+      {tab === 'templates' && (
+        <CardStudio
+          onSaved={async () => {
+            await load();
+          }}
+          company={company}
+          employees={employees}
+          templates={templates}
+          templateId={company.selected_template_id}
+          onChoose={selectTemplate}
+          busy={busy}
+        />
+      )}
+
+      {/* ==============================================================================================
+         TAB 6: COMPANY PROFILE
+         ============================================================================================== */}
+      {tab === 'profile' && company && (
+        <CompanyProfilePanel company={company} onReload={load} onMessage={setMessage} />
+      )}
+
+      {/* ==============================================================================================
+         TAB 7: BILLING & SPONSORSHIP (NEW)
+         ============================================================================================== */}
+      {tab === 'billing' && (
+        <div className="space-y-6">
+          <PageHeader
+            title="Billing & Sponsorship Overview"
+            subtitle="Transparent account expenditures, breakdown of company-sponsored card runs, and payment receipts."
+          />
+
+          {/* 3 Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <StatCard
+              label="Total Card Expenditure"
+              value={`৳${totalSpend}`}
+              note={`${orders.length} total card orders recorded`}
+              tone="slate"
+            />
+            <StatCard
+              label="Company Sponsored"
+              value={`৳${companySponsoredTotal}`}
+              note={`${companySponsoredOrders.length} orders covered 100% by company`}
+              tone="mint"
+            />
+            <StatCard
+              label="Employee Self-Paid"
+              value={`৳${selfPaidTotal}`}
+              note={`${selfPaidOrders.length} orders paid directly by employees`}
+              tone="slate"
+            />
+          </div>
+
+          {/* Current Prepress Plan Banner */}
+          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <h3 className="text-base font-extrabold text-slate-900">Current Print & Prepress Standard</h3>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="p-4 rounded-xl border border-slate-200 bg-[#fafbfc]">
+                <span className="text-3xs uppercase font-extrabold text-slate-400 block">PRICING PLAN</span>
+                <strong className="text-sm font-bold text-slate-900 mt-1 block">Pay-As-You-Go</strong>
+                <p className="mt-1 text-slate-500">৳50 per card. No recurring subscription fees or minimum commitments.</p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-200 bg-[#fafbfc]">
+                <span className="text-3xs uppercase font-extrabold text-slate-400 block">PREPRESS SERVICE</span>
+                <strong className="text-sm font-bold text-slate-900 mt-1 block">Vector PDF (300 DPI)</strong>
+                <p className="mt-1 text-slate-500">Prepress inspection and high-resolution prepress rendering included for free.</p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-200 bg-[#fafbfc]">
+                <span className="text-3xs uppercase font-extrabold text-slate-400 block">BILLING ENTITY</span>
+                <strong className="text-sm font-bold text-slate-900 mt-1 block">{company.name}</strong>
+                <p className="mt-1 text-slate-500">Workspace #{company.id} · Official Account</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Receipts Table */}
+          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-slate-900">Print Order Invoices & Receipts</h3>
+              <span className="text-xs text-slate-500">{orders.length} transactions</span>
+            </div>
+
+            {orders.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className={tableClass}>
+                  <thead>
+                    <tr>
+                      <th className={thClass}>Order ID</th>
+                      <th className={thClass}>Date</th>
+                      <th className={thClass}>Quantity</th>
+                      <th className={thClass}>Payer Account</th>
+                      <th className={thClass}>Total Amount</th>
+                      <th className={thClass}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {orders.map(o => (
+                      <tr key={o.id} className="hover:bg-[#fafbfc] transition-colors">
+                        <td className={tdClass}>
+                          <strong className="font-mono text-xs font-bold text-slate-900">
+                            #{o.id}
+                          </strong>
+                        </td>
+                        <td className={tdClass}>
+                          <span className="text-xs text-slate-700 font-mono">
+                            {formatDate(o.created_at)}
+                          </span>
+                        </td>
+                        <td className={tdClass}>
+                          <span className="text-xs text-slate-800">
+                            {o.quantity} {o.quantity === 1 ? 'card' : 'cards'}
+                          </span>
+                        </td>
+                        <td className={tdClass}>
+                          <span
+                            className={cx(
+                              'inline-block rounded px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
+                              o.payer === 'COMPANY'
+                                ? 'bg-mint/30 text-slate-900 border border-mint/60'
+                                : 'bg-slate-100 text-slate-700'
+                            )}
+                          >
+                            {o.payer === 'COMPANY' ? 'Company Covered' : 'Employee Self-Paid'}
+                          </span>
+                        </td>
+                        <td className={tdClass}>
+                          <strong className="text-sm font-extrabold text-slate-900">
+                            ৳{o.total_amount}
+                          </strong>
+                        </td>
+                        <td className={tdClass}>
+                          <StatusBadge value={o.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                No billing transactions recorded yet.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ==============================================================================================
+         TAB 8: WORKSPACE SETTINGS (NEW)
+         ============================================================================================== */}
+      {tab === 'settings' && (
+        <div className="space-y-6">
+          <PageHeader
+            title="Workspace Settings"
+            subtitle="Configure organizational preferences, employee card policy defaults, and administrative controls."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Identity & Legal Entity */}
+            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs space-y-4">
+              <h3 className="text-base font-extrabold text-slate-900">Workspace Identification</h3>
+              <dl className="divide-y divide-slate-100 text-xs">
+                <div className="py-2.5 flex justify-between">
+                  <dt className="text-slate-500">Company Name</dt>
+                  <dd className="font-bold text-slate-900">{company.name}</dd>
+                </div>
+                <div className="py-2.5 flex justify-between">
+                  <dt className="text-slate-500">Workspace ID</dt>
+                  <dd className="font-mono text-slate-800">#{company.id}</dd>
+                </div>
+                <div className="py-2.5 flex justify-between">
+                  <dt className="text-slate-500">Workspace Verification</dt>
+                  <dd>
+                    <StatusBadge value={company.status} />
+                  </dd>
+                </div>
+                <div className="py-2.5 flex justify-between">
+                  <dt className="text-slate-500">Administrator</dt>
+                  <dd className="font-semibold text-slate-800">{user?.username}</dd>
+                </div>
+              </dl>
+              <Button variant="secondary" className="w-full !text-xs font-bold" onClick={() => setTab('profile')}>
+                Edit Company Profile Information →
+              </Button>
+            </div>
+
+            {/* Employee Card Policy */}
+            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs space-y-4">
+              <h3 className="text-base font-extrabold text-slate-900">Card Sponsorship Policy</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Choose the default billing preference presented to employees when they request official corporate visiting cards.
+              </p>
+
+              <div className="space-y-3 pt-2">
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-[#fafbfc] cursor-pointer hover:bg-white transition-colors">
+                  <input
+                    type="radio"
+                    name="sponsorship"
+                    checked={defaultSponsorship === 'COMPANY'}
+                    onChange={() => {
+                      setDefaultSponsorship('COMPANY');
+                      setMessage('Default policy set to Company Sponsored.');
+                    }}
+                    className="mt-0.5 accent-slate-900"
+                  />
+                  <div>
+                    <strong className="block text-xs font-bold text-slate-900">
+                      Company Sponsored (Default)
+                    </strong>
+                    <span className="block text-3xs text-slate-500 mt-0.5">
+                      Card orders placed by approved employees are billed directly to the company (৳0 for employee).
+                    </span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-[#fafbfc] cursor-pointer hover:bg-white transition-colors">
+                  <input
+                    type="radio"
+                    name="sponsorship"
+                    checked={defaultSponsorship === 'INDIVIDUAL'}
+                    onChange={() => {
+                      setDefaultSponsorship('INDIVIDUAL');
+                      setMessage('Default policy set to Employee Self-Paid.');
+                    }}
+                    className="mt-0.5 accent-slate-900"
+                  />
+                  <div>
+                    <strong className="block text-xs font-bold text-slate-900">
+                      Employee Self-Paid
+                    </strong>
+                    <span className="block text-3xs text-slate-500 mt-0.5">
+                      Employees pay individually for their card orders at ৳50 per card.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DIALOGS */}
+      {csvOpen && (
+        <CsvImportDialog
+          employees={employees}
+          onClose={() => setCsvOpen(false)}
+          onComplete={async count => {
+            setCsvOpen(false);
+            setMessage(`${count} employees imported successfully.`);
+            await load();
+          }}
+        />
+      )}
+
+      {wizardOpen && (
+        <RequestWizard
+          company={company}
+          employees={employees}
+          templates={templates}
+          initialIds={selectedEmployees}
+          onClose={() => setWizardOpen(false)}
+          onComplete={async () => {
+            setWizardOpen(false);
+            setSelectedEmployees([]);
+            setTab('requests');
+            await load();
+          }}
+        />
+      )}
+
+      {employeeEditor !== undefined && (
+        <EmployeeDialog
+          employee={employeeEditor}
+          busy={busy}
+          apiError={employeeError}
+          onSave={saveEmployee}
+          onClose={() => setEmployeeEditor(undefined)}
+        />
+      )}
+
+      {requestViewer && (
+        <RequestDetails viewer={requestViewer} onClose={() => setRequestViewer(null)} onDownload={download} />
+      )}
+    </CompanyAdminShell>
+  );
 }
 
 interface RequestDetailsProps {
@@ -225,13 +1580,100 @@ function RequestDetails({ viewer, onClose, onDownload }: RequestDetailsProps) {
   const steps: Array<[string, string | null, boolean]> = [
     ['Request submitted', request.created_at, true],
     ['Administrator decision', request.decided_at, Boolean(request.decided_at)],
-    [request.status === 'REJECTED' ? 'Request rejected' : 'Cards generated', request.status === 'COMPLETED' ? request.decided_at : null, ['COMPLETED', 'REJECTED'].includes(request.status)],
+    [
+      request.status === 'REJECTED' ? 'Request rejected' : 'Cards generated',
+      request.status === 'COMPLETED' ? request.decided_at : null,
+      ['COMPLETED', 'REJECTED'].includes(request.status),
+    ],
   ];
-  return <ReviewDialog title={`Card request #${request.id}`} onClose={onClose}>
-    <div className="mb-6 flex items-center justify-between gap-4"><div><StatusBadge value={request.status} /><p className="mt-2 text-xs text-[#8a8391]">{request.items.length} employee{request.items.length === 1 ? '' : 's'} · {request.template?.name}</p></div>{request.status === 'COMPLETED' && <Button onClick={() => onDownload(`/card-requests/${request.id}/cards/download`, `card-request-${request.id}.zip`)}>Download all ZIP</Button>}</div>
-    <div className="mt-5.5 mb-7 flex max-md:flex-col max-md:gap-0">{steps.map(([label, time, done], index) => <div className="flex flex-1 items-start max-md:min-h-16 max-md:flex-none" key={label}><span className={cx('grid size-7.5 shrink-0 place-items-center rounded-full border text-3xs font-extrabold', done ? 'border-[#b8e2ce] bg-[#e9f8f0] text-[#20805a]' : 'border-[#e3e8e6] bg-white text-[#7c8a90]')}>{done ? '✓' : index + 1}</span><i className="mx-2 mt-4 h-px flex-1 bg-[#e3e8e6] max-md:mx-0 max-md:mt-7.5 max-md:-ml-4 max-md:h-8.5 max-md:w-px max-md:flex-none" /><p className="ml-2 min-w-26.5"><strong className="block text-2xs">{label}</strong><small className="mt-1 block text-3xs text-[#7c8a90]">{time ? formatDate(time) : 'Waiting'}</small></p></div>)}</div>
-    {request.rejection_reason && <div className="my-5 rounded-r-lg border-l-3 border-[#e05d68] bg-[#fff4f5] px-4 py-3.5"><strong className="text-xs text-[#98404a]">Decision note</strong><p className="mt-1.5 text-xs leading-relaxed text-[#8b6267]">{request.rejection_reason}</p></div>}
-    <h3 className={detailHeadingClass}>Employees included</h3><div className="grid grid-cols-2 gap-2 max-md:grid-cols-1">{request.items.map(item => <div className="flex items-center gap-2.5 rounded-xl border border-[#e3e8e6] p-2.5" key={item.id}><span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#e9e5fb] text-2xs font-extrabold text-[#6431c2]">{item.employee.name.charAt(0)}</span><p><strong className="block text-2xs">{item.employee.name}</strong><small className="mt-1 block text-3xs text-[#97909d]">{item.employee.designation} · {item.employee.department}</small></p></div>)}</div>
-    {cards.length > 0 && <><h3 className={detailHeadingClass}>Generated cards</h3><div className="space-y-3">{cards.map(card => <article className="flex items-center justify-between gap-5 rounded-xl border border-[#e7e9ef] p-4 max-sm:flex-col max-sm:items-start" key={card.id}><div><strong>{card.file_name}</strong><p className="mt-1.5 flex items-center gap-2 text-xs text-[#8a90a0]">{Math.ceil(card.file_size / 1024)} KB · <StatusBadge value={card.status} /></p></div><div className="flex gap-2"><a className={buttonClass('secondary')} href={`/verify/${card.verification_token}`} target="_blank">Verify</a><Button onClick={() => onDownload(`/cards/${card.id}/download`, card.file_name)}>Download</Button></div></article>)}</div></>}
-  </ReviewDialog>;
+  return (
+    <ReviewDialog title={`Card request #${request.id}`} onClose={onClose}>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <StatusBadge value={request.status} />
+          <p className="mt-2 text-xs text-[#8a8391]">
+            {request.items.length} employee{request.items.length === 1 ? '' : 's'} · {request.template?.name}
+          </p>
+        </div>
+        {request.status === 'COMPLETED' && (
+          <Button
+            onClick={() =>
+              onDownload(`/card-requests/${request.id}/cards/download`, `card-request-${request.id}.zip`)
+            }
+          >
+            Download all ZIP
+          </Button>
+        )}
+      </div>
+      <div className="mt-5.5 mb-7 flex max-md:flex-col max-md:gap-0">
+        {steps.map(([label, time, done], index) => (
+          <div className="flex flex-1 items-start max-md:min-h-16 max-md:flex-none" key={label}>
+            <span
+              className={cx(
+                'grid size-7.5 shrink-0 place-items-center rounded-full border text-3xs font-extrabold',
+                done ? 'border-[#b8e2ce] bg-[#e9f8f0] text-[#20805a]' : 'border-[#e3e8e6] bg-white text-[#7c8a90]'
+              )}
+            >
+              {done ? '✓' : index + 1}
+            </span>
+            <i className="mx-2 mt-4 h-px flex-1 bg-[#e3e8e6] max-md:mx-0 max-md:mt-7.5 max-md:-ml-4 max-md:h-8.5 max-md:w-px max-md:flex-none" />
+            <p className="ml-2 min-w-26.5">
+              <strong className="block text-2xs">{label}</strong>
+              <small className="mt-1 block text-3xs text-[#7c8a90]">{time ? formatDate(time) : 'Waiting'}</small>
+            </p>
+          </div>
+        ))}
+      </div>
+      {request.rejection_reason && (
+        <div className="my-5 rounded-r-lg border-l-3 border-[#e05d68] bg-[#fff4f5] px-4 py-3.5">
+          <strong className="text-xs text-[#98404a]">Decision note</strong>
+          <p className="mt-1.5 text-xs leading-relaxed text-[#8b6267]">{request.rejection_reason}</p>
+        </div>
+      )}
+      <h3 className="mt-6 mb-3 text-sm font-extrabold">Employees included</h3>
+      <div className="grid grid-cols-2 gap-2 max-md:grid-cols-1">
+        {request.items.map(item => (
+          <div className="flex items-center gap-2.5 rounded-xl border border-[#e3e8e6] p-2.5" key={item.id}>
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#e9e5fb] text-2xs font-extrabold text-[#6431c2]">
+              {item.employee.name.charAt(0)}
+            </span>
+            <p>
+              <strong className="block text-2xs">{item.employee.name}</strong>
+              <small className="mt-1 block text-3xs text-[#97909d]">
+                {item.employee.designation} · {item.employee.department}
+              </small>
+            </p>
+          </div>
+        ))}
+      </div>
+      {cards.length > 0 && (
+        <>
+          <h3 className="mt-6 mb-3 text-sm font-extrabold">Generated cards</h3>
+          <div className="space-y-3">
+            {cards.map(card => (
+              <article
+                className="flex items-center justify-between gap-5 rounded-xl border border-[#e7e9ef] p-4 max-sm:flex-col max-sm:items-start"
+                key={card.id}
+              >
+                <div>
+                  <strong>{card.file_name}</strong>
+                  <p className="mt-1.5 flex items-center gap-2 text-xs text-[#8a90a0]">
+                    {Math.ceil(card.file_size / 1024)} KB · <StatusBadge value={card.status} />
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <a className={buttonClass('secondary')} href={`/verify/${card.verification_token}`} target="_blank">
+                    Verify
+                  </a>
+                  <Button onClick={() => onDownload(`/cards/${card.id}/download`, card.file_name)}>
+                    Download
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+    </ReviewDialog>
+  );
 }
