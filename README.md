@@ -1,85 +1,134 @@
+<div align="center">
+
 # BizCard
 
-BizCard is a full-stack company visiting-card management system. Companies register for an account, import or manually manage employees, select a predefined design, request cards, and download generated PDFs after System Admin approval.
+**Business cards for your whole team: approved, verified and ready to print.**
+
+Companies upload their own card design once. Machine learning reads it, and BizCard prints a matching card for every employee, each with a QR code that proves it is genuine.
+
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38BDF8?logo=tailwindcss&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-ML-5C3EE8?logo=opencv&logoColor=white)
+
+</div>
+
+---
+
+## Contents
+
+- [What BizCard does](#what-bizcard-does)
+- [Features](#features)
+- [Card templates from your own design](#card-templates-from-your-own-design)
+- [How a card gets made](#how-a-card-gets-made)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Tests](#tests)
+- [Project structure](#project-structure)
+- [Security](#security)
+- [Developer handoff](#developer-handoff)
+
+## What BizCard does
+
+Ordering business cards for a company usually means spreadsheets, emails to a designer, and proofs going back and forth. BizCard puts all of that in one place:
+
+1. A company registers and is approved by the platform.
+2. It adds its staff (by hand or from a CSV) and uploads its card design.
+3. Cards are requested, approved, and generated as print-ready PDFs (3.5 × 2 in, vector text).
+4. Every card carries a QR code. Scanning it opens a public page that confirms the person really works there. When someone leaves, deactivating them makes the QR page show the card is no longer valid.
 
 ## Features
 
-### Company Admin
+### Company admin
+- Register a company and track its approval status
+- Manage employees: add, edit, photos, search, filter, activate or deactivate, CSV import and export
+- **Upload your own card design.** Machine learning finds where every detail goes, and you check it before saving.
+- Optional card back: front only, a simple back with your logo and QR code, or an uploaded back design
+- Preview any template with a real employee, plus an actual PDF preview
+- Request cards for one employee or many at once, then download PDFs or a ZIP
+- Approve employees who ask to join the company (memberships)
+- Company profile, logo, billing history and settings
 
-- Register a company using a valid `@gmail.com` address
-- Track company approval status
-- Import employees from CSV with all-or-nothing validation
-- Add and edit employees manually
-- Search, filter, activate/deactivate, add photos, and export employees
-- Maintain company profile details and upload a company logo
-- Select Classic, Modern, or Minimal card templates
-- Submit single or bulk card requests
-- Track request status and rejection reasons
-- Download completed employee cards as PDF files
-- Download a full request as a ZIP and verify cards through public QR pages
-- Receive in-app workflow notifications
+### Employee
+- Register, then join an approved company with their official email and employee ID
+- Create and download their own card using the company's templates
+- Personal cards are available even before joining a company
+- Mock checkout: pick a quantity, see the total, get an order record
 
-### System Admin
+### System admin
+- Approve, reject or suspend companies
+- Review and approve card requests (each PDF is generated exactly once)
+- Overview dashboard with activity chart and status breakdown
+- Template, user, payment and audit-log views
 
-- Secure account bootstrap from environment variables
-- Review company details and approve, reject, or suspend companies
-- Review the requester, selected template, and employee details before approving cards
-- Approve or reject card requests
-- Activate or deactivate predefined templates
-- Generate one PDF per employee without duplicate generation
-- Review platform statistics and a traceable administrative audit log
+## Card templates from your own design
+
+A company admin uploads a finished design from Photoshop, Canva or similar, with sample text still on it. BizCard reads it like this:
+
+| Step | Technology | What it does |
+| --- | --- | --- |
+| Read the text | **PP-OCR** deep-learning model (RapidOCR + ONNX Runtime) | Finds every line of text and reads it, in any font or colour |
+| Understand it | Pattern + layout rules | Labels each line: name, job title, phone, email, website, address, company |
+| Copy the style | OpenCV | Measures colour, size, boldness and alignment, so new names look the same |
+| Find the photo | Face detection (YuNet, optional) or a photo detector | Marks the frame for each employee's photo |
+| Place the QR code | Image analysis | Picks the calmest empty area of the card |
+| Clean the card | Inpainting (OpenCV Telea) | Erases the sample text and leaves a blank background |
+
+The admin then checks the result in an editor (drag, resize, relabel, preview with a real employee) and saves it. Everything runs on our own server, and designs are never sent to an outside AI service.
+
+**Back of the card (optional):**
+- **Front only:** printed on one side.
+- **Simple back:** company logo, name, website and QR code on a colour you choose. Nothing to upload.
+- **Upload the back:** read by the same pipeline. On a back, the largest text is treated as the company name.
+
+When a template has a back, its PDF has two pages, ready for double-sided printing.
+
+A plain-language explanation for non-technical readers is in [docs/ml-template-pipeline.md](docs/ml-template-pipeline.md).
+
+## How a card gets made
+
+```mermaid
+flowchart LR
+    A[Company registers] --> B[System admin approves]
+    B --> C[Add employees<br/>manual or CSV]
+    B --> D[Upload card design]
+    D --> E[ML reads the design]
+    E --> F[Admin checks and saves]
+    C --> G[Request cards]
+    F --> G
+    G --> H[System admin approves]
+    H --> I[PDF per employee<br/>with QR code]
+    I --> J[Download and print]
+```
 
 ## Tech stack
 
 | Layer | Technology |
 | --- | --- |
-| Frontend | Next.js, React, Tailwind CSS, JavaScript |
-| Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | PostgreSQL |
-| Authentication | JWT, Argon2 password hashing, role-based access control |
-| Migrations | Alembic |
-| PDF generation | ReportLab |
-| Tests | Pytest, FastAPI TestClient |
+| Frontend | Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4 |
+| Backend | FastAPI, SQLAlchemy 2, Pydantic 2 |
+| Database | PostgreSQL, with migrations in Alembic |
+| Machine learning | RapidOCR (PP-OCR on ONNX Runtime), OpenCV, NumPy, Pillow |
+| PDF | ReportLab (vector text, 3.5 × 2 in), pypdf |
+| Auth | JWT, Argon2 password hashing, role-based access |
+| Tests | Pytest + FastAPI TestClient |
 
-## Project structure
+## Getting started
 
-```text
-BizCardProject/
-├── backend/
-│   ├── alembic/              Database migrations
-│   ├── app/
-│   │   ├── api/              Dependencies and API routes
-│   │   ├── core/             Configuration and security
-│   │   ├── db/               Database base and session
-│   │   ├── models/           SQLAlchemy models
-│   │   ├── schemas/          Pydantic request/response schemas
-│   │   ├── services/         CSV import and PDF generation
-│   │   ├── bootstrap.py      System Admin and template bootstrap
-│   │   └── main.py           FastAPI application
-│   ├── examples/             Sample employee CSV
-│   └── tests/                API, migration, security, and workflow tests
-└── frontend/
-    ├── app/                   Next.js pages and global styles
-    ├── components/            Authentication and dashboard components
-    └── lib/                   API client and form validation
-```
-
-## Requirements
-
+### Requirements
 - Python 3.11 or newer
+- Node.js 20 or newer and npm
 - PostgreSQL
-- Node.js 20 or newer
-- npm
 
-## Backend setup
-
-Create the PostgreSQL database:
+### 1. Database
 
 ```sql
 CREATE DATABASE bizcard_db;
 ```
 
-From the project root:
+### 2. Backend
 
 ```powershell
 cd backend
@@ -88,268 +137,128 @@ python -m venv .venv
 Copy-Item .env.example app/.env
 ```
 
-Configure `backend/app/.env`:
+Edit `backend/app/.env`:
 
-```env
-DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5432/bizcard_db
-SECRET_KEY=replace-with-a-random-secret-at-least-32-characters
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-SYSTEM_ADMIN_USERNAME=Rubel
-SYSTEM_ADMIN_EMAIL=rubel@gmail.com
-SYSTEM_ADMIN_PASSWORD=replace-with-a-secure-password
-GENERATED_CARD_STORAGE=generated_cards
-UPLOAD_STORAGE=uploads
-PUBLIC_APP_URL=http://localhost:3000
-```
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection, for example `postgresql+psycopg://postgres:password@localhost:5432/bizcard_db` |
+| `SECRET_KEY` | Random secret, at least 32 characters |
+| `SYSTEM_ADMIN_EMAIL`, `SYSTEM_ADMIN_PASSWORD` | The platform admin account, created on first start |
+| `GENERATED_CARD_STORAGE`, `UPLOAD_STORAGE` | Folders for generated PDFs and uploads |
+| `PUBLIC_APP_URL` | Website address used in the card QR codes |
 
-Apply migrations and start FastAPI:
+Then apply migrations and start the API:
 
 ```powershell
 .venv\Scripts\python.exe -m alembic upgrade head
-.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8001
 ```
 
-API documentation is available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+API docs are at http://127.0.0.1:8001/docs. The first design analysis loads the OCR model, so it takes a few extra seconds.
 
-On startup, the backend creates the System Admin only when one does not already exist. It also ensures the three predefined templates exist. Plaintext passwords are never logged or stored.
+> **Optional:** for better photo detection, place the OpenCV YuNet model at `backend/models/face_detection_yunet.onnx`. Without it, a built-in photo detector is used.
 
-## Frontend setup
-
-Open a second terminal from the project root:
+### 3. Frontend
 
 ```powershell
 cd frontend
 npm install
 Copy-Item .env.example .env.local
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-`frontend/.env.local` controls the backend address:
-
-```env
-BACKEND_URL=http://127.0.0.1:8000
-```
-
-If port `3000` is already in use:
-
-```powershell
 npm run dev -- --port 3001
 ```
 
-## Main workflow
+Set `BACKEND_URL=http://127.0.0.1:8001` in `frontend/.env.local`, then open http://localhost:3001.
 
-1. A Company Admin registers with a Gmail address and a strong password.
-2. The new company receives `PENDING` status.
-3. The System Admin reviews and approves the company.
-4. The Company Admin imports a CSV or manually adds employees.
-5. The company selects an active card template.
-6. The Company Admin creates a single or bulk card request.
-7. The System Admin reviews the requester and employee details.
-8. Approval generates one PDF for each employee.
-9. Each card receives a unique public-safe QR verification URL.
-10. The Company Admin downloads individual PDFs or a request ZIP.
+### Shortcut (Windows)
 
-## Validation rules
-
-Company registration requires an exact `@gmail.com` email address. New passwords must contain at least eight characters, including:
-
-- One uppercase letter
-- One lowercase letter
-- One number
-- One special character
-
-Example: `BizCard@123`
-
-## Employee CSV
-
-The required columns are:
-
-```csv
-employee_id,name,designation,department,email,phone
-EMP-001,Ayesha Rahman,Software Engineer,Engineering,ayesha@example.com,+8801700000001
-EMP-002,Tanvir Hasan,Sales Manager,Sales,tanvir@example.com,+8801700000002
-```
-
-Employee IDs must be unique inside each company. A row error or duplicate causes the whole import to roll back.
-
-## Card request example
-
-Use the database employee IDs returned by `GET /employees`:
-
-```json
-{
-  "employee_ids": [1, 2, 3],
-  "template_id": 2
-}
-```
-
-One employee ID creates a single request; multiple IDs create a bulk request using the same API structure.
+After the one-time setup above, `run-dev.bat` in the project root starts both servers in separate windows.
 
 ## Tests
 
-Run the backend test suite:
-
 ```powershell
+# Backend: API, security, ML templates and workflows
 cd backend
-.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
-```
+.venv\Scripts\python.exe -m pytest -q
 
-Verify the frontend production build:
-
-```powershell
+# Frontend: type check and production build
 cd frontend
+npx tsc --noEmit
 npm run build
 ```
 
-## Security and data isolation
+The ML tests in `backend/tests/test_image_templates.py` use synthetic card layouts from `backend/tests/card_fixtures.py`, so they need no external files.
 
-- Public registration can only create `COMPANY_ADMIN` users.
-- `SYSTEM_ADMIN` is created from environment variables.
-- Passwords are hashed with Argon2.
-- Protected endpoints require JWT bearer authentication.
-- Company-owned employee, request, and card queries are scoped by `company_id`.
-- Generated PDFs are stored on disk; PostgreSQL stores their metadata and file paths.
-- Logos and employee photos use local upload storage and are never stored as database bytes.
-- Deactivating an employee also deactivates their existing public card verification.
-- Real `.env` files, local databases, generated cards, virtual environments, and frontend build files are excluded from Git.
+## Project structure
 
-## AI Card Designer
-
-Set `GEMINI_API_KEY` and optionally `GEMINI_MODEL=gemini-3.5-flash-lite` in `backend/app/.env`, then run `alembic upgrade head` and restart the backend. The key stays on the backend. The integration uses Gemini's OpenAI-compatible chat completions endpoint; no OpenAI key is needed.
-
-Approved companies can open **Card Studio ? AI Designer**, describe a style, preview it, refine it, then save it as a private company template. Select the saved template and submit the normal card request for admin approval and PDF generation. Draft generation does not save or select a template automatically.
-
-Supported designs use validated colors, three print fonts, left/center layouts and four decorations. AI does not generate executable HTML, arbitrary artwork or brand logos. This keeps saved previews and printable PDFs predictable. Employee data is not sent to Gemini; only the design prompt and optional previous draft are sent. Avoid putting confidential information in prompts. Provider quota and costs depend on your Gemini account.
-
-Company AI designs remain private and are listed separately from the shared admin template collection. System Admin can use **Company designs ? Save to shared collection** to publish a copy. Card approval does not publish a template, and repeated library saves reuse the same shared copy.
-
-
-### Premium Card Studio
-
-- The interface uses locally hosted Manrope, with its OFL license included in `frontend/app/fonts`.
-- **Explore 3 styles** creates three AI alternatives in one provider request. Pick a design, then adjust palette, alignment, decoration and print font without another AI call.
-- **Your Brand Kit** saves company-specific color and font preferences. Existing uploaded logos are applied locally; employee data and images are not sent to Gemini.
-- **Actual PDF preview** renders an unsaved draft or selected template with the same service used after approval. Previews do not issue cards or create database records; preview QR codes do not verify.
-- Enable **Include branded back** to create a two-page PDF per employee, with each side sized 3.5 ? 2 inches. Existing single-sided templates stay single-sided.
-- Apply the brand-kit migration with `cd backend` then `alembic upgrade head` before restarting the backend.
-
-### Employee Portal
-
-Employees register at `/employee/register`, then sign in and select an approved company from their dashboard. A company administrator approves the membership once from **Memberships**. Approved employees can create and download their own visiting cards using active company templates. Their membership remains active until the company administrator revokes it.
-
-Run the latest migration before using this feature:
-
-```powershell
-cd backend
-.venv/Scripts/python.exe -m alembic upgrade head
+```text
+BizCardProject/
+├── backend/
+│   ├── alembic/                  Database migrations
+│   ├── app/
+│   │   ├── api/routes/           auth, employees, templates, image_templates, employee_portal, ...
+│   │   ├── core/                 Settings and security
+│   │   ├── models/               SQLAlchemy models
+│   │   ├── schemas/              Pydantic schemas (incl. image_template.py)
+│   │   ├── services/
+│   │   │   ├── template_ml.py            ML analysis of uploaded designs
+│   │   │   ├── image_template_render.py  Fills a design and writes the PDF
+│   │   │   ├── card_generation.py        PDF generation and QR codes
+│   │   │   └── employee_import.py        CSV import
+│   │   ├── bootstrap.py          Admin account, retiring old templates
+│   │   └── main.py               FastAPI app
+│   ├── examples/                 Sample employee CSV
+│   └── tests/                    Pytest suite
+├── frontend/
+│   ├── app/                      Pages: home, login, register, dashboard, verify
+│   ├── components/
+│   │   ├── company/DesignUploader.tsx   Upload page and field editor
+│   │   ├── ImageTemplateCard.tsx        Live card preview (front and back)
+│   │   ├── dashboard/                   Shared tables, charts and layout
+│   │   └── ...                          Role dashboards and studio
+│   └── lib/                      API client and types
+└── docs/
+    └── ml-template-pipeline.md   How the ML template pipeline works
 ```
 
-### Verified Membership and Mock Checkout
+## Security
 
-## Current Project Handoff
+- Public sign-up can only create company admins and employees. The system admin comes from environment variables.
+- Passwords are hashed with Argon2. Repeated failed logins are throttled per IP and email.
+- Every company-owned query is scoped to the signed-in user's company or verified membership.
+- Uploads are checked for type, file signature, size and pixel count (protects against image bombs).
+- Uploaded designs are private to the company. Unsaved uploads are deleted after 24 hours.
+- CSV exports escape spreadsheet formulas, and generated file names are sanitised.
+- `.env` files, uploads, generated cards and build output are never committed.
 
-This section is the source of truth for the next developer or AI model. Read it before changing the project.
+## Developer handoff
 
-### Roles and registration
+Read this before changing the project.
 
-| Role | Responsibility | Registration |
+### Roles
+
+| Role | Responsibility | How it is created |
 | --- | --- | --- |
-| `SYSTEM_ADMIN` | Approves companies and requests; manages shared templates | Bootstrap only from environment variables |
-| `COMPANY_ADMIN` | Owns one company and manages its people, brand, requests and memberships | `/register` → Company → `/register/company` |
-| `EMPLOYEE` | Has a personal account/cards and may join an approved company | `/register` → Employee → `/employee/register` |
+| `SYSTEM_ADMIN` | Approves companies and card requests | Environment variables only |
+| `COMPANY_ADMIN` | Owns one company: staff, designs, requests, memberships | `/register` → Company |
+| `EMPLOYEE` | Personal cards; may join an approved company | `/register` → Employee |
 
-Never expose System Admin in public registration. Public company registration must create `COMPANY_ADMIN`, and employee registration must create `EMPLOYEE`.
+### Key rules
+- **Templates:** only templates made from an uploaded design (`design.kind == "image"`) are offered. Old demo templates and Gemini-made designs are retired at startup (deactivated, not deleted).
+- **ML analysis:** the front analysis is the core feature. The back reuses it with `side=back`. Do not change front behaviour when working on the back.
+- **Card generation:** approving a request generates each PDF exactly once. Repeated approval must never create duplicates.
+- **Memberships:** `PENDING`, `PRE_APPROVED`, `APPROVED`, `REJECTED` or `REVOKED`. Never allow duplicates. Imported employees are pre-approved and link automatically when the matching user registers.
+- **Billing:** checkout is a mock (`quantity × unit price`) and records orders and payments for card generation only. Do not add a real gateway unless asked.
 
-`/register` is intentionally an account-type selection page. Keep links labelled “Register” pointing there so a visitor consciously chooses their Company or Employee workspace.
+### Workflow for changes
+1. Read the models, routes, schemas and migrations before adding a feature, and reuse the existing flow.
+2. Use the existing JWT and role dependencies. Never trust a role or company ID from the browser.
+3. Scope every tenant-owned query by the authenticated company or a verified membership.
+4. Add a new Alembic migration for every database change, and never edit one that has been applied.
+5. Keep PDF, CSV and ML logic in `services/`, not in routes.
+6. Add tests for auth, isolation, membership state and duplicate prevention.
+7. Frontend UI rules are in `frontend/components/dashboard/README.md`: one accent colour, no gradients or emoji, readable text sizes.
 
-### Domain model and ownership
-
-- `User`: login identity and role. An employee user is separate from an imported company employee record.
-- `Company`: tenant boundary and owner of company branding.
-- `Employee`: company-owned directory/contact record with employee ID and official email. CSV import is optional.
-- `Membership`: connects a user to a company, with `PENDING`, `PRE_APPROVED`, `APPROVED`, `REJECTED`, or `REVOKED` status.
-- `CardRequest` and `CardRequestItem`: normal company card approval workflow.
-- `GeneratedCard` / `PersonalCard`: PDF metadata; PDF files stay on local storage, never in PostgreSQL.
-- `CardOrder` and `PaymentRecord`: mock checkout audit trail, not a real payment integration.
-
-### Membership workflows that must continue working
-
-1. **Employee first**: employee registers → searches company → submits official email and employee ID → Company Admin approves → active membership.
-2. **Imported, not registered**: company imports employee → `PRE_APPROVED` membership has no user → matching user registers → account links and activates membership.
-3. **Imported, already registered**: verified official email and employee ID link the existing employee account and activate membership according to the import.
-
-Do not permit duplicate memberships. A user must never retrieve another company's employees, memberships, requests or files.
-
-### Card generation and mock billing
-
-- Employees can create personal cards before joining a company.
-- Approved company membership unlocks company templates/branding; normal card creation does not require repeat approval.
-- System Admin approving a request generates each PDF exactly once. Repeated approval must not make duplicate cards.
-- Checkout accepts any `quantity`; total is `quantity × unit_price`.
-- Record mock orders/payments for card generation only, never for registration or CSV import.
-- Real billing is intentionally deferred. Do not add a payment gateway unless explicitly requested.
-
-### Important files
-
-| Concern | Location |
-| --- | --- |
-| FastAPI app and router registration | `backend/app/main.py` |
-| Auth | `backend/app/api/routes/auth.py` |
-| Membership API | `backend/app/api/routes/memberships.py` |
-| Employee portal/personal cards/checkout | `backend/app/api/routes/employee_portal.py` |
-| Database models | `backend/app/models/domain.py` |
-| Request and response schemas | `backend/app/schemas/domain.py` |
-| CSV and PDF services | `backend/app/services/` |
-| Latest migrations | `backend/alembic/versions/20261111_05_employee_memberships.py`, `backend/alembic/versions/20261112_06_flexible_membership_checkout.py` |
-| Registration choice UI | `frontend/app/register/page.js` |
-| Company registration UI | `frontend/app/register/company/page.js`, `frontend/components/AuthScreen.js` |
-| Employee registration UI | `frontend/app/employee/register/page.js` |
-| Dashboard role router | `frontend/app/dashboard/page.js` |
-| Company and employee dashboards | `frontend/components/CompanyDashboard.js`, `frontend/components/EmployeeDashboard.js` |
-| Company membership UI | `frontend/components/CompanyMemberships.js` |
-| API client and global design | `frontend/lib/api.js`, `frontend/app/globals.css` |
-
-### Rules for future changes
-
-1. Inspect models, routes, schemas and migrations before adding a feature; reuse the current flow.
-2. Use existing JWT/RBAC dependencies. Never trust a role or company ID from the browser.
-3. Scope all tenant-owned queries by authenticated `company_id` or verified membership.
-4. Add a new Alembic migration for database changes; never edit an applied migration.
-5. Keep PDF generation and CSV logic in services, not routes.
-6. Add/update tests for authentication, isolation, membership state and duplicate prevention.
-
-### Run and verify
-
-```powershell
-# Terminal 1
-cd backend
-.venv\Scripts\python.exe -m alembic upgrade head
-.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8001
-
-# Terminal 2
-cd frontend
-npm run dev -- --port 3001
-```
-
-Verify these pages after starting:
-
-- `http://localhost:3001/register` — professional Company/Employee choice
-- `http://localhost:3001/register/company` — company registration
-- `http://localhost:3001/employee/register` — employee registration
-- `http://localhost:8001/docs` — API documentation
-
-Backend check:
-
-```powershell
-cd backend
-.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
-```
-
-Employees can create personal cards without joining a company. To use company branding, they select a company and submit the official company email plus employee ID recorded by that company. The platform validates both values against the company employee record before sending a request to the Company Admin.
-
-CSV import is optional. Each imported employee creates a `PRE_APPROVED` membership. If that employee already has an account with the same official email, the account is linked and approved immediately. If they register later with the same official email, their pre-approved membership activates automatically.
-
-Employee card checkout is a development mock. The employee selects any quantity, sees `quantity × unit price`, and the system records a paid mock order and payment record with the correct company or individual payer. Default individual unit price is `৳50`; company-sponsored orders are recorded at `৳0`.
+### Known business decisions still open
+- Company sign-up currently requires a `@gmail.com` address.
+- Payments are mocked, and there is no email verification yet.
+- Footer contact details, homepage stats and testimonials are placeholders, and the Privacy and Terms pages need real text.
