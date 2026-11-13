@@ -65,6 +65,12 @@ def list_employees(
     return db.scalars(query.order_by(Employee.id).offset(offset).limit(limit)).all()
 
 
+def _csv_safe(value) -> str:
+    """Stop spreadsheet apps from running text like =HYPERLINK(...) as a formula."""
+    text = '' if value is None else str(value)
+    return "'" + text if text[:1] in ("=", "+", "-", "@", chr(9), chr(13)) else text
+
+
 @router.get('/export')
 def export_employees(
     db: Session = Depends(get_db),
@@ -75,7 +81,7 @@ def export_employees(
     writer = csv.writer(output)
     writer.writerow(['employee_id', 'name', 'designation', 'department', 'email', 'phone', 'status'])
     for employee in employees:
-        writer.writerow([employee.employee_id, employee.name, employee.designation, employee.department, employee.email, employee.phone, 'ACTIVE' if employee.is_active else 'INACTIVE'])
+        writer.writerow([_csv_safe(v) for v in (employee.employee_id, employee.name, employee.designation, employee.department, employee.email, employee.phone, 'ACTIVE' if employee.is_active else 'INACTIVE')])
     return StreamingResponse(
         iter([output.getvalue()]), media_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="employees.csv"'},

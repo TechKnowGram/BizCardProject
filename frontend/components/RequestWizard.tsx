@@ -73,6 +73,7 @@ export default function RequestWizard({ company, employees, templates, initialId
       {step === 2 && <div className="pt-6">
         <h3 className={stepHeading}>Check the design</h3>
         <p className={stepParagraph}>Choosing a different template also makes it your company&apos;s selected template.</p>
+        {!templates.length && <p className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Your company has no card design yet. Close this and open Templates to upload your design or create one with the AI designer.</p>}
         <div className="mb-5 flex flex-wrap gap-2">{templates.map(item => <button type="button" className={cx('rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors', item.id === templateId ? 'border-brand-600 bg-brand-50 text-brand-700 ring-1 ring-brand-600' : 'border-slate-200 text-slate-700 hover:border-slate-300')} aria-pressed={item.id === templateId} onClick={() => setTemplateId(item.id)} key={item.id}>{item.name}</button>)}</div>
         {template && <div className="rounded-xl border border-slate-200 bg-slate-50 p-6"><CardPreview className={template.design ? undefined : 'm-auto max-w-105 min-h-56.25!'} design={template.design} style={template.style_key} company={company.name} name={selected[0]?.name} designation={selected[0]?.designation} email={selected[0]?.email} phone={selected[0]?.phone} logoPath={company.has_logo ? '/company/logo' : null} photoPath={selected[0]?.has_photo ? `/employees/${selected[0].id}/photo` : null} /></div>}
       </div>}

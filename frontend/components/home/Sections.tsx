@@ -179,7 +179,7 @@ export function Templates() {
   return (
     <section id="templates" className="scroll-mt-24 py-16 sm:py-20 lg:py-24">
       <Container>
-        <SectionHead eyebrow="Templates" title="Start from a layout, then make it yours" text="Every template can take your logo, colours and fonts. Admins can also add ID-style layouts and designs suggested from a short description." />
+        <SectionHead eyebrow="Your design" title="Bring your own design, or let AI make one" text="There are no stock templates to settle for. Your card uses your brand, and every employee gets the same look." />
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {templates.map((t, i) => (
             <Reveal as="article" delay={i * 80} key={t.look} className="group rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-lg">

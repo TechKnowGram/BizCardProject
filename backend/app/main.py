@@ -12,6 +12,7 @@ from app.api.routes.notifications import router as notifications_router
 from app.api.routes.verification import router as verification_router
 from app.api.routes.memberships import router as memberships_router
 from app.api.routes.employee_portal import router as employee_portal_router
+from app.api.routes.image_templates import router as image_templates_router
 
 
 @asynccontextmanager
@@ -24,6 +25,7 @@ app = FastAPI(title='BizCard API', version='1.0.0', lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(companies_router)
 app.include_router(employees_router)
+app.include_router(image_templates_router)
 app.include_router(templates_router)
 app.include_router(cards_router)
 app.include_router(profile_router)

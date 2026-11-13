@@ -3,6 +3,7 @@ from uuid import UUID
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl, field_validator, field_serializer
 from app.schemas.ai import CardDesign
+from app.schemas.image_template import ImageTemplateDesign
 from app.schemas.auth import UserResponse, CompanySummary
 
 
@@ -107,7 +108,8 @@ class TemplateUpdate(BaseModel):
 
 class TemplateResponse(BaseModel):
     company_id: int | None = None
-    design: CardDesign | None = None
+    # AI designs and designs made from an uploaded image (kind == 'image').
+    design: CardDesign | ImageTemplateDesign | None = None
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
@@ -117,7 +119,8 @@ class TemplateResponse(BaseModel):
 
     @field_serializer('name')
     def display_name(self, value):
-        return self.design.name if self.design else value
+        # AI designs carry their own display name; image templates use the template name.
+        return getattr(self.design, 'name', None) or value
 
 
 class CardRequestCreate(BaseModel):

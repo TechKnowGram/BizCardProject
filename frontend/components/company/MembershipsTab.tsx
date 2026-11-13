@@ -58,11 +58,11 @@ export default function MembershipsTab({ memberships, membershipFilter, setMembe
       render: (m) =>
         m.status === 'PENDING' ? (
           <div className="flex items-center justify-end gap-1.5">
-            <Button variant="secondary" className={rowButtonClass} disabled={busy} onClick={() => onDecide(m.id, 'REJECTED')}>Reject</Button>
+            <Button variant="secondary" className={rowButtonClass} disabled={busy} onClick={() => { if (window.confirm('Reject this request to join your company?')) onDecide(m.id, 'REJECTED'); }}>Reject</Button>
             <Button className={rowButtonClass} disabled={busy} onClick={() => onDecide(m.id, 'APPROVED')}>Approve</Button>
           </div>
         ) : m.status === 'APPROVED' ? (
-          <Button variant="danger" className={rowButtonClass} disabled={busy} onClick={() => onDecide(m.id, 'REVOKED')}>Revoke access</Button>
+          <Button variant="danger" className={rowButtonClass} disabled={busy} onClick={() => { if (window.confirm('Revoke this employee’s access? They will no longer be able to order company cards.')) onDecide(m.id, 'REVOKED'); }}>Revoke access</Button>
         ) : (
           <span className="text-xs text-slate-500">No action needed</span>
         ),
@@ -90,6 +90,7 @@ export default function MembershipsTab({ memberships, membershipFilter, setMembe
               { value: 'PENDING', label: 'Pending' },
               { value: 'APPROVED', label: 'Approved' },
               { value: 'REJECTED', label: 'Rejected' },
+              { value: 'REVOKED', label: 'Revoked' },
             ]}
           />
         }

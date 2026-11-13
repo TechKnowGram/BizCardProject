@@ -10,3 +10,8 @@ alembic
 python-multipart
 reportlab
 pypdf
+numpy
+opencv-python
+onnxruntime
+rapidocr-onnxruntime
+pillow

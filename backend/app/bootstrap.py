@@ -1,10 +1,10 @@
 from pydantic import ValidationError
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from app.core.config import settings
 from app.core.security import hash_password
 from app.db.base import Base
 from app.db.session import SessionLocal
-from app.models import CardTemplate, User
+from app.models import CardTemplate, Company, User
 from app.models.constants import SYSTEM_ADMIN
 from app.schemas.auth import SystemAdminCredentials
 
@@ -49,7 +49,39 @@ SHAPE_TEMPLATES = (
 )
 
 
+# The built-in demo designs above are retired: companies now create their own
+# templates with the AI designer or by uploading a finished design (ML). They are
+# kept in the database (old card requests point to them) but hidden everywhere.
+DEMO_STYLE_KEYS = tuple(t[2] for t in DEFAULT_TEMPLATES) + tuple(t[2] for t in SHAPE_TEMPLATES)
+
+
+def _is_gemini_design(template) -> bool:
+    """Templates made with the old Gemini 'describe a design' tool (and shared copies of them)."""
+    key = template.style_key or ''
+    design = template.design or {}
+    return (key.startswith('ai_') or key.startswith('shared_')) and design.get('kind') != 'image'
+
+
+def retire_gemini_templates(db):
+    """Only uploaded (machine-learning) designs are used now; hide Gemini-made ones."""
+    retired = [t for t in db.scalars(select(CardTemplate).where(CardTemplate.is_active.is_(True))) if _is_gemini_design(t)]
+    ids = [t.id for t in retired]
+    if not ids:
+        return
+    db.execute(update(Company).where(Company.selected_template_id.in_(ids)).values(selected_template_id=None))
+    for template in retired:
+        template.is_active = False
+
+
+def retire_demo_templates(db):
+    demo_ids = select(CardTemplate.id).where(CardTemplate.style_key.in_(DEMO_STYLE_KEYS), CardTemplate.company_id.is_(None))
+    db.execute(update(Company).where(Company.selected_template_id.in_(demo_ids)).values(selected_template_id=None))
+    db.execute(update(CardTemplate).where(CardTemplate.style_key.in_(DEMO_STYLE_KEYS), CardTemplate.company_id.is_(None))
+               .values(is_active=False))
+
+
 def seed_templates(db):
+    """Test helper only: creates the old demo designs so tests have ready-made templates."""
     existing = set(db.scalars(select(CardTemplate.style_key)).all())
     for name, description, style_key in DEFAULT_TEMPLATES:
         if style_key not in existing:
@@ -78,7 +110,8 @@ def initialize_application():
         # Alembic is authoritative in deployment; this keeps first local startup beginner-friendly.
         Base.metadata.create_all(db.connection())
         create_system_admin(db, credentials)
-        seed_templates(db)
+        retire_demo_templates(db)
+        retire_gemini_templates(db)
         db.commit()
 
 
