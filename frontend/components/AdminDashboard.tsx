@@ -96,7 +96,7 @@ type Review = Partial<Company & CardRequest> & { id: number; kind: string };
 function ReviewField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-3xs uppercase tracking-widest font-mono text-slate-500 font-bold">{label}</dt>
+      <dt className="text-3xs uppercase tracking-wider tabular-nums text-slate-500 font-bold">{label}</dt>
       <dd className="mt-1 text-sm font-semibold text-slate-900 [overflow-wrap:anywhere]">{children}</dd>
     </div>
   );
@@ -107,7 +107,7 @@ function TimelineStep({ done, mark, title, note, line }: { done: boolean; mark: 
     <div className="flex min-h-14 flex-none items-start">
       <span
         className={cx(
-          'grid size-7 flex-none place-items-center rounded-full border text-3xs font-black',
+          'grid size-7 flex-none place-items-center rounded-full border text-3xs font-bold',
           done ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-400'
         )}
       >
@@ -391,13 +391,13 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
           {tab === 'overview' && (
             <div className="space-y-6">
               {/* Operational Hero Banner (TechKnowGram Theme) */}
-              <section className="relative overflow-hidden rounded-2xl bg-[#080d26] text-white p-7 md:p-9 border border-[#1a2462] shadow-sm">
+              <section className="relative overflow-hidden rounded-2xl bg-navy-950 text-white p-7 md:p-9 border border-navy-800 shadow-sm">
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="max-w-2xl">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-[#101845] border border-[#1a2462] px-3 py-1 text-3xs font-mono font-bold text-[#8eaee0] tracking-wider uppercase mb-3">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-navy-900 border border-navy-800 px-3 py-1 text-3xs tabular-nums font-bold text-brand-300 tracking-wider uppercase mb-3">
                       Platform Control Center
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
                       System Operations Console
                     </h1>
                     <p className="mt-2 text-xs md:text-sm text-slate-300 leading-relaxed">
@@ -406,8 +406,8 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-4 bg-[#101845]/60 border border-[#1a2462] rounded-xl px-5 py-4 shrink-0">
-                    <span className="text-4xl font-black text-amber-400 font-mono">
+                  <div className="flex items-center gap-4 bg-navy-900/60 border border-navy-800 rounded-xl px-5 py-4 shrink-0">
+                    <span className="text-4xl font-bold text-amber-400 tabular-nums">
                       {attentionQueue.length}
                     </span>
                     <div className="text-left">
@@ -425,11 +425,11 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
               {/* Stripe-style 4 KPI Metrics */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Registered Workspaces
                   </span>
                   <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-black text-slate-900 font-mono">
+                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
                       {data.companies.length}
                     </strong>
                     {pendingCompanies.length > 0 && (
@@ -444,11 +444,11 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Platform Accounts
                   </span>
                   <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-black text-slate-900 font-mono">
+                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
                       {data.users.length || data.stats.total_users || 0}
                     </strong>
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-bold text-emerald-800 border border-emerald-200">
@@ -461,11 +461,11 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Card Print Requests
                   </span>
                   <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-black text-slate-900 font-mono">
+                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
                       {data.requests.length}
                     </strong>
                     {pendingRequests.length > 0 && (
@@ -480,15 +480,15 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Cards Issued
                   </span>
                   <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-black text-slate-900 font-mono">
+                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
                       {data.stats.generated_cards || 0}
                     </strong>
-                    <span className="rounded-full bg-mint/20 px-2 py-0.5 text-3xs font-bold text-emerald-900 border border-mint/40">
-                      300 DPI
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-semibold text-emerald-700 border border-emerald-200">
+                      Vector PDF
                     </span>
                   </div>
                   <p className="mt-2 text-3xs text-slate-500">
@@ -503,10 +503,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col">
                   <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                      <span className="text-3xs font-mono font-bold uppercase tracking-wider text-amber-800 block">
+                      <span className="text-3xs tabular-nums font-bold uppercase tracking-wider text-amber-800 block">
                         Priority Queue
                       </span>
-                      <h2 className="text-base font-extrabold text-slate-900">
+                      <h2 className="text-base font-semibold text-slate-900">
                         Needs Administrator Decision
                       </h2>
                     </div>
@@ -554,13 +554,13 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                           </div>
 
                           <div className="flex items-center gap-3 shrink-0">
-                            <time className="text-3xs text-slate-500 font-mono hidden sm:block">
+                            <time className="text-3xs text-slate-500 tabular-nums hidden sm:block">
                               {formatShortDate(item.created_at)}
                             </time>
                             <button
                               type="button"
                               onClick={() => openReview(item.raw, item.kind)}
-                              className="rounded-lg bg-[#2d62a8] text-white px-3.5 py-1.5 text-2xs font-bold hover:bg-[#28528d] transition-colors shadow-xs"
+                              className="rounded-lg bg-brand-600 text-white px-3.5 py-1.5 text-2xs font-bold hover:bg-brand-700 transition-colors shadow-xs"
                             >
                               Review & Decide →
                             </button>
@@ -575,10 +575,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col">
                   <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                      <span className="text-3xs font-mono font-bold uppercase tracking-wider text-slate-500 block">
+                      <span className="text-3xs tabular-nums font-bold uppercase tracking-wider text-slate-500 block">
                         System Feed
                       </span>
-                      <h2 className="text-base font-extrabold text-slate-900">
+                      <h2 className="text-base font-semibold text-slate-900">
                         Recent Audit Events
                       </h2>
                     </div>
@@ -595,7 +595,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     ) : (
                       data.audits.slice(0, 6).map(log => (
                         <div key={log.id} className="p-3.5 flex items-start gap-3 hover:bg-slate-50/80">
-                          <span className="grid size-6 place-items-center rounded-full bg-slate-100 text-slate-600 text-3xs font-mono shrink-0 mt-0.5">
+                          <span className="grid size-6 place-items-center rounded-full bg-slate-100 text-slate-600 text-3xs tabular-nums shrink-0 mt-0.5">
                             ●
                           </span>
                           <div className="min-w-0 flex-1">
@@ -603,7 +603,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                               <strong className="block text-2xs font-bold text-slate-900 truncate">
                                 {log.action.replaceAll('_', ' ')}
                               </strong>
-                              <time className="text-3xs text-slate-500 font-mono shrink-0">
+                              <time className="text-3xs text-slate-500 tabular-nums shrink-0">
                                 {formatShortDate(log.created_at)}
                               </time>
                             </div>
@@ -626,7 +626,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     Companies
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -666,7 +666,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs font-mono font-bold text-slate-500 uppercase">Status:</span>
+                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Status:</span>
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
@@ -687,7 +687,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                         <th className="py-3 px-4">Company</th>
                         <th className="py-3 px-4">Owner / Admin</th>
                         <th className="py-3 px-4">Status</th>
@@ -717,7 +717,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                     <strong className="block text-xs font-bold text-slate-900 truncate">
                                       {company.name}
                                     </strong>
-                                    <span className="block text-3xs text-slate-500 font-mono truncate">
+                                    <span className="block text-3xs text-slate-500 tabular-nums truncate">
                                       {company.website || `Workspace #${company.id}`}
                                     </span>
                                   </div>
@@ -729,7 +729,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                 <p className="font-semibold text-slate-800 text-xs">
                                   {owner?.username || 'Unassigned'}
                                 </p>
-                                <span className="block text-3xs font-mono text-slate-500 truncate">
+                                <span className="block text-3xs tabular-nums text-slate-500 truncate">
                                   {owner?.email || '—'}
                                 </span>
                               </td>
@@ -740,7 +740,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                               </td>
 
                               {/* Date */}
-                              <td className="py-3.5 px-4 text-slate-500 font-mono text-3xs">
+                              <td className="py-3.5 px-4 text-slate-500 tabular-nums text-3xs">
                                 {formatShortDate(company.created_at)}
                               </td>
 
@@ -752,7 +752,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                       type="button"
                                       disabled={busy}
                                       onClick={() => mutate(`/admin/companies/${company.id}/status`, { status: 'APPROVED' })}
-                                      className="rounded-lg bg-[#2d62a8] text-white px-3 py-1 text-3xs font-bold hover:bg-[#28528d] transition-colors shadow-xs"
+                                      className="rounded-lg bg-brand-600 text-white px-3 py-1 text-3xs font-bold hover:bg-brand-700 transition-colors shadow-xs"
                                     >
                                       Approve
                                     </button>
@@ -802,7 +802,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     User Accounts
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -842,7 +842,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs font-mono font-bold text-slate-500 uppercase">Role:</span>
+                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Role:</span>
                   <select
                     value={roleFilter}
                     onChange={e => setRoleFilter(e.target.value)}
@@ -862,7 +862,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                         <th className="py-3 px-4">User</th>
                         <th className="py-3 px-4">Email</th>
                         <th className="py-3 px-4">Role</th>
@@ -890,17 +890,17 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                 </strong>
                               </div>
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-600">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-600">
                               {u.email}
                             </td>
                             <td className="py-3.5 px-4">
                               <span
                                 className={cx(
-                                  'rounded-full px-2.5 py-0.5 text-3xs font-mono font-bold uppercase',
+                                  'rounded-full px-2.5 py-0.5 text-3xs tabular-nums font-bold uppercase',
                                   u.role === 'SYSTEM_ADMIN'
                                     ? 'bg-slate-900 text-white'
                                     : u.role === 'COMPANY_ADMIN'
-                                    ? 'bg-mint/30 text-emerald-950 font-bold'
+                                    ? 'bg-emerald-50 text-emerald-800 font-bold'
                                     : 'bg-slate-100 text-slate-700'
                                 )}
                               >
@@ -913,7 +913,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                   {u.company_name}
                                 </span>
                               ) : (
-                                <span className="text-3xs font-mono text-slate-400">
+                                <span className="text-3xs tabular-nums text-slate-400">
                                   Platform / Global
                                 </span>
                               )}
@@ -939,7 +939,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     Global Memberships
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -965,7 +965,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs font-mono font-bold text-slate-500 uppercase">Status:</span>
+                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Status:</span>
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
@@ -986,7 +986,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                         <th className="py-3 px-4">Employee</th>
                         <th className="py-3 px-4">Company</th>
                         <th className="py-3 px-4">Official Email</th>
@@ -1014,10 +1014,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                             <td className="py-3.5 px-4 font-semibold text-slate-800">
                               {m.company_name || `Company #${m.company_id}`}
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-600">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-600">
                               {m.official_email}
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs font-bold text-slate-700">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs font-bold text-slate-700">
                               {m.employee_code}
                             </td>
                             <td className="py-3.5 px-4">
@@ -1027,19 +1027,19 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                 </span>
                               ) : m.match_status === 'ID_MISMATCH' ? (
                                 <span className="rounded-full bg-amber-50 px-2 py-0.5 text-3xs font-bold text-amber-700 border border-amber-200">
-                                  ⚠ ID/Email Mismatch
+                                  ID or email mismatch
                                 </span>
                               ) : m.match_status === 'INACTIVE_EMPLOYEE' ? (
                                 <span className="rounded-full bg-rose-50 px-2 py-0.5 text-3xs font-bold text-rose-700 border border-rose-200">
                                   ✕ Inactive Roster
                                 </span>
                               ) : (
-                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-3xs font-mono text-slate-600">
+                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-3xs tabular-nums text-slate-600">
                                   ? Not in Roster
                                 </span>
                               )}
                             </td>
-                            <td className="py-3.5 px-4 text-3xs font-mono font-semibold">
+                            <td className="py-3.5 px-4 text-3xs tabular-nums font-semibold">
                               {m.payer === 'COMPANY' ? 'Company Sponsored' : 'Employee Self-Paid'}
                             </td>
                             <td className="py-3.5 px-4">
@@ -1060,7 +1060,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     Card Orders & Print Requests
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -1086,7 +1086,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs font-mono font-bold text-slate-500 uppercase">Status:</span>
+                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Status:</span>
                   <select
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value)}
@@ -1109,7 +1109,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                         <th className="py-3 px-4">Request</th>
                         <th className="py-3 px-4">Company</th>
                         <th className="py-3 px-4">Template Style</th>
@@ -1130,39 +1130,39 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                       ) : (
                         filteredRequests.map(r => (
                           <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-900">
                               #{r.id}
                             </td>
                             <td className="py-3.5 px-4 font-semibold text-slate-800">
                               {r.company?.name || `Company #${r.company_id}`}
                             </td>
                             <td className="py-3.5 px-4">
-                              <span className="font-mono text-3xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                              <span className="tabular-nums text-3xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
                                 {r.template?.name || r.template?.style_key || 'Standard'}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-700">
                               {r.items?.length || 0} card{r.items?.length === 1 ? '' : 's'}
                             </td>
                             <td className="py-3.5 px-4">
                               <p className="font-semibold text-slate-800">
                                 {r.created_by?.username || 'Admin'}
                               </p>
-                              <span className="block text-3xs font-mono text-slate-500">
+                              <span className="block text-3xs tabular-nums text-slate-500">
                                 {r.created_by?.email}
                               </span>
                             </td>
                             <td className="py-3.5 px-4">
                               <StatusBadge value={r.status} />
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-500">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
                               {formatShortDate(r.created_at)}
                             </td>
                             <td className="py-3.5 px-4 text-right">
                               <button
                                 type="button"
                                 onClick={() => openReview(r, 'requests')}
-                                className="rounded-lg bg-[#2d62a8] text-white px-3 py-1 text-3xs font-bold hover:bg-[#28528d] transition-colors shadow-xs"
+                                className="rounded-lg bg-brand-600 text-white px-3 py-1 text-3xs font-bold hover:bg-brand-700 transition-colors shadow-xs"
                               >
                                 Review & Decide ↗
                               </button>
@@ -1182,7 +1182,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     Template Catalog
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -1212,7 +1212,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     Payments & Order Financials
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -1245,10 +1245,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
               {/* Financial Metric Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Total Platform Volume
                   </span>
-                  <strong className="mt-3 block text-3xl font-black text-slate-900 font-mono">
+                  <strong className="mt-3 block text-3xl font-bold text-slate-900 tabular-nums">
                     ৳{totalPaymentsSpend || data.stats.total_revenue || 0}
                   </strong>
                   <p className="mt-2 text-3xs text-slate-500">
@@ -1257,10 +1257,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Company Sponsored Volume
                   </span>
-                  <strong className="mt-3 block text-3xl font-black text-indigo-700 font-mono">
+                  <strong className="mt-3 block text-3xl font-bold text-indigo-700 tabular-nums">
                     ৳{companySponsoredSpend}
                   </strong>
                   <p className="mt-2 text-3xs text-slate-500">
@@ -1269,10 +1269,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                     Employee Self-Paid
                   </span>
-                  <strong className="mt-3 block text-3xl font-black text-emerald-800 font-mono">
+                  <strong className="mt-3 block text-3xl font-bold text-emerald-800 tabular-nums">
                     ৳{individualSpend}
                   </strong>
                   <p className="mt-2 text-3xs text-slate-500">
@@ -1295,7 +1295,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 </div>
 
                 <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs font-mono font-bold text-slate-500 uppercase">Payer:</span>
+                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Payer:</span>
                   <select
                     value={payerFilter}
                     onChange={e => setPayerFilter(e.target.value)}
@@ -1314,7 +1314,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                         <th className="py-3 px-4">Order ID</th>
                         <th className="py-3 px-4">Workspace / Customer</th>
                         <th className="py-3 px-4">Quantity</th>
@@ -1335,25 +1335,25 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                       ) : (
                         filteredPayments.map(p => (
                           <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-900">
                               #{p.id}
                             </td>
                             <td className="py-3.5 px-4 font-semibold text-slate-800">
                               {p.company_name}
                             </td>
-                            <td className="py-3.5 px-4 font-mono">
+                            <td className="py-3.5 px-4 tabular-nums">
                               {p.quantity} cards
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-slate-500">
+                            <td className="py-3.5 px-4 tabular-nums text-slate-500">
                               ৳{p.unit_price}
                             </td>
-                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
+                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-900">
                               ৳{p.total_amount}
                             </td>
                             <td className="py-3.5 px-4">
                               <span
                                 className={cx(
-                                  'rounded-full px-2 py-0.5 text-3xs font-mono font-bold',
+                                  'rounded-full px-2 py-0.5 text-3xs tabular-nums font-bold',
                                   p.payer === 'COMPANY'
                                     ? 'bg-indigo-50 text-indigo-700'
                                     : 'bg-emerald-50 text-emerald-800'
@@ -1365,7 +1365,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                             <td className="py-3.5 px-4">
                               <StatusBadge value={p.status} />
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-500">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
                               {formatShortDate(p.created_at)}
                             </td>
                           </tr>
@@ -1383,7 +1383,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                     System Audit & Activity Reports
                   </h1>
                   <p className="text-xs text-slate-500 mt-1">
@@ -1436,7 +1436,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs font-mono uppercase font-bold text-slate-500 tracking-wider">
+                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
                         <th className="py-3 px-4">Event / Action</th>
                         <th className="py-3 px-4">Target Entity</th>
                         <th className="py-3 px-4">Company Context</th>
@@ -1456,7 +1456,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                           <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2.5">
-                                <span className="grid size-6 place-items-center rounded-full bg-slate-100 text-slate-700 text-3xs font-mono shrink-0">
+                                <span className="grid size-6 place-items-center rounded-full bg-slate-100 text-slate-700 text-3xs tabular-nums shrink-0">
                                   ✓
                                 </span>
                                 <strong className="font-bold text-slate-900 capitalize">
@@ -1464,16 +1464,16 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                 </strong>
                               </div>
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-700">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-700">
                               {item.entity_type} #{item.entity_id}
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-500">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
                               {item.company_id ? `Company #${item.company_id}` : 'Platform / System'}
                             </td>
                             <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
                               {item.details || '—'}
                             </td>
-                            <td className="py-3.5 px-4 font-mono text-3xs text-slate-500">
+                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
                               {formatDate(item.created_at)}
                             </td>
                           </tr>
@@ -1490,7 +1490,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
           {tab === 'settings' && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
                   System Settings
                 </h1>
                 <p className="text-xs text-slate-500 mt-1">
@@ -1502,7 +1502,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 {/* Engine Card */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                   <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-mint/20 text-emerald-900 font-bold text-sm">
+                    <span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700 font-bold text-sm">
                       ⚙
                     </span>
                     <div>
@@ -1514,15 +1514,15 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                   <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Resolution Target</dt>
-                      <dd className="font-mono font-bold text-slate-900">300 DPI (CMYK Proofing)</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">Vector PDF, 3.5 × 2 in</dd>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Bleed Margin Standard</dt>
-                      <dd className="font-mono font-bold text-slate-900">3.0 mm (Print Safe Area)</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">3.0 mm (Print Safe Area)</dd>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Card Dimensions</dt>
-                      <dd className="font-mono font-bold text-slate-900">3.5&quot; × 2.0&quot; (Standard US / ISO)</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">3.5&quot; × 2.0&quot; (Standard US / ISO)</dd>
                     </div>
                     <div className="flex justify-between py-1">
                       <dt className="text-slate-500">Engine Health</dt>
@@ -1537,9 +1537,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 {/* Security Card */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                   <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-800 font-bold text-sm">
-                      🔒
-                    </span>
+                    <span className="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-700"><svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg></span>
                     <div>
                       <h2 className="text-sm font-bold text-slate-900">Security & Authentication</h2>
                       <p className="text-3xs text-slate-500">Access policies and session parameters</p>
@@ -1549,15 +1547,15 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                   <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">JWT Token Lifespan</dt>
-                      <dd className="font-mono font-bold text-slate-900">1440 Minutes (24 Hours)</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">1440 Minutes (24 Hours)</dd>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Role Verification</dt>
-                      <dd className="font-mono font-bold text-slate-900">Strict RBAC Enforced</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">Strict RBAC Enforced</dd>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Token Encoding</dt>
-                      <dd className="font-mono font-bold text-slate-900">HS256 Cryptographic Signature</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">HS256 Cryptographic Signature</dd>
                     </div>
                     <div className="flex justify-between py-1">
                       <dt className="text-slate-500">Session Guard</dt>
@@ -1569,7 +1567,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 {/* Administrator Profile Card */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                   <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-slate-900 text-mint font-black text-sm">
+                    <span className="grid size-9 place-items-center rounded-xl bg-navy-900 text-white font-bold text-sm">
                       {user.username.charAt(0).toUpperCase()}
                     </span>
                     <div>
@@ -1585,11 +1583,11 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Email</dt>
-                      <dd className="font-mono text-slate-700">{user.email}</dd>
+                      <dd className="tabular-nums text-slate-700">{user.email}</dd>
                     </div>
                     <div className="flex justify-between py-1">
                       <dt className="text-slate-500">Permissions Level</dt>
-                      <dd className="rounded-full bg-slate-900 text-white px-2 py-0.5 text-3xs font-mono font-bold">
+                      <dd className="rounded-full bg-slate-900 text-white px-2 py-0.5 text-3xs tabular-nums font-bold">
                         SYSTEM_ADMIN (Full Root)
                       </dd>
                     </div>
@@ -1611,15 +1609,15 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                   <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Backend Framework</dt>
-                      <dd className="font-mono font-bold text-slate-900">FastAPI (Python 3.12)</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">FastAPI (Python 3.12)</dd>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Frontend Client</dt>
-                      <dd className="font-mono font-bold text-slate-900">Next.js 14 (App Router)</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">Next.js 14 (App Router)</dd>
                     </div>
                     <div className="flex justify-between py-1 border-b border-slate-50">
                       <dt className="text-slate-500">Database Engine</dt>
-                      <dd className="font-mono font-bold text-slate-900">SQLAlchemy ORM + SQLite/PG</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">SQLAlchemy ORM + SQLite/PG</dd>
                     </div>
                     <div className="flex justify-between py-1">
                       <dt className="text-slate-500">API Health</dt>
@@ -1648,7 +1646,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             >
               <div className="mb-4 flex items-center gap-3">
                 <StatusBadge value={review.status ?? ''} />
-                <span className="text-3xs text-slate-500 font-mono">
+                <span className="text-3xs text-slate-500 tabular-nums">
                   Submitted {formatDate(review.created_at)}
                 </span>
               </div>
@@ -1661,7 +1659,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     <ReviewField label="Registered Date">{formatDate(review.created_at)}</ReviewField>
                     <ReviewField label="Primary Administrator">
                       {review.admins?.[0]?.username || 'Not assigned'}
-                      <span className="block text-3xs font-mono text-slate-500 font-normal">
+                      <span className="block text-3xs tabular-nums text-slate-500 font-normal">
                         {review.admins?.[0]?.email}
                       </span>
                     </ReviewField>
@@ -1675,7 +1673,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
 
                   {review.description && (
                     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-                      <strong className="block text-2xs font-mono uppercase text-slate-500 mb-1">
+                      <strong className="block text-2xs tabular-nums uppercase text-slate-500 mb-1">
                         About Workspace
                       </strong>
                       <p className="text-xs text-slate-700 leading-relaxed">{review.description}</p>
@@ -1684,7 +1682,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
 
                   {review.rejection_reason && (
                     <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
-                      <strong className="block text-2xs font-mono uppercase text-rose-800 mb-1">
+                      <strong className="block text-2xs tabular-nums uppercase text-rose-800 mb-1">
                         Current Rejection Note
                       </strong>
                       <p className="text-xs text-rose-900 leading-relaxed">{review.rejection_reason}</p>
@@ -1731,7 +1729,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                           done={review.status === 'COMPLETED'}
                           mark={review.status === 'COMPLETED' ? '✓' : '3'}
                           title="Cards Generated"
-                          note={review.status === 'COMPLETED' ? '300 DPI Prepress Complete' : 'Waiting'}
+                          note={review.status === 'COMPLETED' ? 'PDFs ready' : 'Waiting'}
                         />
                       </div>
                     </div>
@@ -1753,7 +1751,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                           <strong className="block text-2xs font-bold text-slate-900 truncate">
                             {item.employee.name}
                           </strong>
-                          <small className="block text-3xs font-mono text-slate-500 truncate">
+                          <small className="block text-3xs tabular-nums text-slate-500 truncate">
                             {item.employee.employee_id} · {item.employee.designation} · {item.employee.department}
                           </small>
                         </div>
@@ -1763,7 +1761,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
 
                   {review.rejection_reason && (
                     <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
-                      <strong className="block text-2xs font-mono uppercase text-rose-800 mb-1">
+                      <strong className="block text-2xs tabular-nums uppercase text-rose-800 mb-1">
                         Rejection Note
                       </strong>
                       <p className="text-xs text-rose-900 leading-relaxed">{review.rejection_reason}</p>
@@ -1777,7 +1775,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                 {(review.status === 'PENDING' || review.kind === 'companies') && (
                   <div className="mb-4">
                     <label className="block">
-                      <span className="mb-1.5 block text-2xs font-mono uppercase font-bold text-slate-600">
+                      <span className="mb-1.5 block text-2xs tabular-nums uppercase font-bold text-slate-600">
                         Decision Note / Rejection Reason
                       </span>
                       <textarea

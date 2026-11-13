@@ -29,15 +29,15 @@ const formatDate = (value?: string | null) =>
     : '';
 
 const rowActionClass =
-  'cursor-pointer rounded-lg bg-[#f6f8f7] px-2.5 py-1.5 text-3xs font-bold text-[#625a6c] hover:bg-[#e9e5fb] hover:text-[#5928b6] transition-colors';
+  'cursor-pointer rounded-lg bg-slate-100 px-2.5 py-1.5 text-3xs font-bold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-colors';
 const checkboxClass = 'size-4 accent-slate-900 rounded cursor-pointer';
 const pagerButtonClass =
-  'rounded-lg border border-[#e3e8e6] bg-white px-3 py-1.5 text-xs font-semibold text-[#655e6d] hover:bg-[#f6f8f7] disabled:cursor-not-allowed disabled:opacity-40 transition-colors';
+  'rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 transition-colors';
 
 const MATCH_LABELS: Record<string, { label: string; tone: string }> = {
-  ROSTER_MATCHED: { label: 'Roster verified', tone: 'bg-[#eef3fa] text-[#28528d] border-[#d8e3f3]' },
-  ID_MISMATCH: { label: 'Email mismatch', tone: 'bg-[#fef9c3] text-[#854d0e] border-amber-200' },
-  NOT_FOUND: { label: 'Not in roster', tone: 'bg-[#fee2e2] text-[#991b1b] border-rose-200' },
+  ROSTER_MATCHED: { label: 'Roster verified', tone: 'bg-brand-50 text-brand-700 border-brand-100' },
+  ID_MISMATCH: { label: 'Email mismatch', tone: 'bg-amber-100 text-amber-800 border-amber-200' },
+  NOT_FOUND: { label: 'Not in roster', tone: 'bg-red-100 text-red-800 border-rose-200' },
   INACTIVE_EMPLOYEE: { label: 'Inactive roster', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
 
@@ -63,7 +63,7 @@ function PageHeader({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
       <div>
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
         {subtitle && <p className="mt-1 text-xs text-slate-500 max-w-2xl leading-relaxed">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
@@ -84,16 +84,16 @@ function StatCard({
 }) {
   const toneBar = {
     slate: 'bg-slate-900',
-    mint: 'bg-mint',
+    mint: 'bg-emerald-500',
     amber: 'bg-amber-400',
-    violet: 'bg-royal',
+    violet: 'bg-brand-600',
   }[tone];
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] border border-slate-200/90 bg-white p-5 shadow-2xs transition-all hover:shadow-xs">
+    <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all hover:shadow-xs">
       <div className={cx('absolute top-0 left-0 h-1 w-full', toneBar)} />
-      <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">{label}</span>
-      <strong className="mt-2.5 block text-2xl font-black tracking-tight text-slate-900">{value}</strong>
+      <span className="text-3xs font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+      <strong className="mt-2.5 block text-2xl font-bold tracking-tight text-slate-900">{value}</strong>
       <small className="mt-1 block text-3xs text-slate-500 font-medium">{note}</small>
     </div>
   );
@@ -398,14 +398,14 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
       >
         <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
         <div className="space-y-6">
-          <div className="rounded-[24px] border border-amber-300 bg-amber-50/70 p-8 shadow-2xs">
+          <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-8 shadow-xs">
             <div className="flex items-center gap-3">
               <span className="grid size-12 place-items-center rounded-2xl bg-amber-500 text-white font-bold text-xl">
                 ⏳
               </span>
               <div>
                 <StatusBadge value={company.status} />
-                <h2 className="mt-1 text-2xl font-black text-slate-900">
+                <h2 className="mt-1 text-2xl font-bold text-slate-900">
                   {company.status === 'PENDING' ? 'Workspace Under Review' : 'Workspace Requires Attention'}
                 </h2>
               </div>
@@ -463,20 +463,20 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
       {tab === 'overview' && (
         <div className="space-y-6">
           {/* Workspace Hero Banner (TechKnowGram Theme) */}
-          <div className="relative overflow-hidden rounded-[24px] bg-[#080d26] text-white p-7 sm:p-8 shadow-xs border border-[#1a2462]">
+          <div className="relative overflow-hidden rounded-xl bg-navy-950 text-white p-7 sm:p-8 shadow-xs border border-navy-800">
             <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
               <div className="flex items-center gap-4">
-                <span className="grid size-14 place-items-center rounded-2xl bg-[#101845] text-white font-display text-2xl font-black border border-[#1a2462] shrink-0 shadow-xs">
+                <span className="grid size-14 place-items-center rounded-2xl bg-navy-900 text-white font-display text-2xl font-bold border border-navy-800 shrink-0 shadow-xs">
                   {company.name.charAt(0).toUpperCase()}
                 </span>
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-3xs font-extrabold tracking-widest uppercase text-[#8eaee0]">
+                    <span className="text-3xs font-semibold tracking-wider uppercase text-brand-300">
                       VERIFIED WORKSPACE #{company.id}
                     </span>
                     <span className="size-1.5 rounded-full bg-emerald-400" />
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-0.5">
                     {company.name}
                   </h2>
                   <p className="mt-1 text-xs text-slate-300 max-w-xl leading-relaxed">
@@ -508,7 +508,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-slate-300">Workspace Setup:</span>
-                <strong className="text-[#8eaee0] font-mono font-bold">
+                <strong className="text-brand-300 tabular-nums font-bold">
                   {completedSetupCount} of {setupSteps.length} complete ({Math.round((completedSetupCount / setupSteps.length) * 100)}%)
                 </strong>
               </div>
@@ -521,7 +521,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                     title={label}
                     className={cx(
                       'size-3 rounded-full transition-transform',
-                      done ? 'bg-[#2d62a8]' : 'bg-white/20 hover:scale-125'
+                      done ? 'bg-brand-600' : 'bg-white/20 hover:scale-125'
                     )}
                   />
                 ))}
@@ -560,17 +560,17 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           {/* 2-Column Operational Grid: Pending Requests & Recent Card Delivery */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             {/* Left Queue: Pending Membership Requests */}
-            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">Pending Membership Requests</h3>
+                  <h3 className="text-base font-semibold text-slate-900">Pending Membership Requests</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Employees waiting for workspace verification.</p>
                 </div>
                 {pendingMemberships.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setTab('memberships')}
-                    className="text-xs font-bold text-royal hover:underline"
+                    className="text-xs font-bold text-brand-600 hover:underline"
                   >
                     View all ({pendingMemberships.length}) →
                   </button>
@@ -582,7 +582,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                   {pendingMemberships.slice(0, 4).map(m => (
                     <div
                       key={m.id}
-                      className="p-3.5 rounded-xl border border-slate-200/90 bg-[#fafbfc] flex flex-wrap items-center justify-between gap-3"
+                      className="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50 flex flex-wrap items-center justify-between gap-3"
                     >
                       <div>
                         <div className="flex items-center gap-2">
@@ -591,7 +591,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                           </strong>
                           <MatchBadge value={m.match_status} />
                         </div>
-                        <p className="text-3xs text-slate-500 font-mono mt-0.5">
+                        <p className="text-3xs text-slate-500 tabular-nums mt-0.5">
                           ID: {m.employee_code} · {m.official_email}
                         </p>
                       </div>
@@ -601,7 +601,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                           type="button"
                           disabled={busy}
                           onClick={() => decideMembership(m.id, 'APPROVED')}
-                          className="px-3 py-1 rounded-lg bg-[#2d62a8] text-white font-bold text-3xs hover:bg-[#28528d] disabled:opacity-50 transition-colors shadow-xs"
+                          className="px-3 py-1 rounded-lg bg-brand-600 text-white font-bold text-3xs hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-xs"
                         >
                           Approve
                         </button>
@@ -626,17 +626,17 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             </div>
 
             {/* Right Queue: Recent Card Delivery Requests */}
-            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">Recent Card Orders</h3>
+                  <h3 className="text-base font-semibold text-slate-900">Recent Card Orders</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Status of batch printing and digital PDF deliveries.</p>
                 </div>
                 {requests.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setTab('requests')}
-                    className="text-xs font-bold text-royal hover:underline"
+                    className="text-xs font-bold text-brand-600 hover:underline"
                   >
                     View all ({requests.length}) →
                   </button>
@@ -652,7 +652,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <strong className="font-mono font-bold text-slate-900">
+                          <strong className="tabular-nums font-bold text-slate-900">
                             Request #{req.id}
                           </strong>
                           <StatusBadge value={req.status} />
@@ -665,7 +665,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                       <button
                         type="button"
                         onClick={() => openRequest(req)}
-                        className="text-3xs font-bold text-royal hover:underline shrink-0"
+                        className="text-3xs font-bold text-brand-600 hover:underline shrink-0"
                       >
                         Inspect details →
                       </button>
@@ -718,9 +718,9 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             }
           />
 
-          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
             {/* Filter Toolbar (ikelma style) */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-[#fafbfc] px-6 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-slate-50 px-6 py-4">
               <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
                 {/* Search */}
                 <div className="flex min-w-64 items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900 focus-within:ring-2 focus-within:ring-slate-900/10">
@@ -814,8 +814,8 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                           <tr
                             key={emp.id}
                             className={cx(
-                              'hover:bg-[#fafbfc] transition-colors',
-                              isSelected && 'bg-[#f0fdf4]'
+                              'hover:bg-slate-50 transition-colors',
+                              isSelected && 'bg-emerald-50'
                             )}
                           >
                             <td className={cx(tdClass, 'text-center')}>
@@ -829,7 +829,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                             </td>
                             <td className={tdClass}>
                               <div className="flex items-center gap-3">
-                                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#080d26] text-[#8eaee0] font-display text-2xs font-bold border border-[#1a2462]">
+                                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-navy-950 text-brand-300 font-display text-2xs font-bold border border-navy-800">
                                   {emp.name
                                     .split(' ')
                                     .map(p => p[0])
@@ -838,7 +838,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                                 </span>
                                 <div>
                                   <strong className="block text-xs font-bold text-slate-900">{emp.name}</strong>
-                                  <span className="text-3xs text-slate-500 font-mono">
+                                  <span className="text-3xs text-slate-500 tabular-nums">
                                     {emp.employee_id} {emp.has_photo ? '· Photo ready' : ''}
                                   </span>
                                 </div>
@@ -849,8 +849,8 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                               <span className="block text-3xs text-slate-500">{emp.department}</span>
                             </td>
                             <td className={tdClass}>
-                              <span className="block text-xs font-mono text-slate-700">{emp.email}</span>
-                              <span className="block text-3xs text-slate-400 font-mono">{emp.phone}</span>
+                              <span className="block text-xs tabular-nums text-slate-700">{emp.email}</span>
+                              <span className="block text-3xs text-slate-400 tabular-nums">{emp.phone}</span>
                             </td>
                             <td className={tdClass}>
                               <StatusBadge value={emp.is_active ? 'ACTIVE' : 'INACTIVE'} />
@@ -906,7 +906,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                       <option value={20}>20</option>
                       <option value={50}>50</option>
                     </select>
-                    <span className="ml-2 font-mono">
+                    <span className="ml-2 tabular-nums">
                       Page {page} of {pageCount}
                     </span>
                   </div>
@@ -935,7 +935,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                 {selectedEmployees.length > 0 && (
                   <div className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t border-slate-900 bg-slate-900 text-white px-6 py-3.5 shadow-xl">
                     <p className="text-xs font-semibold">
-                      <strong className="text-[#8eaee0] font-bold">{selectedEmployees.length}</strong> active employee
+                      <strong className="text-brand-300 font-bold">{selectedEmployees.length}</strong> active employee
                       {selectedEmployees.length !== 1 ? 's' : ''} selected for card printing
                     </p>
                     <div className="flex items-center gap-2">
@@ -998,7 +998,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             }
           />
 
-          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
             {memberships.filter(m => (membershipFilter === 'ALL' ? true : m.status === membershipFilter)).length > 0 ? (
               <div className="overflow-x-auto">
                 <table className={tableClass}>
@@ -1016,20 +1016,20 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                     {memberships
                       .filter(m => (membershipFilter === 'ALL' ? true : m.status === membershipFilter))
                       .map(m => (
-                        <tr key={m.id} className="hover:bg-[#fafbfc] transition-colors">
+                        <tr key={m.id} className="hover:bg-slate-50 transition-colors">
                           <td className={tdClass}>
                             <strong className="block text-xs font-bold text-slate-900">
                               {m.user?.username || m.official_email}
                             </strong>
-                            <span className="text-3xs text-slate-400 font-mono">
+                            <span className="text-3xs text-slate-400 tabular-nums">
                               User Account #{m.user_id}
                             </span>
                           </td>
                           <td className={tdClass}>
-                            <span className="block text-xs font-mono font-bold text-slate-800">
+                            <span className="block text-xs tabular-nums font-bold text-slate-800">
                               ID: {m.employee_code}
                             </span>
-                            <span className="block text-3xs font-mono text-slate-500">
+                            <span className="block text-3xs tabular-nums text-slate-500">
                               {m.official_email}
                             </span>
                           </td>
@@ -1040,7 +1040,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                             <StatusBadge value={m.status} />
                           </td>
                           <td className={tdClass}>
-                            <span className="text-xs text-slate-600 font-mono">
+                            <span className="text-xs text-slate-600 tabular-nums">
                               {new Date(m.requested_at).toLocaleDateString()}
                             </span>
                           </td>
@@ -1109,7 +1109,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           />
 
           {/* Sub-view switcher */}
-          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xs max-w-md">
+          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xs max-w-md">
             <button
               type="button"
               onClick={() => setOrdersSubView('requests')}
@@ -1132,7 +1132,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             </button>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
             {ordersSubView === 'requests' ? (
               requests.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -1149,14 +1149,14 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {requests.map(req => (
-                        <tr key={req.id} className="hover:bg-[#fafbfc] transition-colors">
+                        <tr key={req.id} className="hover:bg-slate-50 transition-colors">
                           <td className={tdClass}>
-                            <strong className="font-mono text-xs font-bold text-slate-900">
+                            <strong className="tabular-nums text-xs font-bold text-slate-900">
                               #{req.id}
                             </strong>
                           </td>
                           <td className={tdClass}>
-                            <span className="text-xs text-slate-700 font-mono">
+                            <span className="text-xs text-slate-700 tabular-nums">
                               {formatDate(req.created_at)}
                             </span>
                           </td>
@@ -1225,14 +1225,14 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {orders.map(o => (
-                      <tr key={o.id} className="hover:bg-[#fafbfc] transition-colors">
+                      <tr key={o.id} className="hover:bg-slate-50 transition-colors">
                         <td className={tdClass}>
-                          <strong className="font-mono text-xs font-bold text-slate-900">
+                          <strong className="tabular-nums text-xs font-bold text-slate-900">
                             #{o.id}
                           </strong>
                         </td>
                         <td className={tdClass}>
-                          <span className="text-xs text-slate-700 font-mono">
+                          <span className="text-xs text-slate-700 tabular-nums">
                             {formatDate(o.created_at)}
                           </span>
                         </td>
@@ -1244,9 +1244,9 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                         <td className={tdClass}>
                           <span
                             className={cx(
-                              'inline-block rounded px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
+                              'inline-block rounded px-2.5 py-0.5 text-3xs font-semibold uppercase tracking-wider',
                               o.payer === 'COMPANY'
-                                ? 'bg-[#eef3fa] text-[#28528d] border border-[#d8e3f3]'
+                                ? 'bg-brand-50 text-brand-700 border border-brand-100'
                                 : 'bg-slate-100 text-slate-700'
                             )}
                           >
@@ -1254,7 +1254,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                           </span>
                         </td>
                         <td className={tdClass}>
-                          <strong className="text-sm font-extrabold text-slate-900">
+                          <strong className="text-sm font-semibold text-slate-900">
                             ৳{o.total_amount}
                           </strong>
                         </td>
@@ -1268,7 +1268,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
               </div>
             ) : (
               <div className="py-16 text-center text-slate-400">
-                <span className="text-3xl block mb-2">💳</span>
+                
                 <p className="text-sm font-bold text-slate-700">No checkout orders placed yet.</p>
                 <p className="mt-1 text-xs text-slate-500">Employee self-service orders will appear here automatically.</p>
               </div>
@@ -1334,23 +1334,23 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           </div>
 
           {/* Current Prepress Plan Banner */}
-          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-            <h3 className="text-base font-extrabold text-slate-900">Current Print & Prepress Standard</h3>
+          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <h3 className="text-base font-semibold text-slate-900">Current Print & Prepress Standard</h3>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 rounded-xl border border-slate-200 bg-[#fafbfc]">
-                <span className="text-3xs uppercase font-extrabold text-slate-400 block">PRICING PLAN</span>
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                <span className="text-3xs uppercase font-semibold text-slate-400 block">PRICING PLAN</span>
                 <strong className="text-sm font-bold text-slate-900 mt-1 block">Pay-As-You-Go</strong>
                 <p className="mt-1 text-slate-500">৳50 per card. No recurring subscription fees or minimum commitments.</p>
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-200 bg-[#fafbfc]">
-                <span className="text-3xs uppercase font-extrabold text-slate-400 block">PREPRESS SERVICE</span>
-                <strong className="text-sm font-bold text-slate-900 mt-1 block">Vector PDF (300 DPI)</strong>
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                <span className="text-3xs uppercase font-semibold text-slate-400 block">PREPRESS SERVICE</span>
+                <strong className="text-sm font-bold text-slate-900 mt-1 block">Vector PDF</strong>
                 <p className="mt-1 text-slate-500">Prepress inspection and high-resolution prepress rendering included for free.</p>
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-200 bg-[#fafbfc]">
-                <span className="text-3xs uppercase font-extrabold text-slate-400 block">BILLING ENTITY</span>
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+                <span className="text-3xs uppercase font-semibold text-slate-400 block">BILLING ENTITY</span>
                 <strong className="text-sm font-bold text-slate-900 mt-1 block">{company.name}</strong>
                 <p className="mt-1 text-slate-500">Workspace #{company.id} · Official Account</p>
               </div>
@@ -1358,9 +1358,9 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           </div>
 
           {/* Detailed Receipts Table */}
-          <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-base font-extrabold text-slate-900">Print Order Invoices & Receipts</h3>
+              <h3 className="text-base font-semibold text-slate-900">Print Order Invoices & Receipts</h3>
               <span className="text-xs text-slate-500">{orders.length} transactions</span>
             </div>
 
@@ -1379,14 +1379,14 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {orders.map(o => (
-                      <tr key={o.id} className="hover:bg-[#fafbfc] transition-colors">
+                      <tr key={o.id} className="hover:bg-slate-50 transition-colors">
                         <td className={tdClass}>
-                          <strong className="font-mono text-xs font-bold text-slate-900">
+                          <strong className="tabular-nums text-xs font-bold text-slate-900">
                             #{o.id}
                           </strong>
                         </td>
                         <td className={tdClass}>
-                          <span className="text-xs text-slate-700 font-mono">
+                          <span className="text-xs text-slate-700 tabular-nums">
                             {formatDate(o.created_at)}
                           </span>
                         </td>
@@ -1398,9 +1398,9 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                         <td className={tdClass}>
                           <span
                             className={cx(
-                              'inline-block rounded px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
+                              'inline-block rounded px-2.5 py-0.5 text-3xs font-semibold uppercase tracking-wider',
                               o.payer === 'COMPANY'
-                                ? 'bg-[#eef3fa] text-[#28528d] border border-[#d8e3f3]'
+                                ? 'bg-brand-50 text-brand-700 border border-brand-100'
                                 : 'bg-slate-100 text-slate-700'
                             )}
                           >
@@ -1408,7 +1408,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                           </span>
                         </td>
                         <td className={tdClass}>
-                          <strong className="text-sm font-extrabold text-slate-900">
+                          <strong className="text-sm font-semibold text-slate-900">
                             ৳{o.total_amount}
                           </strong>
                         </td>
@@ -1441,8 +1441,8 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Identity & Legal Entity */}
-            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs space-y-4">
-              <h3 className="text-base font-extrabold text-slate-900">Workspace Identification</h3>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+              <h3 className="text-base font-semibold text-slate-900">Workspace Identification</h3>
               <dl className="divide-y divide-slate-100 text-xs">
                 <div className="py-2.5 flex justify-between">
                   <dt className="text-slate-500">Company Name</dt>
@@ -1450,7 +1450,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                 </div>
                 <div className="py-2.5 flex justify-between">
                   <dt className="text-slate-500">Workspace ID</dt>
-                  <dd className="font-mono text-slate-800">#{company.id}</dd>
+                  <dd className="tabular-nums text-slate-800">#{company.id}</dd>
                 </div>
                 <div className="py-2.5 flex justify-between">
                   <dt className="text-slate-500">Workspace Verification</dt>
@@ -1469,14 +1469,14 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             </div>
 
             {/* Employee Card Policy */}
-            <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs space-y-4">
-              <h3 className="text-base font-extrabold text-slate-900">Card Sponsorship Policy</h3>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs space-y-4">
+              <h3 className="text-base font-semibold text-slate-900">Card Sponsorship Policy</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Choose the default billing preference presented to employees when they request official corporate visiting cards.
               </p>
 
               <div className="space-y-3 pt-2">
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-[#fafbfc] cursor-pointer hover:bg-white transition-colors">
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-white transition-colors">
                   <input
                     type="radio"
                     name="sponsorship"
@@ -1497,7 +1497,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                   </div>
                 </label>
 
-                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-[#fafbfc] cursor-pointer hover:bg-white transition-colors">
+                <label className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-white transition-colors">
                   <input
                     type="radio"
                     name="sponsorship"
@@ -1591,7 +1591,7 @@ function RequestDetails({ viewer, onClose, onDownload }: RequestDetailsProps) {
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <StatusBadge value={request.status} />
-          <p className="mt-2 text-xs text-[#8a8391]">
+          <p className="mt-2 text-xs text-slate-500">
             {request.items.length} employee{request.items.length === 1 ? '' : 's'} · {request.template?.name}
           </p>
         </div>
@@ -1610,36 +1610,36 @@ function RequestDetails({ viewer, onClose, onDownload }: RequestDetailsProps) {
           <div className="flex flex-1 items-start max-md:min-h-16 max-md:flex-none" key={label}>
             <span
               className={cx(
-                'grid size-7.5 shrink-0 place-items-center rounded-full border text-3xs font-extrabold',
-                done ? 'border-[#b8e2ce] bg-[#e9f8f0] text-[#20805a]' : 'border-[#e3e8e6] bg-white text-[#7c8a90]'
+                'grid size-7.5 shrink-0 place-items-center rounded-full border text-3xs font-semibold',
+                done ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-500'
               )}
             >
               {done ? '✓' : index + 1}
             </span>
-            <i className="mx-2 mt-4 h-px flex-1 bg-[#e3e8e6] max-md:mx-0 max-md:mt-7.5 max-md:-ml-4 max-md:h-8.5 max-md:w-px max-md:flex-none" />
+            <i className="mx-2 mt-4 h-px flex-1 bg-slate-200 max-md:mx-0 max-md:mt-7.5 max-md:-ml-4 max-md:h-8.5 max-md:w-px max-md:flex-none" />
             <p className="ml-2 min-w-26.5">
               <strong className="block text-2xs">{label}</strong>
-              <small className="mt-1 block text-3xs text-[#7c8a90]">{time ? formatDate(time) : 'Waiting'}</small>
+              <small className="mt-1 block text-3xs text-slate-500">{time ? formatDate(time) : 'Waiting'}</small>
             </p>
           </div>
         ))}
       </div>
       {request.rejection_reason && (
-        <div className="my-5 rounded-r-lg border-l-3 border-[#e05d68] bg-[#fff4f5] px-4 py-3.5">
-          <strong className="text-xs text-[#98404a]">Decision note</strong>
-          <p className="mt-1.5 text-xs leading-relaxed text-[#8b6267]">{request.rejection_reason}</p>
+        <div className="my-5 rounded-r-lg border-l-3 border-red-400 bg-red-50 px-4 py-3.5">
+          <strong className="text-xs text-red-700">Decision note</strong>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-500">{request.rejection_reason}</p>
         </div>
       )}
-      <h3 className="mt-6 mb-3 text-sm font-extrabold">Employees included</h3>
+      <h3 className="mt-6 mb-3 text-sm font-semibold">Employees included</h3>
       <div className="grid grid-cols-2 gap-2 max-md:grid-cols-1">
         {request.items.map(item => (
-          <div className="flex items-center gap-2.5 rounded-xl border border-[#e3e8e6] p-2.5" key={item.id}>
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#e9e5fb] text-2xs font-extrabold text-[#6431c2]">
+          <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 p-2.5" key={item.id}>
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-2xs font-semibold text-brand-600">
               {item.employee.name.charAt(0)}
             </span>
             <p>
               <strong className="block text-2xs">{item.employee.name}</strong>
-              <small className="mt-1 block text-3xs text-[#97909d]">
+              <small className="mt-1 block text-3xs text-slate-400">
                 {item.employee.designation} · {item.employee.department}
               </small>
             </p>
@@ -1648,16 +1648,16 @@ function RequestDetails({ viewer, onClose, onDownload }: RequestDetailsProps) {
       </div>
       {cards.length > 0 && (
         <>
-          <h3 className="mt-6 mb-3 text-sm font-extrabold">Generated cards</h3>
+          <h3 className="mt-6 mb-3 text-sm font-semibold">Generated cards</h3>
           <div className="space-y-3">
             {cards.map(card => (
               <article
-                className="flex items-center justify-between gap-5 rounded-xl border border-[#e7e9ef] p-4 max-sm:flex-col max-sm:items-start"
+                className="flex items-center justify-between gap-5 rounded-xl border border-slate-200 p-4 max-sm:flex-col max-sm:items-start"
                 key={card.id}
               >
                 <div>
                   <strong>{card.file_name}</strong>
-                  <p className="mt-1.5 flex items-center gap-2 text-xs text-[#8a90a0]">
+                  <p className="mt-1.5 flex items-center gap-2 text-xs text-slate-400">
                     {Math.ceil(card.file_size / 1024)} KB · <StatusBadge value={card.status} />
                   </p>
                 </div>

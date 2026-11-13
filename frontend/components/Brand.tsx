@@ -1,28 +1,41 @@
-import { Icon } from '@/components/home/Iconify';
 import { cx } from '@/components/ui';
 
 export interface BrandProps {
   light?: boolean;
   className?: string;
+  /** Small line under the wordmark, e.g. "Company admin". */
+  tagline?: string;
 }
 
-/** Small pill label used above headings. */
+/** Small label used above headings on light backgrounds. */
 export const sectionChipClass =
-  'inline-flex items-center rounded-full bg-[#eef3fa] px-3.5 py-1 font-display text-3xs font-bold tracking-wider text-[#2d62a8] border border-[#d8e3f3]';
+  'inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-iris-500';
+/** Same label for navy backgrounds. */
 export const sectionChipDarkClass =
-  'inline-flex items-center rounded-full bg-[#101845] px-3.5 py-1 font-display text-3xs font-bold tracking-wider text-[#8eaee0] border border-[#1a2462]';
+  'inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-brand-300';
 
-/** BizCard logo: card badge + wordmark + TechKnowGram crimson accent dot. */
-export default function Brand({ light = false, className }: BrandProps) {
+/** Two stacked cards, drawn in SVG so it stays crisp at any size. */
+export function BrandMark({ className }: { className?: string }) {
   return (
-    <div className={cx('flex items-center gap-2.5', light ? 'text-white' : 'text-slate-900', className)}>
-      <span className="grid size-8 place-items-center rounded-lg bg-[#2d62a8] text-white font-black text-xs shadow-xs">
-        B
+    <svg viewBox="0 0 32 32" className={cx('size-8 shrink-0', className)} aria-hidden="true">
+      <rect width="32" height="32" rx="7" fill="#3267b0" />
+      <rect x="9" y="7.5" width="16" height="10.5" rx="1.6" fill="#ffffff" opacity=".35" transform="rotate(-8 17 12.75)" />
+      <rect x="6.5" y="12" width="17" height="11" rx="1.8" fill="#ffffff" />
+      <rect x="9" y="15" width="7" height="1.6" rx=".8" fill="#3267b0" />
+      <rect x="9" y="18.2" width="10" height="1.2" rx=".6" fill="#94a3b8" />
+    </svg>
+  );
+}
+
+/** BizCard logo: card mark + wordmark. */
+export default function Brand({ light = false, className, tagline }: BrandProps) {
+  return (
+    <span className={cx('flex items-center gap-2.5', className)}>
+      <BrandMark />
+      <span className="leading-none">
+        <span className={cx('block font-display text-lg font-bold tracking-tight', light ? 'text-white' : 'text-navy-900')}>BizCard</span>
+        {tagline && <span className={cx('mt-1 block text-3xs font-medium', light ? 'text-brand-300' : 'text-slate-500')}>{tagline}</span>}
       </span>
-      <div className="flex items-center">
-        <span className="font-display text-lg font-extrabold tracking-tight">BizCard</span>
-        <span className="ml-0.5 size-1.5 rounded-full bg-[#e20917]" />
-      </div>
-    </div>
+    </span>
   );
 }

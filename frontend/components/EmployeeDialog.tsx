@@ -9,7 +9,7 @@ import { Button, Notice, inputClass, inputErrorClass } from './ui';
 
 const empty: EmployeeValues = { employee_id: '', name: '', designation: '', department: '', email: '', phone: '' };
 type FieldKey = keyof EmployeeValues;
-const inputErrorFieldClass = `${inputClass.replace('border-[#e3e8e6]', '')} ${inputErrorClass}`;
+const inputErrorFieldClass = `${inputClass.replace('border-slate-200', '')} ${inputErrorClass}`;
 
 export interface EmployeeDialogProps {
   /** `null` creates a new employee; an Employee edits it. */

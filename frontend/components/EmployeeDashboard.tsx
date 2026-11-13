@@ -14,16 +14,16 @@ import { Button, cx, inputClass, tableClass, tdClass, thClass } from './ui';
 const PRICE = 50;
 
 const MATCH_HINTS: Record<string, { text: string; tone: string }> = {
-  ROSTER_MATCHED: { text: 'Verified with company roster. Membership activated automatically.', tone: 'bg-[#eef3fa] text-[#28528d] border-[#d8e3f3]' },
-  ID_MISMATCH: { text: 'Employee ID was recognized but email differs. Company admin will review.', tone: 'bg-[#fef9c3] text-[#854d0e] border-amber-200' },
+  ROSTER_MATCHED: { text: 'Verified with company roster. Membership activated automatically.', tone: 'bg-brand-50 text-brand-700 border-brand-100' },
+  ID_MISMATCH: { text: 'Employee ID was recognized but email differs. Company admin will review.', tone: 'bg-amber-100 text-amber-800 border-amber-200' },
   NOT_FOUND: { text: 'Your details will be reviewed by the company administrator.', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
-  INACTIVE_EMPLOYEE: { text: 'Roster record is currently inactive. Awaiting administrator review.', tone: 'bg-[#fee2e2] text-[#991b1b] border-rose-200' },
+  INACTIVE_EMPLOYEE: { text: 'Roster record is currently inactive. Awaiting administrator review.', tone: 'bg-red-100 text-red-800 border-rose-200' },
 };
 
 function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-6">
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{title}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
       {subtitle && <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-3xl">{subtitle}</p>}
     </div>
   );
@@ -33,7 +33,7 @@ function SectionHeading({ title, copy, action }: { title: string; copy?: string;
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
       <div>
-        <h2 className="text-base font-extrabold text-slate-900">{title}</h2>
+        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
         {copy && <p className="mt-0.5 text-xs text-slate-500">{copy}</p>}
       </div>
       {action && <div>{action}</div>}
@@ -74,15 +74,15 @@ function LiveCardPreview({
   const isClean = theme === 'clean';
 
   const cardBgClass = isNavy
-    ? 'bg-gradient-to-br from-[#080d26] via-[#101845] to-[#1a2462] text-white border border-[#1a2462] shadow-2xl'
+    ? 'bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white border border-navy-800 shadow-2xl'
     : isRoyal
-    ? 'bg-gradient-to-br from-[#1d1338] via-[#140b28] to-[#0d071d] text-white border border-[#3b2b68] shadow-2xl'
-    : 'bg-gradient-to-br from-white via-[#fafbfc] to-[#f1f4f6] text-slate-900 border border-slate-200/90 shadow-xl';
+    ? 'bg-gradient-to-br from-navy-900 via-navy-900 to-navy-950 text-white border border-brand-800 shadow-2xl'
+    : 'bg-gradient-to-br from-white via-slate-50 to-slate-100 text-slate-900 border border-slate-200/90 shadow-xl';
 
   const accentPillClass = isNavy
-    ? 'bg-[#2d62a8] text-white'
+    ? 'bg-brand-600 text-white'
     : isRoyal
-    ? 'bg-[#efb53e] text-slate-950'
+    ? 'bg-amber-400 text-slate-950'
     : 'bg-slate-900 text-white';
 
   const secondaryTextClass = isClean ? 'text-slate-600' : 'text-slate-300';
@@ -114,7 +114,7 @@ function LiveCardPreview({
           <div className="flex items-center gap-2.5">
             <span
               className={cx(
-                'grid size-8 place-items-center rounded-lg text-xs font-black shadow-xs shrink-0',
+                'grid size-8 place-items-center rounded-lg text-xs font-bold shadow-xs shrink-0',
                 accentPillClass
               )}
             >
@@ -123,17 +123,17 @@ function LiveCardPreview({
             <div className="min-w-0">
               <span
                 className={cx(
-                  'block text-2xs font-extrabold uppercase tracking-widest truncate',
+                  'block text-2xs font-semibold uppercase tracking-wider truncate',
                   accentPillClass.includes('text-slate-950') && !isClean
-                    ? 'text-mint'
+                    ? 'text-emerald-600'
                     : isRoyal
-                    ? 'text-[#efb53e]'
+                    ? 'text-amber-400'
                     : 'text-slate-900'
                 )}
               >
                 {displayOrg}
               </span>
-              <span className={cx('block text-3xs font-mono tracking-tight truncate', subtleTextClass)}>
+              <span className={cx('block text-3xs tabular-nums tracking-tight truncate', subtleTextClass)}>
                 {isCompany ? (templateName ? `Template: ${templateName}` : 'Corporate Workspace') : 'Verified Personal Card'}
               </span>
             </div>
@@ -144,7 +144,7 @@ function LiveCardPreview({
             <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 14.5A2.5 2.5 0 0 0 11 12a2.5 2.5 0 0 0-2.5-2.5M12 17.5a5.5 5.5 0 0 0 0-11M15.5 20.5a8.5 8.5 0 0 0 0-17" />
             </svg>
-            <span className="text-3xs font-mono font-bold tracking-wider">300 DPI</span>
+            <span className="text-3xs tabular-nums font-bold tracking-wider">Vector PDF</span>
           </div>
         </div>
 
@@ -152,7 +152,7 @@ function LiveCardPreview({
         <div className="relative z-10 my-auto py-1">
           <h3
             className={cx(
-              'text-lg sm:text-xl font-black tracking-tight leading-tight line-clamp-1',
+              'text-lg sm:text-xl font-bold tracking-tight leading-tight line-clamp-1',
               isClean ? 'text-slate-900' : 'text-white'
             )}
           >
@@ -169,11 +169,11 @@ function LiveCardPreview({
         {/* Card Footer: Contact & QR Code */}
         <div className="relative z-10 flex items-end justify-between gap-2 border-t pt-2.5 border-current/10">
           <div className="space-y-0.5 text-3xs min-w-0">
-            <div className="flex items-center gap-1.5 font-mono truncate">
+            <div className="flex items-center gap-1.5 tabular-nums truncate">
               <span className="opacity-60 shrink-0">TEL</span>
               <span className={cx('truncate', secondaryTextClass)}>{displayPhone}</span>
             </div>
-            <div className="flex items-center gap-1.5 font-mono truncate">
+            <div className="flex items-center gap-1.5 tabular-nums truncate">
               <span className="opacity-60 shrink-0">EMAIL</span>
               <span className={cx('truncate', secondaryTextClass)}>{displayEmail}</span>
             </div>
@@ -202,7 +202,7 @@ function LiveCardPreview({
       </div>
 
       {/* Prepress Specs Note */}
-      <div className="mt-2.5 flex items-center justify-between text-3xs text-slate-500 font-mono px-1">
+      <div className="mt-2.5 flex items-center justify-between text-3xs text-slate-500 tabular-nums px-1">
         <span>ISO/IEC 7810 ID-1 · 85.6 × 54 mm</span>
         <span className="flex items-center gap-1 text-emerald-600 font-semibold">
           <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -447,12 +447,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Section 1: Account Identifier */}
-          <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-            <h2 className="text-3xs font-extrabold text-royal uppercase tracking-wider">
+          <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <h2 className="text-3xs font-semibold text-brand-600 uppercase tracking-wider">
               ACCOUNT IDENTIFIER
             </h2>
             <div className="mt-4 flex items-center gap-3.5">
-              <span className="grid size-12 place-items-center rounded-2xl bg-lilac font-display text-lg font-bold text-royal">
+              <span className="grid size-12 place-items-center rounded-2xl bg-brand-50 font-display text-lg font-bold text-brand-600">
                 {employeeName.charAt(0).toUpperCase()}
               </span>
               <div>
@@ -486,8 +486,8 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           </section>
 
           {/* Section 2: Company Association */}
-          <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
-            <h2 className="text-3xs font-extrabold text-royal uppercase tracking-wider">
+          <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
+            <h2 className="text-3xs font-semibold text-brand-600 uppercase tracking-wider">
               COMPANY ASSOCIATION
             </h2>
             <div className="mt-4">
@@ -498,7 +498,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       <strong className="block text-base font-bold text-slate-900">
                         {activeMembership.company?.name}
                       </strong>
-                      <span className="text-2xs text-slate-500 font-mono">
+                      <span className="text-2xs text-slate-500 tabular-nums">
                         Workspace ID: #{activeMembership.company_id}
                       </span>
                     </div>
@@ -508,7 +508,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   <dl className="mt-4 divide-y divide-slate-100 text-xs">
                     <div className="py-2.5 flex justify-between items-center">
                       <dt className="text-slate-500">Employee ID</dt>
-                      <dd className="font-mono font-bold text-slate-900">{activeMembership.employee_code}</dd>
+                      <dd className="tabular-nums font-bold text-slate-900">{activeMembership.employee_code}</dd>
                     </div>
                     <div className="py-2.5 flex justify-between items-center">
                       <dt className="text-slate-500">Official Work Email</dt>
@@ -536,7 +536,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       <strong className="block text-base font-bold text-slate-900">
                         {pendingMembership.company?.name}
                       </strong>
-                      <span className="text-2xs text-slate-500 font-mono">
+                      <span className="text-2xs text-slate-500 tabular-nums">
                         Workspace ID: #{pendingMembership.company_id}
                       </span>
                     </div>
@@ -545,7 +545,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   <dl className="mt-3 divide-y divide-slate-100 text-xs">
                     <div className="py-2 flex justify-between">
                       <dt className="text-slate-500">Submitted Employee ID</dt>
-                      <dd className="font-mono font-bold text-slate-800">{pendingMembership.employee_code}</dd>
+                      <dd className="tabular-nums font-bold text-slate-800">{pendingMembership.employee_code}</dd>
                     </div>
                     <div className="py-2 flex justify-between">
                       <dt className="text-slate-500">Official Work Email</dt>
@@ -563,7 +563,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       <strong className="block text-base font-bold text-slate-900">
                         {rejectedMembership.company?.name}
                       </strong>
-                      <span className="text-2xs text-slate-500 font-mono">
+                      <span className="text-2xs text-slate-500 tabular-nums">
                         Workspace ID: #{rejectedMembership.company_id}
                       </span>
                     </div>
@@ -610,27 +610,27 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         {/* B.2: When membership is ACTIVE, show connected company as PRIMARY content */}
         {membershipState === 'ACTIVE' && activeMembership ? (
           <div className="space-y-6">
-            <section className="rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-7 shadow-2xs">
+            <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-7 shadow-xs">
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div className="flex items-start gap-4">
                   {/* B.7: Monogram / Initials fallback */}
-                  <span className="grid size-14 place-items-center rounded-2xl bg-[#080d26] font-display text-xl font-bold text-white border border-[#1a2462] shadow-xs">
-                    {activeMembership.company?.name?.charAt(0) || '🏢'}
+                  <span className="grid size-14 place-items-center rounded-2xl bg-navy-950 font-display text-xl font-bold text-white border border-navy-800 shadow-xs">
+                    {activeMembership.company?.name?.charAt(0) || 'C'}
                   </span>
                   <div>
-                    <h2 className="text-xl font-extrabold text-slate-900">{activeMembership.company?.name}</h2>
-                    <p className="text-2xs text-slate-500 font-mono mt-0.5">
+                    <h2 className="text-xl font-semibold text-slate-900">{activeMembership.company?.name}</h2>
+                    <p className="text-2xs text-slate-500 tabular-nums mt-0.5">
                       Company Workspace ID: #{activeMembership.company_id}
                     </p>
 
                     {/* B.8: Clearly distinguish company verification from employee verification */}
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-300 px-3 py-1 text-3xs font-bold text-slate-700 shadow-2xs">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-300 px-3 py-1 text-3xs font-bold text-slate-700 shadow-xs">
                         <span className="size-1.5 rounded-full bg-emerald-600" />
                         Verified Company Workspace
                       </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef3fa] border border-[#d8e3f3] px-3 py-1 text-3xs font-bold text-[#28528d] shadow-2xs">
-                        <span className="size-1.5 rounded-full bg-[#2d62a8]" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 border border-brand-100 px-3 py-1 text-3xs font-bold text-brand-700 shadow-xs">
+                        <span className="size-1.5 rounded-full bg-brand-600" />
                         Verified Employee Membership
                       </span>
                     </div>
@@ -652,10 +652,10 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               </div>
 
               {/* Company Details Grid */}
-              <div className="mt-6 pt-5 border-t border-[#bfe5d3]/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div className="mt-6 pt-5 border-t border-emerald-200/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 <div>
                   <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Employee ID</span>
-                  <strong className="mt-0.5 block font-mono text-slate-900">{activeMembership.employee_code}</strong>
+                  <strong className="mt-0.5 block tabular-nums text-slate-900">{activeMembership.employee_code}</strong>
                 </div>
                 <div>
                   <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Official Work Email</span>
@@ -675,7 +675,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             </section>
 
             {/* B.3 & B.4: Single Active Membership Policy & Request to Change Company Workflow */}
-            <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Single Active Organization Policy</h3>
@@ -723,14 +723,14 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       .map(company => (
                         <div
                           key={company.id}
-                          className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5"
+                          className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-5"
                         >
                           <div>
                             <div className="flex items-start justify-between gap-2">
-                              <span className="grid size-10 place-items-center rounded-xl bg-[#080d26] font-display text-xs font-bold text-white border border-[#1a2462]">
-                                {company.name?.charAt(0) || '🏢'}
+                              <span className="grid size-10 place-items-center rounded-xl bg-navy-950 font-display text-xs font-bold text-white border border-navy-800">
+                                {company.name?.charAt(0) || 'C'}
                               </span>
-                              <span className="text-3xs font-mono text-slate-400">ID: #{company.id}</span>
+                              <span className="text-3xs tabular-nums text-slate-400">ID: #{company.id}</span>
                             </div>
                             <h4 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h4>
                             <p className="mt-1 text-xs text-slate-500 line-clamp-2">
@@ -755,17 +755,17 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           /* When NOT active: Show Pending / Directory with Request to Join */
           <div className="space-y-6">
             {membershipState === 'PENDING' && pendingMembership && (
-              <div className="rounded-[24px] border border-amber-300 bg-amber-50/70 p-6 shadow-2xs">
+              <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-6 shadow-xs">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <span className="text-3xs font-extrabold uppercase tracking-wider text-amber-800">
+                    <span className="text-3xs font-semibold uppercase tracking-wider text-amber-800">
                       ASSOCIATION PENDING REVIEW
                     </span>
                     <h2 className="mt-1 text-base font-bold text-slate-900">
                       {pendingMembership.company?.name} (Workspace #{pendingMembership.company_id})
                     </h2>
                     <p className="mt-2 text-xs text-slate-600">
-                      Submitted Employee ID: <strong className="font-mono">{pendingMembership.employee_code}</strong> · {pendingMembership.official_email}
+                      Submitted Employee ID: <strong className="tabular-nums">{pendingMembership.employee_code}</strong> · {pendingMembership.official_email}
                     </p>
                     <p className="mt-2 text-xs text-amber-900 leading-relaxed">
                       {MATCH_HINTS[pendingMembership.match_status]?.text ||
@@ -778,7 +778,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             )}
 
             {/* Organizations Directory */}
-            <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+            <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
               <SectionHeading
                 title="Approved Organizations Directory"
                 copy="Find your employer to submit official credentials and unlock verified branding."
@@ -803,14 +803,14 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   return (
                     <div
                       key={company.id}
-                      className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all"
+                      className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-5 hover:bg-white hover:shadow-xs transition-all"
                     >
                       <div>
                         <div className="flex items-start justify-between gap-3">
-                          <span className="grid size-10 place-items-center rounded-xl bg-[#080d26] font-display text-xs font-bold text-white border border-[#1a2462]">
-                            {company.name?.charAt(0) || '🏢'}
+                          <span className="grid size-10 place-items-center rounded-xl bg-navy-950 font-display text-xs font-bold text-white border border-navy-800">
+                            {company.name?.charAt(0) || 'C'}
                           </span>
-                          <span className="text-3xs font-mono text-slate-400">Workspace #{company.id}</span>
+                          <span className="text-3xs tabular-nums text-slate-400">Workspace #{company.id}</span>
                         </div>
 
                         <h3 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h3>
@@ -860,11 +860,11 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         <div className="flex flex-wrap items-center justify-between gap-4">
           <PageTitle
             title="Visiting Card Studio"
-            subtitle="Design, preview in real-time, and order official 300 DPI vector business cards for personal or corporate use."
+            subtitle="Design, preview in real-time, and order business cards for yourself or through your company."
           />
 
           {/* Sub-toggle: Studio Designer vs Card Vault */}
-          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xs">
+          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xs">
             <button
               type="button"
               className={cx(
@@ -875,7 +875,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               )}
               onClick={() => setCardSubView('order')}
             >
-              <span>✦</span> Card Designer
+              Card designer
             </button>
             <button
               type="button"
@@ -887,11 +887,11 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               )}
               onClick={() => setCardSubView('vault')}
             >
-              <span>🗄️</span> Card Vault
+              Saved cards
               <span
                 className={cx(
-                  'ml-1 rounded-full px-2 py-0.5 text-3xs font-extrabold',
-                  cardSubView === 'vault' ? 'bg-[#2d62a8] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+                  'ml-1 rounded-full px-2 py-0.5 text-3xs font-semibold',
+                  cardSubView === 'vault' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700'
                 )}
               >
                 {cardRows.length}
@@ -912,11 +912,11 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   'relative rounded-2xl border p-5 text-left transition-all',
                   cardOrderType === 'PERSONAL'
                     ? 'border-slate-900 bg-white ring-2 ring-slate-900/10 shadow-xs'
-                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300 hover:bg-white'
+                    : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-500">
+                  <span className="text-3xs font-semibold uppercase tracking-wider text-slate-500">
                     Option 01
                   </span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs font-bold text-slate-700">
@@ -926,7 +926,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <div className="mt-2.5 flex items-center gap-2">
                   <span className={cx(
                     'size-2.5 rounded-full',
-                    cardOrderType === 'PERSONAL' ? 'bg-[#2d62a8]' : 'bg-slate-300'
+                    cardOrderType === 'PERSONAL' ? 'bg-brand-600' : 'bg-slate-300'
                   )} />
                   <strong className="text-base font-bold text-slate-900">Personal Visiting Card</strong>
                 </div>
@@ -945,16 +945,16 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   membershipState !== 'ACTIVE'
                     ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-50'
                     : cardOrderType === 'COMPANY'
-                    ? 'border-[#2d62a8] bg-white ring-2 ring-[#2d62a8]/15 shadow-xs'
-                    : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300 hover:bg-white'
+                    ? 'border-brand-600 bg-white ring-2 ring-brand-600/15 shadow-xs'
+                    : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xs font-extrabold uppercase tracking-wider text-[#2d62a8]">
+                  <span className="text-3xs font-semibold uppercase tracking-wider text-brand-600">
                     Option 02
                   </span>
                   {membershipState === 'ACTIVE' ? (
-                    <span className="rounded-full bg-[#eef3fa] border border-[#d8e3f3] px-2.5 py-0.5 text-3xs font-bold text-[#28528d]">
+                    <span className="rounded-full bg-brand-50 border border-brand-100 px-2.5 py-0.5 text-3xs font-bold text-brand-700">
                       {activeMembership?.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Self-Paid'}
                     </span>
                   ) : (
@@ -966,7 +966,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <div className="mt-2.5 flex items-center gap-2">
                   <span className={cx(
                     'size-2.5 rounded-full',
-                    cardOrderType === 'COMPANY' ? 'bg-royal' : 'bg-slate-300'
+                    cardOrderType === 'COMPANY' ? 'bg-brand-600' : 'bg-slate-300'
                   )} />
                   <strong className="text-base font-bold text-slate-900">Company Branded Card</strong>
                 </div>
@@ -982,7 +982,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               <div className="lg:col-span-7 space-y-6">
                 {cardOrderType === 'PERSONAL' ? (
                   /* Personal Card Studio Controls */
-                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
+                  <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-5">
                     <SectionHeading
                       title="Personal Card Customization"
                       copy="Fill in your contact and designation details. The live preview updates automatically."
@@ -1053,12 +1053,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                     </div>
 
                     {/* Quantity Presets & Selector */}
-                    <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-5 space-y-3">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
                       <div className="flex items-center justify-between">
                         <label className="text-xs font-bold text-slate-800">
                           Print Batch Quantity
                         </label>
-                        <span className="text-3xs font-mono text-slate-500">Rate: ৳{PRICE} / card</span>
+                        <span className="text-3xs tabular-nums text-slate-500">Rate: ৳{PRICE} / card</span>
                       </div>
 
                       {/* Preset Chips */}
@@ -1096,7 +1096,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                           }
                           className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-900"
                         />
-                        <span className="text-3xs text-slate-400 font-mono">(1 - 1,000 max)</span>
+                        <span className="text-3xs text-slate-400 tabular-nums">(1 - 1,000 max)</span>
                       </div>
                     </div>
 
@@ -1104,21 +1104,21 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                     <div className="rounded-2xl border border-slate-200/90 bg-white p-5 space-y-2.5 text-xs">
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Unit Rate</span>
-                        <span className="font-mono">৳{PRICE} / card</span>
+                        <span className="tabular-nums">৳{PRICE} / card</span>
                       </div>
                       <div className="flex items-center justify-between text-slate-600">
                         <span>Batch Size</span>
                         <span className="font-semibold text-slate-800">{Number(order.quantity || 1)} cards</span>
                       </div>
                       <div className="flex items-center justify-between text-slate-600">
-                        <span>Vector Prepress (300 DPI PDF)</span>
+                        <span>Print-ready vector PDF</span>
                         <span className="font-bold text-emerald-700 text-3xs uppercase">Included (Free)</span>
                       </div>
                       <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
                         <span className="font-bold text-slate-900">Total Amount Payable</span>
                         <div className="text-right">
-                          <strong className="text-lg font-extrabold text-slate-900">৳{total}</strong>
-                          <span className="block text-3xs text-slate-400 font-mono">
+                          <strong className="text-lg font-semibold text-slate-900">৳{total}</strong>
+                          <span className="block text-3xs text-slate-400 tabular-nums">
                             ({Number(order.quantity || 1)} × ৳{PRICE})
                           </span>
                         </div>
@@ -1139,7 +1139,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   </div>
                 ) : (
                   /* Company Branded Card Studio Controls */
-                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
+                  <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-5">
                     <SectionHeading
                       title="Company Branded Card Order"
                       copy={`Official visiting cards locked to ${activeMembership?.company?.name || 'your company'} brand standard.`}
@@ -1162,8 +1162,8 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                     ) : (
                       <div className="space-y-5">
                         {/* Auto-populated Verified Profile Summary */}
-                        <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-4 text-xs">
-                          <span className="text-3xs font-extrabold uppercase tracking-wider text-royal block">
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
+                          <span className="text-3xs font-semibold uppercase tracking-wider text-brand-600 block">
                             VERIFIED ROSTER IDENTITY
                           </span>
                           <div className="mt-2.5 grid grid-cols-2 gap-3">
@@ -1173,11 +1173,11 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                             </div>
                             <div>
                               <span className="text-slate-400 block text-3xs">Verified Employee ID</span>
-                              <strong className="font-mono text-slate-800">{activeMembership?.employee_code}</strong>
+                              <strong className="tabular-nums text-slate-800">{activeMembership?.employee_code}</strong>
                             </div>
                             <div className="col-span-2">
                               <span className="text-slate-400 block text-3xs">Official Work Email</span>
-                              <span className="text-slate-800 font-mono">{activeMembership?.official_email}</span>
+                              <span className="text-slate-800 tabular-nums">{activeMembership?.official_email}</span>
                             </div>
                           </div>
                         </div>
@@ -1207,7 +1207,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                         </div>
 
                         {/* Billing Policy Display */}
-                        <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-4 text-xs">
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
                           <div className="flex items-center justify-between">
                             <span className="text-slate-500">Billing Responsibility</span>
                             <strong className="text-slate-900">
@@ -1225,12 +1225,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                         </div>
 
                         {/* Quantity Presets & Selector */}
-                        <div className="rounded-2xl border border-slate-200 bg-[#f8fafc] p-5 space-y-3">
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
                           <div className="flex items-center justify-between">
                             <label className="text-xs font-bold text-slate-800">
                               Print Batch Quantity
                             </label>
-                            <span className="text-3xs font-mono text-slate-500">Standard batch</span>
+                            <span className="text-3xs tabular-nums text-slate-500">Standard batch</span>
                           </div>
 
                           <div className="flex flex-wrap gap-2">
@@ -1266,7 +1266,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                               }
                               className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-900"
                             />
-                            <span className="text-3xs text-slate-400 font-mono">(1 - 1,000 max)</span>
+                            <span className="text-3xs text-slate-400 tabular-nums">(1 - 1,000 max)</span>
                           </div>
                         </div>
 
@@ -1277,22 +1277,22 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                             <span className="font-semibold text-slate-800">{Number(order.quantity || 1)} cards</span>
                           </div>
                           <div className="flex items-center justify-between text-slate-600">
-                            <span>Vector Prepress (300 DPI PDF)</span>
+                            <span>Print-ready vector PDF</span>
                             <span className="font-bold text-emerald-700 text-3xs uppercase">Included (Free)</span>
                           </div>
                           <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
                             <span className="font-bold text-slate-900">Total Payable</span>
                             {isCompanySponsored ? (
                               <div className="text-right">
-                                <strong className="text-lg font-extrabold text-emerald-700">৳0</strong>
+                                <strong className="text-lg font-semibold text-emerald-700">৳0</strong>
                                 <span className="block text-3xs text-emerald-600">
                                   100% Covered by {activeMembership?.company?.name}
                                 </span>
                               </div>
                             ) : (
                               <div className="text-right">
-                                <strong className="text-lg font-extrabold text-slate-900">৳{total}</strong>
-                                <span className="block text-3xs text-slate-400 font-mono">
+                                <strong className="text-lg font-semibold text-slate-900">৳{total}</strong>
+                                <span className="block text-3xs text-slate-400 tabular-nums">
                                   ({Number(order.quantity || 1)} × ৳{PRICE})
                                 </span>
                               </div>
@@ -1321,16 +1321,16 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
               {/* RIGHT COLUMN: Sticky Live Card Preview (lg:col-span-5) */}
               <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-                <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+                <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
                   <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                       <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-3xs font-extrabold uppercase tracking-wider text-slate-700">
+                      <span className="text-3xs font-semibold uppercase tracking-wider text-slate-700">
                         Live Interactive Card Studio
                       </span>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs font-mono font-bold text-slate-600">
-                      300 DPI Prepress
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs tabular-nums font-bold text-slate-600">
+                      Print-ready PDF
                     </span>
                   </div>
 
@@ -1359,9 +1359,9 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { key: 'navy', label: 'TechKnowGram Navy', color: 'bg-[#080d26]', dot: 'bg-[#2d62a8]' },
+                          { key: 'navy', label: 'TechKnowGram Navy', color: 'bg-navy-950', dot: 'bg-brand-600' },
                           { key: 'clean', label: 'Pure White', color: 'bg-white border border-slate-300', dot: 'bg-slate-900' },
-                          { key: 'royal', label: 'Imperial Violet', color: 'bg-[#1d1338]', dot: 'bg-[#efb53e]' },
+                          { key: 'royal', label: 'Imperial Violet', color: 'bg-navy-900', dot: 'bg-amber-400' },
                         ].map(t => (
                           <button
                             key={t.key}
@@ -1385,7 +1385,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   )}
 
                   <p className="mt-4 text-center text-3xs text-slate-400 leading-relaxed">
-                    ✦ Visual card updates in real-time as you enter contact and styling specifications.
+                    The preview updates as you type.
                   </p>
                 </div>
               </div>
@@ -1393,12 +1393,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           </div>
         ) : (
           /* Card Vault Archive View */
-          <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 sm:p-7 shadow-2xs space-y-5">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-extrabold text-slate-900">Visiting Card Archive Vault</h2>
+                <h2 className="text-base font-semibold text-slate-900">Visiting Card Archive Vault</h2>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  Download high-resolution 300 DPI vector PDF files ready for professional offset or digital printing.
+                  Download vector PDFs you can send straight to a printer.
                 </p>
               </div>
               <Button
@@ -1417,22 +1417,22 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   return (
                     <div
                       key={`${c.kind}-${c.id}`}
-                      className="rounded-[22px] border border-slate-200/90 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all flex flex-col justify-between"
+                      className="rounded-xl border border-slate-200/90 bg-slate-50 p-5 hover:bg-white hover:shadow-xs transition-all flex flex-col justify-between"
                     >
                       <div>
                         {/* Mini Card Header */}
                         <div className="flex items-center justify-between gap-2">
                           <span
                             className={cx(
-                              'rounded-full px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
+                              'rounded-full px-2.5 py-0.5 text-3xs font-semibold uppercase tracking-wider',
                               isPersonal
                                 ? 'bg-slate-200/70 text-slate-700'
-                                : 'bg-[#eef3fa] text-[#28528d] border border-[#d8e3f3]'
+                                : 'bg-brand-50 text-brand-700 border border-brand-100'
                             )}
                           >
                             {isPersonal ? 'Personal Card' : 'Company Branded'}
                           </span>
-                          <span className="text-3xs font-mono text-slate-400">
+                          <span className="text-3xs tabular-nums text-slate-400">
                             #{c.id}
                           </span>
                         </div>
@@ -1442,15 +1442,15 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                           className={cx(
                             'mt-3.5 aspect-[1.75/1] rounded-xl p-3.5 flex flex-col justify-between text-white shadow-inner select-none',
                             isPersonal
-                              ? 'bg-gradient-to-br from-[#080d26] to-[#101845] border border-[#1a2462]'
-                              : 'bg-gradient-to-br from-[#1c1438] to-[#0e071e] border border-[#392b63]'
+                              ? 'bg-gradient-to-br from-navy-950 to-navy-900 border border-navy-800'
+                              : 'bg-gradient-to-br from-navy-900 to-navy-950 border border-brand-800'
                           )}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-3xs font-extrabold uppercase tracking-widest text-[#8eaee0] truncate">
+                            <span className="text-3xs font-semibold uppercase tracking-wider text-brand-300 truncate">
                               {isPersonal ? 'Personal' : (activeMembership?.company?.name || 'Company')}
                             </span>
-                            <span className="text-3xs font-mono opacity-60">300 DPI</span>
+                            <span className="text-3xs tabular-nums opacity-60">Vector PDF</span>
                           </div>
                           <div>
                             <strong className="block text-xs font-bold truncate">
@@ -1474,7 +1474,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                           <span className="flex items-center gap-1.5">
                             Status: <StatusBadge value={c.status} />
                           </span>
-                          <span className="font-mono">{c.file_size ? `${Math.ceil(c.file_size / 1024)} KB` : 'Vector PDF'}</span>
+                          <span className="tabular-nums">{c.file_size ? `${Math.ceil(c.file_size / 1024)} KB` : 'Vector PDF'}</span>
                         </div>
                       </div>
 
@@ -1511,7 +1511,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               </div>
             ) : (
               <div className="text-center py-16 text-slate-400">
-                <span className="text-3xl block mb-2">🗄️</span>
+                
                 <p className="text-sm font-bold text-slate-700">No visiting cards generated yet.</p>
                 <p className="mt-1 text-xs text-slate-400">Order your first batch using the Card Designer.</p>
                 <Button
@@ -1540,7 +1540,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           subtitle="Complete transparent record of personal checkouts and company-sponsored orders."
         />
 
-        <div className="rounded-[24px] border border-slate-200/80 bg-white overflow-hidden shadow-2xs">
+        <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
           {orders.length > 0 ? (
             <div className="overflow-x-auto">
               <table className={tableClass}>
@@ -1557,7 +1557,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   {orders.map(o => (
                     <tr key={o.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className={tdClass}>
-                        <strong className="font-mono text-xs text-slate-900 font-bold">#{o.id}</strong>
+                        <strong className="tabular-nums text-xs text-slate-900 font-bold">#{o.id}</strong>
                       </td>
                       <td className={tdClass}>
                         <span className="text-xs text-slate-700">
@@ -1565,12 +1565,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                         </span>
                       </td>
                       <td className={tdClass}>
-                        <span className="inline-block rounded-md bg-lilac px-2.5 py-0.5 text-3xs font-semibold text-royal uppercase">
+                        <span className="inline-block rounded-md bg-brand-50 px-2.5 py-0.5 text-3xs font-semibold text-brand-600 uppercase">
                           {o.payer === 'COMPANY' ? 'Company sponsored' : 'Self paid'}
                         </span>
                       </td>
                       <td className={tdClass}>
-                        <strong className="text-sm font-extrabold text-slate-900">৳{o.total_amount}</strong>
+                        <strong className="text-sm font-semibold text-slate-900">৳{o.total_amount}</strong>
                       </td>
                       <td className={tdClass}>
                         <StatusBadge value={o.status} />
@@ -1600,7 +1600,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="rounded-[20px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <h3 className="text-sm font-bold text-slate-900">How does company verification work?</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               When you submit your official company email and employee ID, BizCard compares it against the company roster.
@@ -1609,7 +1609,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             </p>
           </div>
 
-          <div className="rounded-[20px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <h3 className="text-sm font-bold text-slate-900">Can I order cards without a company?</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               Yes. You can order independent personal visiting cards at any time at the standard rate of ৳50 per card
@@ -1617,7 +1617,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             </p>
           </div>
 
-          <div className="rounded-[20px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <h3 className="text-sm font-bold text-slate-900">Who pays for my company cards?</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
               If your company has designated card orders as company-sponsored, the checkout total is ৳0 (Free for you).
@@ -1625,11 +1625,10 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             </p>
           </div>
 
-          <div className="rounded-[20px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
             <h3 className="text-sm font-bold text-slate-900">How do I download and print?</h3>
             <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              Navigate to the &quot;My Card&quot; tab and select &quot;Card Vault&quot;. Click &quot;Download PDF&quot; on any card to get a 300
-              DPI vector PDF file ready for any commercial printing house.
+              Open &quot;My card&quot; and choose &quot;Saved cards&quot;. Click &quot;Download PDF&quot; on any card to get a vector PDF you can send to any printer.
             </p>
           </div>
         </div>
@@ -1659,10 +1658,10 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
       {/* STATE B: PENDING REQUEST BANNER */}
       {membershipState === 'PENDING' && pendingMembership && (
-        <div className="rounded-[24px] border border-amber-300 bg-amber-50/70 p-6 shadow-2xs">
+        <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <span className="text-3xs font-extrabold uppercase tracking-wider text-amber-800">
+              <span className="text-3xs font-semibold uppercase tracking-wider text-amber-800">
                 MEMBERSHIP REQUEST UNDER REVIEW
               </span>
               <h2 className="mt-1 text-base font-bold text-slate-900">
@@ -1671,7 +1670,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-600">
                 <div>
                   <span className="text-slate-400">Submitted ID: </span>
-                  <strong className="font-mono text-slate-800">{pendingMembership.employee_code}</strong>
+                  <strong className="tabular-nums text-slate-800">{pendingMembership.employee_code}</strong>
                 </div>
                 <div>
                   <span className="text-slate-400">Official Work Email: </span>
@@ -1694,17 +1693,17 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
       {/* STATE D: REJECTED REQUEST BANNER */}
       {membershipState === 'REJECTED' && rejectedMembership && (
-        <div className="rounded-[24px] border border-rose-200 bg-rose-50/70 p-6 shadow-2xs">
+        <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-6 shadow-xs">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <span className="text-3xs font-extrabold uppercase tracking-wider text-rose-800">
+              <span className="text-3xs font-semibold uppercase tracking-wider text-rose-800">
                 MEMBERSHIP REQUEST NOT APPROVED
               </span>
               <h2 className="mt-1 text-base font-bold text-slate-900">
                 Request rejected by {rejectedMembership.company?.name} (Workspace #{rejectedMembership.company_id})
               </h2>
               <p className="mt-2 text-xs text-slate-600">
-                Submitted Employee ID: <strong className="font-mono">{rejectedMembership.employee_code}</strong> · {rejectedMembership.official_email}
+                Submitted Employee ID: <strong className="tabular-nums">{rejectedMembership.employee_code}</strong> · {rejectedMembership.official_email}
               </p>
               <p className="mt-2 text-xs text-rose-800 leading-relaxed max-w-2xl">
                 Please check with your company HR to verify your active employee ID and email, or browse other organizations in the Company tab.
@@ -1717,11 +1716,11 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
       {/* STATE C: ACTIVE VERIFIED MEMBERSHIP HUB */}
       {membershipState === 'ACTIVE' && activeMembership && (
-        <div className="rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-6 shadow-2xs">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <span className="grid size-12 place-items-center rounded-2xl bg-[#080d26] font-extrabold text-white shadow-xs text-lg border border-[#1a2462]">
-                {activeMembership.company?.name?.charAt(0) || '🏢'}
+              <span className="grid size-12 place-items-center rounded-2xl bg-navy-950 font-semibold text-white shadow-xs text-lg border border-navy-800">
+                {activeMembership.company?.name?.charAt(0) || 'C'}
               </span>
               <div>
                 <div className="flex items-center gap-2.5">
@@ -1729,7 +1728,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   <StatusBadge value="ACTIVE" />
                 </div>
                 <p className="text-xs text-slate-600 mt-1">
-                  Employee ID: <strong className="font-mono text-slate-800">{activeMembership.employee_code}</strong> · {activeMembership.official_email} ·{' '}
+                  Employee ID: <strong className="tabular-nums text-slate-800">{activeMembership.employee_code}</strong> · {activeMembership.official_email} ·{' '}
                   <span className="font-semibold text-emerald-800">
                     {activeMembership.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Employee Self-Paid'}
                   </span>
@@ -1754,7 +1753,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
       {/* 2-COLUMN SUMMARY: LATEST CARD & RECENT ORDERS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Latest Card Preview */}
-        <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
           <SectionHeading
             title="My Visiting Card"
             copy="Instant download of your latest print-ready visiting card file."
@@ -1762,7 +1761,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               latestCard && (
                 <button
                   type="button"
-                  className="text-xs font-bold text-royal hover:underline"
+                  className="text-xs font-bold text-brand-600 hover:underline"
                   onClick={() => setTab?.('card')}
                 >
                   View all ({cardRows.length}) →
@@ -1772,16 +1771,16 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           />
 
           {latestCard ? (
-            <div className="mt-4 rounded-[20px] border border-slate-200 bg-[#fafbfc] p-5">
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
               <div className="flex items-center justify-between">
-                <span className="text-3xs font-mono font-bold uppercase text-slate-400">
+                <span className="text-3xs tabular-nums font-bold uppercase text-slate-400">
                   {latestCard.kind === 'personal' ? 'Personal Card' : 'Company Branded'}
                 </span>
                 <span className="text-3xs text-slate-400">{new Date(latestCard.created_at).toLocaleDateString()}</span>
               </div>
               <strong className="mt-2 block text-sm font-bold text-slate-900">{latestCard.file_name}</strong>
               <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-200/70">
-                <span className="text-2xs text-slate-500 font-medium">Vector PDF · 300 DPI</span>
+                <span className="text-2xs text-slate-500 font-medium">Vector PDF · 3.5 × 2 in</span>
                 <Button
                   variant="primary"
                   className="!px-3.5 !py-1.5 !text-xs font-bold"
@@ -1799,7 +1798,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               </div>
             </div>
           ) : (
-            <div className="mt-4 rounded-[20px] border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
+            <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
               No visiting cards generated yet.
               <div className="mt-3">
                 <Button variant="secondary" className="!text-xs font-bold" onClick={() => setTab?.('card')}>
@@ -1811,7 +1810,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         </div>
 
         {/* Recent Orders */}
-        <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
           <SectionHeading
             title="Recent Orders"
             copy="Status of your recent visiting card print orders."
@@ -1819,7 +1818,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               orders.length > 0 && (
                 <button
                   type="button"
-                  className="text-xs font-bold text-royal hover:underline"
+                  className="text-xs font-bold text-brand-600 hover:underline"
                   onClick={() => setTab?.('orders')}
                 >
                   View order history →
@@ -1833,20 +1832,20 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               {orders.slice(0, 3).map(o => (
                 <div key={o.id} className="py-2.5 flex items-center justify-between text-xs">
                   <div>
-                    <strong className="font-mono text-slate-900 font-bold">Order #{o.id}</strong>
+                    <strong className="tabular-nums text-slate-900 font-bold">Order #{o.id}</strong>
                     <span className="ml-2 text-slate-500">
                       {o.quantity} {o.quantity === 1 ? 'card' : 'cards'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <strong className="font-extrabold text-slate-900">৳{o.total_amount}</strong>
+                    <strong className="font-semibold text-slate-900">৳{o.total_amount}</strong>
                     <StatusBadge value={o.status} />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-[20px] border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
+            <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
               No orders placed yet.
             </div>
           )}
@@ -1855,7 +1854,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
 
       {/* STATE A / REJECTED: SEARCH & CONNECT TO A COMPANY */}
       {(membershipState === 'NO_COMPANY' || membershipState === 'REJECTED') && (
-        <div className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-2xs">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
           <SectionHeading
             title="Connect to Your Company Workspace"
             copy="Find your employer and submit your official credentials to unlock corporate templates."
@@ -1876,14 +1875,14 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
             {filteredCompanies.slice(0, 6).map(c => (
               <div
                 key={c.id}
-                className="flex flex-col justify-between rounded-[20px] border border-slate-200/80 bg-[#fafbfc] p-5 hover:bg-white hover:shadow-xs transition-all"
+                className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-5 hover:bg-white hover:shadow-xs transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="grid size-10 place-items-center rounded-xl bg-[#080d26] font-display text-xs font-bold text-white border border-[#1a2462]">
-                      {c.name?.charAt(0) || '🏢'}
+                    <span className="grid size-10 place-items-center rounded-xl bg-navy-950 font-display text-xs font-bold text-white border border-navy-800">
+                      {c.name?.charAt(0) || 'C'}
                     </span>
-                    <span className="text-3xs font-mono text-slate-400">ID: #{c.id}</span>
+                    <span className="text-3xs tabular-nums text-slate-400">ID: #{c.id}</span>
                   </div>
                   <h3 className="mt-3 text-sm font-bold text-slate-900">{c.name}</h3>
                   <p className="mt-1 text-xs text-slate-500 line-clamp-2">{c.description || 'Corporate workspace'}</p>

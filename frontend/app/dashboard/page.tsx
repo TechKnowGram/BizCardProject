@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import AdminDashboard from '../../components/AdminDashboard';
 import CompanyDashboard from '../../components/CompanyDashboard';
 import EmployeeDashboard from '../../components/EmployeeDashboard';
-import DashboardShell from '../../components/DashboardShell';
 import EmployeeShell from '../../components/EmployeeShell';
 import { api, getToken, logout } from '../../lib/api';
 import type { ApiError } from '../../lib/api';
@@ -49,8 +48,8 @@ export default function DashboardPage() {
   }, [router]);
 
   function signOut() { logout(); router.replace('/login'); }
-  if (error) return <main className="grid min-h-screen place-items-center p-8 text-red-700">{error}</main>;
-  if (!user) return <main className="grid min-h-screen place-items-center content-center gap-4 bg-mist text-sm text-[#726b7d]"><i className="size-10.5 animate-[spin_.8s_linear_infinite] rounded-full border-3 border-lilac border-t-royal" /><p>Preparing your workspace…</p></main>;
+  if (error) return <main className="grid min-h-screen place-items-center bg-slate-50 p-8"><p className="max-w-md rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">{error}</p></main>;
+  if (!user) return <main className="grid min-h-screen place-items-center content-center gap-4 bg-slate-50 text-sm text-slate-500"><i className="size-9 animate-spin rounded-full border-3 border-slate-200 border-t-brand-600" /><p>Loading your workspace…</p></main>;
 
   const systemAdmin = user.role === 'SYSTEM_ADMIN';
   const employee = user.role === 'EMPLOYEE';
