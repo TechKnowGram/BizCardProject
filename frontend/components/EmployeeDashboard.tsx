@@ -14,10 +14,10 @@ import { Button, cx, inputClass, tableClass, tdClass, thClass } from './ui';
 const PRICE = 50;
 
 const MATCH_HINTS: Record<string, { text: string; tone: string }> = {
-  ROSTER_MATCHED: { text: 'Verified with company roster. Membership activated automatically.', tone: 'bg-mint/20 text-slate-800 border-mint' },
-  ID_MISMATCH: { text: 'Employee ID was recognized but email differs. Company admin will review.', tone: 'bg-lemon/30 text-amber-900 border-lemon' },
+  ROSTER_MATCHED: { text: 'Verified with company roster. Membership activated automatically.', tone: 'bg-[#eef3fa] text-[#28528d] border-[#d8e3f3]' },
+  ID_MISMATCH: { text: 'Employee ID was recognized but email differs. Company admin will review.', tone: 'bg-[#fef9c3] text-[#854d0e] border-amber-200' },
   NOT_FOUND: { text: 'Your details will be reviewed by the company administrator.', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
-  INACTIVE_EMPLOYEE: { text: 'Roster record is currently inactive. Awaiting administrator review.', tone: 'bg-blush/30 text-rose-900 border-blush' },
+  INACTIVE_EMPLOYEE: { text: 'Roster record is currently inactive. Awaiting administrator review.', tone: 'bg-[#fee2e2] text-[#991b1b] border-rose-200' },
 };
 
 function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -74,13 +74,13 @@ function LiveCardPreview({
   const isClean = theme === 'clean';
 
   const cardBgClass = isNavy
-    ? 'bg-gradient-to-br from-[#10242f] via-[#0c1c25] to-[#071319] text-white border border-[#1e3c4e] shadow-2xl'
+    ? 'bg-gradient-to-br from-[#080d26] via-[#101845] to-[#1a2462] text-white border border-[#1a2462] shadow-2xl'
     : isRoyal
     ? 'bg-gradient-to-br from-[#1d1338] via-[#140b28] to-[#0d071d] text-white border border-[#3b2b68] shadow-2xl'
     : 'bg-gradient-to-br from-white via-[#fafbfc] to-[#f1f4f6] text-slate-900 border border-slate-200/90 shadow-xl';
 
   const accentPillClass = isNavy
-    ? 'bg-mint text-slate-950'
+    ? 'bg-[#2d62a8] text-white'
     : isRoyal
     ? 'bg-[#efb53e] text-slate-950'
     : 'bg-slate-900 text-white';
@@ -614,7 +614,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div className="flex items-start gap-4">
                   {/* B.7: Monogram / Initials fallback */}
-                  <span className="grid size-14 place-items-center rounded-2xl bg-slate-900 font-display text-xl font-bold text-mint shadow-xs">
+                  <span className="grid size-14 place-items-center rounded-2xl bg-[#080d26] font-display text-xl font-bold text-white border border-[#1a2462] shadow-xs">
                     {activeMembership.company?.name?.charAt(0) || '🏢'}
                   </span>
                   <div>
@@ -629,8 +629,8 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                         <span className="size-1.5 rounded-full bg-emerald-600" />
                         Verified Company Workspace
                       </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-mint/30 border border-mint/60 px-3 py-1 text-3xs font-bold text-slate-900 shadow-2xs">
-                        <span className="size-1.5 rounded-full bg-emerald-700" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef3fa] border border-[#d8e3f3] px-3 py-1 text-3xs font-bold text-[#28528d] shadow-2xs">
+                        <span className="size-1.5 rounded-full bg-[#2d62a8]" />
                         Verified Employee Membership
                       </span>
                     </div>
@@ -727,7 +727,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                         >
                           <div>
                             <div className="flex items-start justify-between gap-2">
-                              <span className="grid size-10 place-items-center rounded-xl bg-slate-900 font-display text-xs font-bold text-mint">
+                              <span className="grid size-10 place-items-center rounded-xl bg-[#080d26] font-display text-xs font-bold text-white border border-[#1a2462]">
                                 {company.name?.charAt(0) || '🏢'}
                               </span>
                               <span className="text-3xs font-mono text-slate-400">ID: #{company.id}</span>
@@ -807,7 +807,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                     >
                       <div>
                         <div className="flex items-start justify-between gap-3">
-                          <span className="grid size-10 place-items-center rounded-xl bg-slate-900 font-display text-xs font-bold text-mint">
+                          <span className="grid size-10 place-items-center rounded-xl bg-[#080d26] font-display text-xs font-bold text-white border border-[#1a2462]">
                             {company.name?.charAt(0) || '🏢'}
                           </span>
                           <span className="text-3xs font-mono text-slate-400">Workspace #{company.id}</span>
@@ -891,7 +891,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               <span
                 className={cx(
                   'ml-1 rounded-full px-2 py-0.5 text-3xs font-extrabold',
-                  cardSubView === 'vault' ? 'bg-mint text-slate-900' : 'bg-slate-100 text-slate-700'
+                  cardSubView === 'vault' ? 'bg-[#2d62a8] text-white shadow-xs' : 'bg-slate-100 text-slate-700'
                 )}
               >
                 {cardRows.length}
@@ -926,7 +926,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                 <div className="mt-2.5 flex items-center gap-2">
                   <span className={cx(
                     'size-2.5 rounded-full',
-                    cardOrderType === 'PERSONAL' ? 'bg-mint' : 'bg-slate-300'
+                    cardOrderType === 'PERSONAL' ? 'bg-[#2d62a8]' : 'bg-slate-300'
                   )} />
                   <strong className="text-base font-bold text-slate-900">Personal Visiting Card</strong>
                 </div>
@@ -945,16 +945,16 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                   membershipState !== 'ACTIVE'
                     ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-50'
                     : cardOrderType === 'COMPANY'
-                    ? 'border-royal bg-white ring-2 ring-royal/10 shadow-xs'
+                    ? 'border-[#2d62a8] bg-white ring-2 ring-[#2d62a8]/15 shadow-xs'
                     : 'border-slate-200 bg-[#fafbfc] hover:border-slate-300 hover:bg-white'
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xs font-extrabold uppercase tracking-wider text-royal">
+                  <span className="text-3xs font-extrabold uppercase tracking-wider text-[#2d62a8]">
                     Option 02
                   </span>
                   {membershipState === 'ACTIVE' ? (
-                    <span className="rounded-full bg-mint/30 px-2.5 py-0.5 text-3xs font-bold text-slate-900">
+                    <span className="rounded-full bg-[#eef3fa] border border-[#d8e3f3] px-2.5 py-0.5 text-3xs font-bold text-[#28528d]">
                       {activeMembership?.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Self-Paid'}
                     </span>
                   ) : (
@@ -1359,7 +1359,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                       </label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { key: 'navy', label: 'Obsidian Mint', color: 'bg-[#10242f]', dot: 'bg-mint' },
+                          { key: 'navy', label: 'TechKnowGram Navy', color: 'bg-[#080d26]', dot: 'bg-[#2d62a8]' },
                           { key: 'clean', label: 'Pure White', color: 'bg-white border border-slate-300', dot: 'bg-slate-900' },
                           { key: 'royal', label: 'Imperial Violet', color: 'bg-[#1d1338]', dot: 'bg-[#efb53e]' },
                         ].map(t => (
@@ -1427,7 +1427,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                               'rounded-full px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
                               isPersonal
                                 ? 'bg-slate-200/70 text-slate-700'
-                                : 'bg-mint/30 text-slate-900 border border-mint/60'
+                                : 'bg-[#eef3fa] text-[#28528d] border border-[#d8e3f3]'
                             )}
                           >
                             {isPersonal ? 'Personal Card' : 'Company Branded'}
@@ -1442,12 +1442,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
                           className={cx(
                             'mt-3.5 aspect-[1.75/1] rounded-xl p-3.5 flex flex-col justify-between text-white shadow-inner select-none',
                             isPersonal
-                              ? 'bg-gradient-to-br from-[#10242f] to-[#081218] border border-[#1e3c4e]'
+                              ? 'bg-gradient-to-br from-[#080d26] to-[#101845] border border-[#1a2462]'
                               : 'bg-gradient-to-br from-[#1c1438] to-[#0e071e] border border-[#392b63]'
                           )}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-3xs font-extrabold uppercase tracking-widest text-mint truncate">
+                            <span className="text-3xs font-extrabold uppercase tracking-widest text-[#8eaee0] truncate">
                               {isPersonal ? 'Personal' : (activeMembership?.company?.name || 'Company')}
                             </span>
                             <span className="text-3xs font-mono opacity-60">300 DPI</span>
@@ -1720,7 +1720,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         <div className="rounded-[24px] border border-[#bfe5d3] bg-[#f2fbf7] p-6 shadow-2xs">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <span className="grid size-12 place-items-center rounded-2xl bg-slate-900 font-extrabold text-mint shadow-xs text-lg">
+              <span className="grid size-12 place-items-center rounded-2xl bg-[#080d26] font-extrabold text-white shadow-xs text-lg border border-[#1a2462]">
                 {activeMembership.company?.name?.charAt(0) || '🏢'}
               </span>
               <div>
@@ -1880,7 +1880,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <span className="grid size-10 place-items-center rounded-xl bg-slate-900 font-display text-xs font-bold text-mint">
+                    <span className="grid size-10 place-items-center rounded-xl bg-[#080d26] font-display text-xs font-bold text-white border border-[#1a2462]">
                       {c.name?.charAt(0) || '🏢'}
                     </span>
                     <span className="text-3xs font-mono text-slate-400">ID: #{c.id}</span>

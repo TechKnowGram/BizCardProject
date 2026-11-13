@@ -390,11 +390,11 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
           {/* TAB 1: OVERVIEW (OPERATIONAL COMMAND CENTER) */}
           {tab === 'overview' && (
             <div className="space-y-6">
-              {/* Operational Hero Banner */}
-              <section className="relative overflow-hidden rounded-2xl bg-[#0b1821] text-white p-7 md:p-9 border border-[#162a38] shadow-sm">
+              {/* Operational Hero Banner (TechKnowGram Theme) */}
+              <section className="relative overflow-hidden rounded-2xl bg-[#080d26] text-white p-7 md:p-9 border border-[#1a2462] shadow-sm">
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="max-w-2xl">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-mint/15 px-3 py-1 text-3xs font-mono font-bold text-mint tracking-wider uppercase mb-3">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#101845] border border-[#1a2462] px-3 py-1 text-3xs font-mono font-bold text-[#8eaee0] tracking-wider uppercase mb-3">
                       Platform Control Center
                     </div>
                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
@@ -406,7 +406,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-5 py-4 shrink-0">
+                  <div className="flex items-center gap-4 bg-[#101845]/60 border border-[#1a2462] rounded-xl px-5 py-4 shrink-0">
                     <span className="text-4xl font-black text-amber-400 font-mono">
                       {attentionQueue.length}
                     </span>
@@ -560,7 +560,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                             <button
                               type="button"
                               onClick={() => openReview(item.raw, item.kind)}
-                              className="rounded-lg bg-slate-900 text-white px-3 py-1.5 text-2xs font-bold hover:bg-slate-800 transition-colors"
+                              className="rounded-lg bg-[#2d62a8] text-white px-3.5 py-1.5 text-2xs font-bold hover:bg-[#28528d] transition-colors shadow-xs"
                             >
                               Review & Decide →
                             </button>
@@ -752,7 +752,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                                       type="button"
                                       disabled={busy}
                                       onClick={() => mutate(`/admin/companies/${company.id}/status`, { status: 'APPROVED' })}
-                                      className="rounded-lg bg-emerald-600 text-white px-2.5 py-1 text-3xs font-bold hover:bg-emerald-700 transition-colors"
+                                      className="rounded-lg bg-[#2d62a8] text-white px-3 py-1 text-3xs font-bold hover:bg-[#28528d] transition-colors shadow-xs"
                                     >
                                       Approve
                                     </button>
@@ -1162,7 +1162,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                               <button
                                 type="button"
                                 onClick={() => openReview(r, 'requests')}
-                                className="rounded-lg bg-slate-900 text-white px-3 py-1 text-3xs font-bold hover:bg-slate-800 transition-colors"
+                                className="rounded-lg bg-[#2d62a8] text-white px-3 py-1 text-3xs font-bold hover:bg-[#28528d] transition-colors shadow-xs"
                               >
                                 Review & Decide ↗
                               </button>

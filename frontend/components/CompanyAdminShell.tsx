@@ -76,30 +76,30 @@ export default function CompanyAdminShell({
       {/* COMPACT COLLAPSIBLE SIDEBAR */}
       <aside
         className={cx(
-          'fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0e1e28] text-white border-r border-[#193240] transition-all duration-250 ease-in-out md:sticky md:top-0 md:h-screen',
+          'fixed inset-y-0 left-0 z-50 flex flex-col bg-[#080d26] text-white border-r border-[#1a2462] transition-all duration-250 ease-in-out md:sticky md:top-0 md:h-screen',
           collapsed ? 'md:w-20' : 'md:w-64',
           mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
         )}
       >
         {/* Sidebar Header: Brand & Collapse Toggle */}
-        <div className="h-16 flex items-center justify-between px-4.5 border-b border-[#193240]">
+        <div className="h-16 flex items-center justify-between px-4.5 border-b border-[#1a2462]">
           {!collapsed ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <span className="grid size-9 place-items-center rounded-xl bg-mint text-slate-950 font-black text-sm shrink-0">
+              <span className="grid size-9 place-items-center rounded-xl bg-[#2d62a8] text-white font-black text-sm shrink-0 shadow-xs">
                 B
               </span>
               <div className="min-w-0">
                 <span className="block font-display text-sm font-extrabold tracking-tight truncate">
                   BizCard
                 </span>
-                <span className="block text-3xs font-mono text-slate-400 uppercase tracking-widest truncate">
+                <span className="block text-3xs font-mono text-[#8eaee0] uppercase tracking-widest truncate">
                   Company Admin
                 </span>
               </div>
             </div>
           ) : (
             <div className="mx-auto">
-              <span className="grid size-9 place-items-center rounded-xl bg-mint text-slate-950 font-black text-sm">
+              <span className="grid size-9 place-items-center rounded-xl bg-[#2d62a8] text-white font-black text-sm">
                 B
               </span>
             </div>
@@ -128,9 +128,9 @@ export default function CompanyAdminShell({
 
         {/* Company Identity Quick Summary (when expanded) */}
         {!collapsed && (
-          <div className="px-4 py-3 border-b border-[#193240] bg-[#09151c]/60">
+          <div className="px-4 py-3 border-b border-[#1a2462] bg-[#101845]/70">
             <div className="flex items-center gap-2.5">
-              <span className="grid size-7 place-items-center rounded-lg bg-slate-800 text-mint font-bold text-xs border border-white/10 shrink-0">
+              <span className="grid size-7 place-items-center rounded-lg bg-[#1a2462] text-[#8eaee0] font-bold text-xs border border-white/10 shrink-0">
                 {companyName.charAt(0).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
@@ -172,7 +172,7 @@ export default function CompanyAdminShell({
                 className={cx(
                   'group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-all duration-150',
                   active
-                    ? 'bg-mint text-slate-950 font-bold shadow-xs'
+                    ? 'bg-[#2d62a8] text-white font-bold shadow-xs'
                     : 'text-slate-300 hover:bg-white/10 hover:text-white',
                   collapsed && 'justify-center px-0'
                 )}
@@ -212,11 +212,11 @@ export default function CompanyAdminShell({
         </nav>
 
         {/* Sidebar Footer: Admin profile & Logout */}
-        <div className="p-3 border-t border-[#193240] bg-[#09151c]/60">
+        <div className="p-3 border-t border-[#1a2462] bg-[#080d26]">
           {!collapsed ? (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="grid size-8 place-items-center rounded-full bg-slate-800 text-mint font-display text-xs font-bold shrink-0 border border-white/10">
+                <span className="grid size-8 place-items-center rounded-full bg-[#1a2462] text-[#8eaee0] font-display text-xs font-bold shrink-0 border border-white/10">
                   {user.username.charAt(0).toUpperCase()}
                 </span>
                 <div className="min-w-0">
@@ -242,7 +242,7 @@ export default function CompanyAdminShell({
           ) : (
             <div className="flex flex-col items-center gap-2">
               <span
-                className="grid size-8 place-items-center rounded-full bg-slate-800 text-mint font-display text-xs font-bold border border-white/10"
+                className="grid size-8 place-items-center rounded-full bg-[#1a2462] text-[#8eaee0] font-display text-xs font-bold border border-white/10"
                 title={`${user.username} (Company Admin)`}
               >
                 {user.username.charAt(0).toUpperCase()}

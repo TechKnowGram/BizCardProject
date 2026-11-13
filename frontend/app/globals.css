@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-dm), "Segoe UI", Arial, sans-serif;
+  --font-sans: var(--font-poppins), var(--font-hind), "Poppins", "Hind Siliguri", "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font-poppins), var(--font-hind), "Poppins", sans-serif;
+  --font-body: var(--font-poppins), var(--font-hind), "Poppins", sans-serif;
   --color-ink: #0a0a0a;
-  --color-night: #10242f;
-  --color-violet: #4a1ff2;
-  --color-violet-deep: #3512c4;
-  --color-coral: #ff8fab;
-  --color-sun: #fff700;
-  --color-cyan: #4dffc8;
-  --color-cream: #f6f8f7;
-  --color-muted: #5d6b72;
-  /* Homepage palette */
-  --color-navy: #10242f;
-  --color-mint: #4dffc8;
-  --color-lemon: #fff700;
-  --color-blush: #ffd0dc;
-  --color-royal: #4a1ff2;
-  --color-lilac: #e9e5fb;
-  --color-mist: #f6f8f7;
-  --font-display: var(--font-space), var(--font-dm), sans-serif;
-  --font-body: var(--font-dm), sans-serif;
+  --color-night: #080d26;
+  --color-violet: #2d62a8;
+  --color-violet-deep: #1a2462;
+  --color-coral: #ff6b75;
+  --color-sun: #3267b0;
+  --color-cyan: #2d62a8;
+  --color-cream: #f8fafc;
+  --color-muted: #64748b;
+
+  /* TechKnowGram Corporate Theme Tokens */
+  --color-navy: #080d26;
+  --color-navy-950: #080d26;
+  --color-navy-900: #101845;
+  --color-navy-800: #1a2462;
+  --color-brand-primary: #2d62a8;
+  --color-brand-50: #eef3fa;
+  --color-brand-100: #d8e3f3;
+  --color-brand-200: #b2c7e7;
+  --color-brand-300: #8eaee0;
+  --color-brand-400: #5a88c8;
+  --color-brand-500: #3a70b8;
+  --color-brand-600: #3267b0;
+  --color-brand-700: #28528d;
+  --color-accent-red: #e20917;
+  --color-accent-coral: #ff6b75;
+
+  /* Homepage & UI Legacy Mappings */
+  --color-mint: #2d62a8;
+  --color-lemon: #eef3fa;
+  --color-blush: #fee2e2;
+  --color-royal: #2d62a8;
+  --color-lilac: #eef3fa;
+  --color-mist: #f8fafc;
   /* Breakpoints: xs 480, sm 640, md 768, lg 1024, xl 1280, 2xl 1536 */
   --breakpoint-xs: 30rem;
 

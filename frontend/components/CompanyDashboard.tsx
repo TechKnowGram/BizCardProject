@@ -35,9 +35,9 @@ const pagerButtonClass =
   'rounded-lg border border-[#e3e8e6] bg-white px-3 py-1.5 text-xs font-semibold text-[#655e6d] hover:bg-[#f6f8f7] disabled:cursor-not-allowed disabled:opacity-40 transition-colors';
 
 const MATCH_LABELS: Record<string, { label: string; tone: string }> = {
-  ROSTER_MATCHED: { label: 'Roster verified', tone: 'bg-mint text-black border-mint' },
-  ID_MISMATCH: { label: 'Email mismatch', tone: 'bg-lemon text-black border-lemon' },
-  NOT_FOUND: { label: 'Not in roster', tone: 'bg-blush text-black border-blush' },
+  ROSTER_MATCHED: { label: 'Roster verified', tone: 'bg-[#eef3fa] text-[#28528d] border-[#d8e3f3]' },
+  ID_MISMATCH: { label: 'Email mismatch', tone: 'bg-[#fef9c3] text-[#854d0e] border-amber-200' },
+  NOT_FOUND: { label: 'Not in roster', tone: 'bg-[#fee2e2] text-[#991b1b] border-rose-200' },
   INACTIVE_EMPLOYEE: { label: 'Inactive roster', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
 
@@ -462,16 +462,16 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
          ============================================================================================== */}
       {tab === 'overview' && (
         <div className="space-y-6">
-          {/* Workspace Hero Banner */}
-          <div className="relative overflow-hidden rounded-[24px] bg-[#10242f] text-white p-7 sm:p-8 shadow-xs border border-[#1d3c4e]">
+          {/* Workspace Hero Banner (TechKnowGram Theme) */}
+          <div className="relative overflow-hidden rounded-[24px] bg-[#080d26] text-white p-7 sm:p-8 shadow-xs border border-[#1a2462]">
             <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
               <div className="flex items-center gap-4">
-                <span className="grid size-14 place-items-center rounded-2xl bg-white/10 text-mint font-display text-2xl font-black border border-white/15 shrink-0">
+                <span className="grid size-14 place-items-center rounded-2xl bg-[#101845] text-white font-display text-2xl font-black border border-[#1a2462] shrink-0 shadow-xs">
                   {company.name.charAt(0).toUpperCase()}
                 </span>
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-3xs font-extrabold tracking-widest uppercase text-mint">
+                    <span className="text-3xs font-extrabold tracking-widest uppercase text-[#8eaee0]">
                       VERIFIED WORKSPACE #{company.id}
                     </span>
                     <span className="size-1.5 rounded-full bg-emerald-400" />
@@ -488,7 +488,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
               {/* Action shortcuts */}
               <div className="flex flex-wrap items-center gap-2.5">
                 <Button
-                  variant="sun"
+                  variant="primary"
                   className="!text-xs font-bold shadow-xs"
                   onClick={() => setTab('employees')}
                 >
@@ -508,7 +508,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
             <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-slate-300">Workspace Setup:</span>
-                <strong className="text-mint font-mono font-bold">
+                <strong className="text-[#8eaee0] font-mono font-bold">
                   {completedSetupCount} of {setupSteps.length} complete ({Math.round((completedSetupCount / setupSteps.length) * 100)}%)
                 </strong>
               </div>
@@ -521,7 +521,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                     title={label}
                     className={cx(
                       'size-3 rounded-full transition-transform',
-                      done ? 'bg-mint' : 'bg-white/20 hover:scale-125'
+                      done ? 'bg-[#2d62a8]' : 'bg-white/20 hover:scale-125'
                     )}
                   />
                 ))}
@@ -601,7 +601,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                           type="button"
                           disabled={busy}
                           onClick={() => decideMembership(m.id, 'APPROVED')}
-                          className="px-2.5 py-1 rounded-lg bg-mint text-slate-950 font-bold text-3xs hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          className="px-3 py-1 rounded-lg bg-[#2d62a8] text-white font-bold text-3xs hover:bg-[#28528d] disabled:opacity-50 transition-colors shadow-xs"
                         >
                           Approve
                         </button>
@@ -829,7 +829,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                             </td>
                             <td className={tdClass}>
                               <div className="flex items-center gap-3">
-                                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-900 text-mint font-display text-2xs font-bold">
+                                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#080d26] text-[#8eaee0] font-display text-2xs font-bold border border-[#1a2462]">
                                   {emp.name
                                     .split(' ')
                                     .map(p => p[0])
@@ -935,7 +935,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                 {selectedEmployees.length > 0 && (
                   <div className="sticky bottom-0 z-10 flex items-center justify-between gap-4 border-t border-slate-900 bg-slate-900 text-white px-6 py-3.5 shadow-xl">
                     <p className="text-xs font-semibold">
-                      <strong className="text-mint font-bold">{selectedEmployees.length}</strong> active employee
+                      <strong className="text-[#8eaee0] font-bold">{selectedEmployees.length}</strong> active employee
                       {selectedEmployees.length !== 1 ? 's' : ''} selected for card printing
                     </p>
                     <div className="flex items-center gap-2">
@@ -1246,7 +1246,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                             className={cx(
                               'inline-block rounded px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
                               o.payer === 'COMPANY'
-                                ? 'bg-mint/30 text-slate-900 border border-mint/60'
+                                ? 'bg-[#eef3fa] text-[#28528d] border border-[#d8e3f3]'
                                 : 'bg-slate-100 text-slate-700'
                             )}
                           >
@@ -1400,7 +1400,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
                             className={cx(
                               'inline-block rounded px-2.5 py-0.5 text-3xs font-extrabold uppercase tracking-wider',
                               o.payer === 'COMPANY'
-                                ? 'bg-mint/30 text-slate-900 border border-mint/60'
+                                ? 'bg-[#eef3fa] text-[#28528d] border border-[#d8e3f3]'
                                 : 'bg-slate-100 text-slate-700'
                             )}
                           >

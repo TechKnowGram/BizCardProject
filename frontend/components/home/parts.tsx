@@ -8,11 +8,15 @@ import { PhotoShape, Shape, photo, photos } from './Shapes';
 export const display = 'font-display font-medium tracking-[-0.01em]';
 
 export function PillButton({ href, children, tone = 'black', className = '' }: { href: string; children: ReactNode; tone?: 'black' | 'mint' | 'white'; className?: string }) {
-  const tones = { black: 'bg-black text-white', mint: 'bg-mint text-black', white: 'bg-white text-black' };
+  const tones = {
+    black: 'bg-[#2d62a8] text-white hover:bg-[#28528d] shadow-sm',
+    mint: 'bg-[#080d26] text-white hover:bg-[#101845]',
+    white: 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50'
+  };
   return (
-    <Link href={href} className={`inline-flex h-[52px] items-center gap-2 rounded-full px-6 font-display text-base font-medium transition hover:opacity-85 ${tones[tone]} ${className}`}>
+    <Link href={href} className={`inline-flex h-[48px] items-center gap-2 rounded-lg px-6 font-display text-sm font-semibold transition ${tones[tone]} ${className}`}>
       {children}
-      <Icon icon="lucide:arrow-right" className="size-5" />
+      <Icon icon="lucide:arrow-right" className="size-4" />
     </Link>
   );
 }

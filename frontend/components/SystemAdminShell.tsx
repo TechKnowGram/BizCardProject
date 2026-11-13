@@ -71,30 +71,30 @@ export default function SystemAdminShell({
       {/* COMPACT COLLAPSIBLE OPS SIDEBAR */}
       <aside
         className={cx(
-          'fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0b1821] text-white border-r border-[#162a38] transition-all duration-250 ease-in-out md:sticky md:top-0 md:h-screen',
+          'fixed inset-y-0 left-0 z-50 flex flex-col bg-[#080d26] text-white border-r border-[#1a2462] transition-all duration-250 ease-in-out md:sticky md:top-0 md:h-screen',
           collapsed ? 'md:w-20' : 'md:w-64',
           mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
         )}
       >
         {/* Sidebar Header: Brand & Collapse Toggle */}
-        <div className="h-16 flex items-center justify-between px-4.5 border-b border-[#162a38]">
+        <div className="h-16 flex items-center justify-between px-4.5 border-b border-[#1a2462]">
           {!collapsed ? (
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <span className="grid size-9 place-items-center rounded-xl bg-mint text-slate-950 font-black text-sm shrink-0">
+              <span className="grid size-9 place-items-center rounded-xl bg-[#2d62a8] text-white font-black text-sm shrink-0 shadow-xs">
                 B
               </span>
               <div className="min-w-0">
                 <span className="block font-display text-sm font-extrabold tracking-tight truncate">
                   BizCard
                 </span>
-                <span className="block text-3xs font-mono text-emerald-400 uppercase tracking-widest truncate">
+                <span className="block text-3xs font-mono text-[#8eaee0] uppercase tracking-widest truncate">
                   Ops Console
                 </span>
               </div>
             </div>
           ) : (
             <div className="mx-auto">
-              <span className="grid size-9 place-items-center rounded-xl bg-mint text-slate-950 font-black text-sm">
+              <span className="grid size-9 place-items-center rounded-xl bg-[#2d62a8] text-white font-black text-sm">
                 B
               </span>
             </div>
@@ -123,12 +123,12 @@ export default function SystemAdminShell({
 
         {/* System Health Status Indicator */}
         {!collapsed && (
-          <div className="px-4 py-2.5 border-b border-[#162a38] bg-[#071118]/60 flex items-center justify-between">
+          <div className="px-4 py-2.5 border-b border-[#1a2462] bg-[#101845]/70 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-3xs font-mono font-medium text-emerald-400">
               <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
               SYSTEM OPERATIONAL
             </span>
-            <span className="text-3xs text-slate-500 font-mono">v1.0.4</span>
+            <span className="text-3xs text-slate-400 font-mono">v1.0.4</span>
           </div>
         )}
 
@@ -161,7 +161,7 @@ export default function SystemAdminShell({
                     ? 'justify-center p-3'
                     : 'justify-between px-3.5 py-2.5',
                   active
-                    ? 'bg-mint text-slate-950 font-bold shadow-xs'
+                    ? 'bg-[#2d62a8] text-white font-bold shadow-xs'
                     : 'text-slate-300 hover:text-white hover:bg-white/6'
                 )}
               >
@@ -169,7 +169,7 @@ export default function SystemAdminShell({
                   <span
                     className={cx(
                       'shrink-0 grid place-items-center',
-                      active ? 'text-slate-950' : 'text-slate-400'
+                      active ? 'text-white' : 'text-slate-400'
                     )}
                   >
                     <Icon name={iconName} size={18} />
@@ -182,7 +182,7 @@ export default function SystemAdminShell({
                     className={cx(
                       'rounded-full px-2 py-0.5 text-3xs font-mono font-bold leading-none shrink-0',
                       active
-                        ? 'bg-slate-950 text-white'
+                        ? 'bg-[#080d26] text-white'
                         : 'bg-amber-400 text-slate-950'
                     )}
                   >
@@ -190,7 +190,7 @@ export default function SystemAdminShell({
                   </span>
                 )}
                 {collapsed && badgeCount > 0 && (
-                  <span className="absolute top-2 right-2 size-2 rounded-full bg-amber-400 ring-2 ring-[#0b1821]" />
+                  <span className="absolute top-2 right-2 size-2 rounded-full bg-amber-400 ring-2 ring-[#080d26]" />
                 )}
               </button>
             );
@@ -198,11 +198,11 @@ export default function SystemAdminShell({
         </nav>
 
         {/* Sidebar Footer: System Admin Profile & Sign Out */}
-        <div className="p-3 border-t border-[#162a38] bg-[#071118]/80">
+        <div className="p-3 border-t border-[#1a2462] bg-[#080d26]">
           {!collapsed ? (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="grid size-8 place-items-center rounded-full bg-slate-800 text-mint font-bold text-xs border border-white/10 shrink-0">
+                <span className="grid size-8 place-items-center rounded-full bg-[#1a2462] text-[#8eaee0] font-bold text-xs border border-white/10 shrink-0">
                   {user.username.charAt(0).toUpperCase()}
                 </span>
                 <div className="min-w-0">

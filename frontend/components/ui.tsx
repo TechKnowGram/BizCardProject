@@ -6,17 +6,21 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
   return twMerge(parts.filter(Boolean).join(' '));
 }
 
-/* ---------- Buttons (final cascaded look of .btn-primary/.btn-secondary/.btn-danger/.btn-quiet/.btn-sun) ---------- */
+/* ---------- Buttons (TechKnowGram corporate theme) ---------- */
 const buttonBase =
-  'inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 font-display text-sm font-medium transition duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 font-display text-sm font-semibold transition duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50';
 
 const buttonVariants = {
   primary:
-    'border border-black bg-black text-white enabled:hover:opacity-85',
-  secondary: 'border border-black bg-white text-black enabled:hover:bg-lilac',
-  danger: 'border border-[#ae3843] bg-white text-[#ae3843] enabled:hover:bg-[#fff0f1]',
-  quiet: 'border border-transparent text-black/60 enabled:hover:bg-lilac enabled:hover:text-black',
-  sun: 'min-h-11 gap-3 border border-transparent bg-mint px-5 py-0 text-black enabled:hover:opacity-85',
+    'border border-[#2d62a8] bg-[#2d62a8] text-white hover:bg-[#28528d] shadow-xs active:bg-[#1a2462]',
+  secondary:
+    'border border-slate-200 bg-white text-slate-800 hover:bg-[#eef3fa] hover:text-[#2d62a8] hover:border-[#b2c7e7]',
+  danger:
+    'border border-[#e20917]/30 bg-white text-[#e20917] hover:bg-rose-50 hover:border-[#e20917]',
+  quiet:
+    'border border-transparent text-slate-600 hover:bg-[#eef3fa] hover:text-[#2d62a8]',
+  sun:
+    'min-h-11 gap-3 border border-[#2d62a8] bg-[#3267b0] px-5 py-0 text-white hover:bg-[#28528d] shadow-sm',
 } as const;
 
 export type ButtonVariant = keyof typeof buttonVariants;
@@ -35,9 +39,9 @@ export function Button({ variant = 'primary', className, type = 'button', ...pro
 
 /* ---------- Form fields ---------- */
 export const inputClass =
-  'w-full rounded-[10px] border border-black/70 bg-white px-4 py-3 text-sm transition focus:border-royal focus:ring-3 focus:ring-lilac focus:outline-none';
-export const inputErrorClass = 'border-[#dc6060]';
-export const inputCompactClass = 'w-auto max-w-full px-3 py-2 text-xs';
+  'w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm transition focus:border-[#2d62a8] focus:ring-3 focus:ring-[#eef3fa] focus:outline-none';
+export const inputErrorClass = 'border-[#e20917] focus:ring-rose-100';
+export const inputCompactClass = 'w-auto max-w-full px-3 py-1.5 text-xs';
 
 export function Input({ error, compact, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { error?: boolean; compact?: boolean }) {
   return <input className={cx(inputClass, compact && inputCompactClass, error && inputErrorClass, className)} {...props} />;

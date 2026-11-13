@@ -20,12 +20,12 @@ export interface AuthScreenProps {
 type FieldKey = 'username' | 'company_name' | 'email' | 'password' | 'confirm';
 type FormValues = Record<FieldKey, string>;
 
-const submitBase = 'inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-black px-6 py-2.5 font-display text-base font-medium text-white transition duration-200 ease-out hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50';
+const submitBase = 'inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#2d62a8] px-6 py-2.5 font-medium text-white transition duration-200 ease-out hover:bg-[#28528d] shadow-sm disabled:cursor-not-allowed disabled:opacity-50';
 const submitButtonClass = cx(submitBase, 'w-full');
 const submitLinkClass = cx(submitBase, 'mt-2.5');
-const inputBase = 'min-h-12 w-full rounded-[10px] border bg-white py-3.5 pl-4 text-sm transition duration-150 focus:border-royal focus:ring-4 focus:ring-lilac focus:outline-none';
-const stepCircle = 'grid size-7.5 flex-none place-items-center rounded-full border border-black text-3xs font-bold text-black';
-const stepLine = "after:absolute after:mt-16 after:h-9 after:w-px after:bg-[#e3e8e6] after:content-['']";
+const inputBase = 'min-h-11 w-full rounded-lg border border-slate-300 bg-white py-3 pl-4 text-sm transition duration-150 focus:border-[#2d62a8] focus:ring-4 focus:ring-[#eef3fa] focus:outline-none';
+const stepCircle = 'grid size-7.5 flex-none place-items-center rounded-full border border-[#2d62a8] text-3xs font-bold text-[#2d62a8] bg-[#eef3fa]';
+const stepLine = "after:absolute after:mt-16 after:h-9 after:w-px after:bg-[#e2e8f0] after:content-['']";
 
 export default function AuthScreen({ register = false, initialType = 'COMPANY' }: AuthScreenProps) {
   const router = useRouter();
@@ -144,46 +144,46 @@ export default function AuthScreen({ register = false, initialType = 'COMPANY' }
   const successSteps = accountType === 'COMPANY' ? successStepsCompany : successStepsEmployee;
 
   return (
-    <main className="grid min-h-screen grid-cols-2 bg-lilac max-md:grid-cols-1">
-      <section className="relative isolate flex min-h-screen flex-col overflow-hidden bg-navy px-15 py-10.5 text-white max-md:hidden">
-        <Shape kind="burst" points={14} inner={0.72} fill="#fff700" className="absolute top-[8%] right-[8%] -z-1 size-36" />
-        <Shape kind="flower" points={8} amp={0.14} fill="#4a1ff2" className="absolute -bottom-24 -left-20 -z-1 size-80" />
-        <Shape kind="burst" points={9} inner={0.5} fill="#4dffc8" className="absolute right-[-60px] bottom-[18%] -z-1 size-56" />
+    <main className="grid min-h-screen grid-cols-2 bg-[#f4f7fb] max-md:grid-cols-1 font-body">
+      <section className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#080d26] px-15 py-10.5 text-white max-md:hidden border-r border-[#1a2462]">
+        <div className="absolute -top-24 -left-20 -z-1 size-96 rounded-full bg-[#101845]/60 blur-3xl" />
+        <div className="absolute right-[-40px] bottom-[18%] -z-1 size-80 rounded-full bg-[#2d62a8]/10 blur-3xl" />
         <Link href="/" aria-label="Back to BizCard home"><Brand light /></Link>
         <div className="relative z-2 my-auto py-10.5">
-          <span className="inline-flex rounded-full bg-mint px-3.5 py-1.5 font-display text-2xs font-semibold tracking-2xl text-black">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#1a2462] bg-[#101845] px-3.5 py-1.5 text-2xs font-semibold tracking-wider text-slate-200">
+            <span className="size-1.5 rounded-full bg-[#e20917]" />
             THOUGHTFUL CARDS. LASTING CONNECTIONS.
           </span>
-          <h1 className="mt-6 max-w-148 text-5xl leading-[1.15] font-medium tracking-tight lg:text-6xl">
-            Make every<br />introduction<br /><em className="text-lemon font-medium not-italic">feel like you.</em>
+          <h1 className="mt-6 max-w-148 text-5xl leading-[1.15] font-semibold tracking-tight lg:text-6xl text-white">
+            Make every<br />introduction<br /><span className="text-[#60a5fa] font-semibold">feel like you.</span>
           </h1>
-          <p className="mt-6 max-w-105 text-base leading-relaxed text-white/80">
-            One energetic workspace for your people, your brand and every first impression.
+          <p className="mt-6 max-w-105 text-base leading-relaxed text-slate-300">
+            One energetic enterprise workspace for your team, your brand, and every customer impression.
           </p>
           <div className="mt-9.5 max-w-95 -rotate-4 drop-shadow-2xl transition-transform duration-300 ease-out hover:-translate-y-1 hover:-rotate-2">
             <CardPreview style="modern" name="Alex Morgan" company="STUDIO NORTH" />
           </div>
-          <div className="mt-8.5 flex gap-8.5 text-2xs text-[#7c8a90] [&_strong]:mb-0.5 [&_strong]:block [&_strong]:text-lg [&_strong]:text-white">
+          <div className="mt-8.5 flex gap-8.5 text-2xs text-slate-400 [&_strong]:mb-0.5 [&_strong]:block [&_strong]:text-lg [&_strong]:text-white">
             <span><strong>3</strong>signature styles</span>
             <span><strong>1-click</strong>approval flow</span>
-            <span><strong>PDF</strong>ready cards</span>
+            <span><strong>300 DPI</strong>vector print</span>
           </div>
         </div>
-        <p className="relative z-2 text-2xs text-[#7c8a90]">Designed for teams. Made for real connections.</p>
+        <p className="relative z-2 text-2xs text-slate-400">Designed for teams. Made for real connections.</p>
       </section>
 
       <section className="flex min-h-screen flex-col px-14 py-7.5 max-md:p-5.5">
         <div className="mb-8 lg:hidden"><Link href="/"><Brand /></Link></div>
-        <div className="my-auto w-full max-w-md self-center rounded-[40px] bg-white p-10 shadow-sm max-md:px-6 max-md:py-7.5">
+        <div className="my-auto w-full max-w-md self-center rounded-2xl border border-slate-200/80 bg-white p-9 shadow-sm max-md:px-6 max-md:py-7.5">
           {register && (
-            <div className="mb-6 flex rounded-full bg-slate-100 p-1">
+            <div className="mb-6 flex rounded-lg bg-slate-100 p-1 border border-slate-200">
               <button
                 type="button"
                 onClick={() => { setAccountType('COMPANY'); setErrors({}); setError(''); }}
                 className={cx(
-                  'flex-1 rounded-full py-2.5 text-center text-xs font-semibold transition-all duration-200',
+                  'flex-1 rounded-md py-2 text-center text-xs font-semibold transition-all duration-200',
                   accountType === 'COMPANY'
-                    ? 'bg-navy text-white shadow-xs'
+                    ? 'bg-[#2d62a8] text-white shadow-xs'
                     : 'text-slate-600 hover:text-black'
                 )}
               >
@@ -193,9 +193,9 @@ export default function AuthScreen({ register = false, initialType = 'COMPANY' }
                 type="button"
                 onClick={() => { setAccountType('EMPLOYEE'); setErrors({}); setError(''); }}
                 className={cx(
-                  'flex-1 rounded-full py-2.5 text-center text-xs font-semibold transition-all duration-200',
+                  'flex-1 rounded-md py-2 text-center text-xs font-semibold transition-all duration-200',
                   accountType === 'EMPLOYEE'
-                    ? 'bg-navy text-white shadow-xs'
+                    ? 'bg-[#2d62a8] text-white shadow-xs'
                     : 'text-slate-600 hover:text-black'
                 )}
               >
@@ -324,7 +324,7 @@ export default function AuthScreen({ register = false, initialType = 'COMPANY' }
             <div className="mt-7 text-center space-y-2 text-sm text-slate-500">
               <p>
                 {register ? 'Already have an account?' : 'New to BizCard?'} {' '}
-                <Link href={register ? '/login' : '/register'} className="font-semibold text-royal">
+                <Link href={register ? '/login' : '/register'} className="font-semibold text-[#2d62a8] hover:underline">
                   {register ? 'Sign in' : 'Create an account'}
                 </Link>
               </p>

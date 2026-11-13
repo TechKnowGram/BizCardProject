@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Icon } from '../home/Iconify';
+import Brand from '../Brand';
 
 const links = [
   { href: '/#how', label: 'How it works' },
@@ -8,24 +8,37 @@ const links = [
   { href: '/login', label: 'Sign in' },
 ];
 
-/** Floating pill header: logo icon, navigation links, then the new card request button. */
+/** TechKnowGram-styled Floating pill header: glassmorphism, brand logo, navigation links, and primary CTA. */
 export default function SiteHeader() {
   return (
-    <nav className="mx-auto flex h-[72px] max-w-7xl items-center gap-4 rounded-full border border-black/5 bg-white px-5 shadow-xs">
-      <Link href="/" aria-label="BizCard home" className="flex shrink-0 items-center border-r border-black/10 pr-6">
-        <Icon icon="tabler:id-badge-2" className="size-8" />
+    <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-md px-6 shadow-sm">
+      <Link href="/" aria-label="BizCard home" className="flex shrink-0 items-center border-r border-slate-200 pr-5">
+        <Brand />
       </Link>
 
-      <div className="hidden items-center gap-8 pl-2 font-body text-sm font-medium text-black/70 md:flex">
+      <div className="hidden items-center gap-7 pl-2 font-display text-sm font-semibold text-slate-700 md:flex">
         {links.map((link) => (
-          <Link key={link.href} href={link.href} className="transition hover:text-black">{link.label}</Link>
+          <Link key={link.href} href={link.href} className="transition-colors hover:text-[#2d62a8]">
+            {link.label}
+          </Link>
         ))}
       </div>
 
-      <Link href="/register" className="ml-auto flex h-11 shrink-0 items-center gap-2 rounded-full bg-royal px-5 font-body text-sm font-medium text-white transition hover:opacity-90">
-        <Icon icon="lucide:plus" className="size-4" />
-        New card request
-      </Link>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/login"
+          className="hidden sm:inline-flex items-center rounded-lg px-4 py-2 text-xs font-semibold text-slate-700 hover:text-[#2d62a8] hover:bg-[#eef3fa] transition-colors"
+        >
+          Sign in
+        </Link>
+        <Link
+          href="/register"
+          className="flex items-center gap-1.5 rounded-lg bg-[#2d62a8] px-5 py-2.5 font-display text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#28528d]"
+        >
+          <span>+</span>
+          New card request
+        </Link>
+      </div>
     </nav>
   );
 }
