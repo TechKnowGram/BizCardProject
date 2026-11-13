@@ -2,9 +2,9 @@ export type FaqItem = { question: string; answer: string };
 
 export const facts = [
   { value: '3.5 × 2 in', label: 'Standard card size' },
-  { value: 'Vector PDF', label: 'Sharp at any print size' },
+  { value: 'PDF', label: 'Vector, print-ready file' },
   { value: 'CSV', label: 'Bulk staff import' },
-  { value: 'QR', label: 'Check printed on every card' },
+  { value: 'QR', label: 'Verification on every card' },
   { value: '2-step', label: 'Request and approval' },
 ];
 
@@ -60,4 +60,37 @@ export const faqs: FaqItem[] = [
   { question: 'Can we use our own design?', answer: 'Yes. Save your colours, fonts and logo in the brand kit, adjust a template, or describe the look you want and pick from a few suggestions.' },
   { question: 'How does QR verification work?', answer: 'Scanning a card opens a public page showing the name, role and company printed on it, and whether the card is still active.' },
   { question: 'Who can see our staff data?', answer: 'Only your company admins and the platform admins. Verification pages show just the details that are already printed on the card; emails and phone numbers stay private.' },
+];
+
+/*
+ * SAMPLE DATA: demo figures and quotes for the homepage.
+ * Replace with real numbers and real, approved customer quotes before launch.
+ * The sections render whatever is in these two arrays.
+ */
+export const stats = [
+  { value: '120+', label: 'Companies using BizCard' },
+  { value: '8,500+', label: 'Cards issued' },
+  { value: '1 day', label: 'Typical approval time' },
+  { value: '99%', label: 'Cards printed without reprints' },
+];
+
+export const testimonials = [
+  {
+    quote: 'We used to collect card details over email and lose half of them. Now HR updates the staff list and new joiners have cards in their first week.',
+    name: 'Sharmin Akter',
+    role: 'HR Manager',
+    company: 'Northwind Garments',
+  },
+  {
+    quote: 'Every branch prints the same design now. The approval step means nothing goes to the printer with a typo.',
+    name: 'Rafiq Islam',
+    role: 'Head of Marketing',
+    company: 'Meghna Foods',
+  },
+  {
+    quote: 'Clients scan the QR code and see the card is genuine. That matters for our field staff.',
+    name: 'Mehedi Hasan',
+    role: 'Operations Director',
+    company: 'Delta Field Services',
+  },
 ];

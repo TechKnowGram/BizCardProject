@@ -71,9 +71,12 @@ def checkout_company_cards(company_id: int, body: CardCheckout, db: Session = De
                          or_(CardTemplate.company_id.is_(None), CardTemplate.company_id == company_id)))
     if template is None:
         raise HTTPException(404, 'Active template not found')
-    unit_price = 0 if body.payer == 'COMPANY' else INDIVIDUAL_CARD_PRICE
+    # Who pays is decided by the approved membership, never by the request body:
+    # company-sponsored members get cards free, self-paid members pay the normal price.
+    payer = membership.payer
+    unit_price = 0 if payer == 'COMPANY' else INDIVIDUAL_CARD_PRICE
     order = CardOrder(company_id=company_id, user_id=user.id, membership_id=membership.id, quantity=body.quantity,
-                      unit_price=unit_price, total_amount=unit_price * body.quantity, payer=body.payer, status='PAID')
+                      unit_price=unit_price, total_amount=unit_price * body.quantity, payer=payer, status='PAID')
     db.add(order); db.flush(); db.add(PaymentRecord(order_id=order.id, amount=order.total_amount))
     card_ids = []
     try:
@@ -83,7 +86,7 @@ def checkout_company_cards(company_id: int, body: CardCheckout, db: Session = De
             db.add(request); db.flush()
             request = db.scalar(select(CardRequest).where(CardRequest.id == request.id).options(selectinload(CardRequest.company), selectinload(CardRequest.template), selectinload(CardRequest.items).selectinload(CardRequestItem.employee), selectinload(CardRequest.items).selectinload(CardRequestItem.generated_card)))
             card = generate_cards(db, request)[0]; request.status = 'COMPLETED'; card_ids.append(card.id)
-        add_audit(db, 'EMPLOYEE_CARD_ORDER', 'card_order', order.id, user.id, company_id, f'{body.quantity} cards; {body.payer}')
+        add_audit(db, 'EMPLOYEE_CARD_ORDER', 'card_order', order.id, user.id, company_id, f'{body.quantity} cards; {payer}')
         db.commit()
         return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': unit_price,
                 'total_amount': order.total_amount, 'payer': order.payer, 'payment_status': 'PAID', 'card_ids': card_ids}

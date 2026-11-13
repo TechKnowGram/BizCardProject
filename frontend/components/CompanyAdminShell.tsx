@@ -6,6 +6,9 @@ import type { User } from '@/lib/types';
 
 export type NavigationItem = readonly [string, string, string];
 
+/** Tabs listed under "Account" at the bottom of the sidebar. */
+const ACCOUNT_TABS = ['profile', 'billing', 'settings'];
+
 export interface CompanyAdminShellProps {
   user: Pick<User, 'role' | 'username'>;
   companyName?: string;
@@ -36,6 +39,7 @@ export default function CompanyAdminShell({
     icon,
     label,
     badge: id === 'memberships' ? pendingMembershipsCount : id === 'requests' ? pendingRequestsCount : 0,
+    section: ACCOUNT_TABS.includes(id) ? ('account' as const) : ('main' as const),
   }));
 
   return (
@@ -48,6 +52,7 @@ export default function CompanyAdminShell({
       activeTab={activeTab}
       onNavigate={onNavigate}
       onLogout={onLogout}
+      profileTab={navigation.some(([id]) => id === 'profile') ? 'profile' : undefined}
       storageKey="bizcard_co_sidebar_collapsed"
     >
       {children}

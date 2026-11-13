@@ -32,6 +32,7 @@ export default function SystemAdminShell({
     icon,
     label,
     badge: id === 'companies' ? pendingCompaniesCount : id === 'requests' ? pendingRequestsCount : 0,
+    section: id === 'settings' ? ('account' as const) : ('main' as const),
   }));
 
   return (
@@ -43,6 +44,7 @@ export default function SystemAdminShell({
       activeTab={activeTab}
       onNavigate={onNavigate}
       onLogout={onLogout}
+      profileTab="settings"
       storageKey="bizcard_sys_sidebar_collapsed"
     >
       {children}

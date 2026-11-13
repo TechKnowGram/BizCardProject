@@ -5,10 +5,12 @@ import { api } from '../lib/api';
 import type { BrandKit as BrandKitValues, CardFont } from '../lib/types';
 import { contrastError } from './DesignEditor';
 import { Button, cx, inputClass } from './ui';
+import { ColorField, studioLabelClass } from './StudioParts';
 import { errorMessage } from './CompanyDashboardParts';
 
 const colorKeys = ['background', 'text', 'accent'] as const;
 const aiTextClass = 'text-sm leading-relaxed';
+const chevron = <svg viewBox="0 0 20 20" className="size-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 8 4 4 4-4" /></svg>;
 
 export default function BrandKit() {
   const [kit, setKit] = useState<BrandKitValues | null>(null);
@@ -22,16 +24,19 @@ export default function BrandKit() {
     catch (err) { setError(errorMessage(err)); }
     finally { setBusy(false); }
   }
-  return <details className="mb-6 rounded-xl border border-brand-100 bg-white/50 px-4.5 py-4">
-    <summary className="flex cursor-pointer items-center justify-between gap-3 [&_span]:text-2xs [&_span]:text-slate-500"><div><strong className="block text-xs">Your Brand Kit</strong><span>A familiar palette. A consistent identity.</span></div><span>Edit preferences</span></summary>
-    {kit && <form onSubmit={save} className="mt-4.5">
-      <div className="mb-4 grid grid-cols-3 gap-2.5 max-sm:gap-1.5">{colorKeys.map(key => <label key={key} className="min-w-0 text-2xs text-slate-500"><span className="mb-1.5 block text-2xs capitalize text-slate-500">{key}</span><div className="flex items-center gap-1.5"><input aria-label={`Brand ${key}`} type="color" className="size-7.5 flex-none border-none bg-transparent p-0" value={kit[key]} onChange={e => { setMessage(''); setKit({ ...kit, [key]: e.target.value }); }} /><code className="text-3xs text-slate-600 max-sm:text-3xs">{kit[key]}</code></div></label>)}</div>
-      <label className="text-2xs text-slate-500">Preferred font<select className={cx(inputClass, 'mt-1.5 block max-w-60')} value={kit.font} onChange={e => setKit({ ...kit, font: e.target.value as CardFont })}><option value="Helvetica">Clean sans</option><option value="Times-Roman">Editorial serif</option><option value="Courier">Modern mono</option></select></label>
-      <p className={cx('mb-4.5 text-slate-500', aiTextClass)}>Your uploaded company logo is included in card previews and PDFs.</p>
-      {contrastError(kit) && <p className={cx('mt-3.5 text-red-700', aiTextClass)}>{contrastError(kit)}</p>}
-      <Button type="submit" variant="secondary" disabled={busy || !!contrastError(kit)}>{busy ? 'Saving…' : 'Save Brand Kit'}</Button>
+  return <details className="group rounded-xl border border-slate-200 bg-white">
+    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
+      <span><span className="block text-sm font-semibold text-navy-900">Brand kit</span><span className="block text-sm text-slate-500">Colours and font used as a starting point for new designs.</span></span>
+      <span className="flex items-center gap-1.5 text-sm font-medium text-brand-600">Edit {chevron}</span>
+    </summary>
+    {kit && <form onSubmit={save} className="border-t border-slate-100 px-4 py-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{colorKeys.map(key => <ColorField key={key} label={key} value={kit[key]} onChange={value => { setMessage(''); setKit({ ...kit, [key]: value }); }} />)}</div>
+      <label className="mt-4 block max-w-60"><span className={studioLabelClass}>Font</span><select className={inputClass} value={kit.font} onChange={e => setKit({ ...kit, font: e.target.value as CardFont })}><option value="Helvetica">Clean sans</option><option value="Times-Roman">Editorial serif</option><option value="Courier">Modern mono</option></select></label>
+      <p className={cx('mt-4 text-slate-500', aiTextClass)}>Your uploaded company logo is included in card previews and PDFs.</p>
+      {contrastError(kit) && <p className={cx('mt-3 text-red-700', aiTextClass)}>{contrastError(kit)}</p>}
+      <Button type="submit" variant="secondary" className="mt-4" disabled={busy || !!contrastError(kit)}>{busy ? 'Saving…' : 'Save brand kit'}</Button>
     </form>}
-    {error && <p role="alert" className={cx('mt-3.5 text-red-700', aiTextClass)}>{error}</p>}
-    {message && <p role="status" className={cx('mt-3.5 text-emerald-800', aiTextClass)}>{message}</p>}
+    {error && <p role="alert" className={cx('px-4 pb-4 text-red-700', aiTextClass)}>{error}</p>}
+    {message && <p role="status" className={cx('px-4 pb-4 text-emerald-800', aiTextClass)}>{message}</p>}
   </details>;
 }

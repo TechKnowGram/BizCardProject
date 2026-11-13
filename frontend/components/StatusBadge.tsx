@@ -13,12 +13,15 @@ const tones: Record<string, [string, string]> = {
   SUSPENDED: ['bg-slate-100 text-slate-700 ring-slate-200', 'bg-slate-400'],
   INACTIVE: ['bg-slate-100 text-slate-700 ring-slate-200', 'bg-slate-400'],
   DEACTIVATED: ['bg-slate-100 text-slate-700 ring-slate-200', 'bg-slate-400'],
+  SHARED: ['bg-brand-50 text-brand-700 ring-brand-100', 'bg-brand-600'],
+  PRIVATE: ['bg-slate-100 text-slate-700 ring-slate-200', 'bg-slate-400'],
 };
 
 const fallback: [string, string] = ['bg-slate-100 text-slate-700 ring-slate-200', 'bg-slate-400'];
 
 export interface StatusBadgeProps {
-  value: string;
+  /** Missing values render nothing rather than crashing the page. */
+  value?: string | null;
 }
 
 /** Turns e.g. PRE_APPROVED into "Pre approved". */
@@ -28,6 +31,7 @@ function readable(value: string) {
 }
 
 export default function StatusBadge({ value }: StatusBadgeProps) {
+  if (!value) return null;
   const [tone, dot] = tones[value] ?? fallback;
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ring-1 ring-inset ${tone}`}>

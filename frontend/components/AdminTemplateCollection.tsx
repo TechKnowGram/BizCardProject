@@ -1,7 +1,9 @@
 ﻿'use client';
 import CardPreview from './CardPreview';
 import StatusBadge from './StatusBadge';
-import { Button, cx } from './ui';
+import type { ReactNode } from 'react';
+import { Button } from './ui';
+import { SectionCard } from './dashboard/Surface';
 import type { CompanySummary, Template } from '../lib/types';
 
 export interface AdminTemplateData {
@@ -17,23 +19,98 @@ export interface AdminTemplateCollectionProps {
   onSave: (id: number) => void;
 }
 
-const gridClass = 'grid grid-cols-3 items-stretch gap-5 max-lg:grid-cols-2 max-sm:grid-cols-1';
-const headingClass = 'mb-5 flex items-start justify-between gap-4 max-sm:flex-wrap';
-const wrapText = '[overflow-wrap:anywhere]';
+const gridClass = 'grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3';
 
-function SectionHeading({ title, note, count }: { title: string; note: string; count: number }) {
-  return <div className={headingClass}><div className="min-w-0"><h3 className={cx('text-lg font-bold tracking-tighter', wrapText)}>{title}</h3><p className="mt-1.5 text-xs leading-relaxed text-slate-500">{note}</p></div><span className="flex-none rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs text-slate-500">{count} designs</span></div>;
+function Count({ value }: { value: number }) {
+  return <span className="text-slate-500">{value === 1 ? '1 design' : `${value} designs`}</span>;
+}
+
+function TemplateCard({
+  template,
+  label,
+  status,
+  action,
+}: {
+  template: Template;
+  label: string;
+  status: string;
+  action: ReactNode;
+}) {
+  return (
+    <article className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
+      <CardPreview variant="library" design={template.design} style={template.style_key} />
+      <div className="mt-4 min-w-0 flex-1">
+        <p className="truncate text-xs text-slate-500">{label}</p>
+        <h3 className="mt-0.5 text-sm font-semibold text-navy-900 [overflow-wrap:anywhere]">{template.name}</h3>
+        {template.description && <p className="mt-1 line-clamp-2 text-sm text-slate-500" title={template.description}>{template.description}</p>}
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+        <StatusBadge value={status} />
+        {action}
+      </div>
+    </article>
+  );
 }
 
 export default function AdminTemplateCollection({ data, busy, onToggle, onSave }: AdminTemplateCollectionProps) {
-  function card(template: Template, privateDesign = false) {
-    const saved = data.templates.some(item => item.style_key === `shared_${template.id}`);
-    const company = data.companies.find(item => item.id === template.company_id);
-    return <article className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4.5 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-200" key={template.id}>
-      <CardPreview variant="library" design={template.design} style={template.style_key} />
-      <div className="my-5 flex min-w-0 flex-1 items-start justify-between gap-3"><div className="w-full min-w-0"><span className={cx('mb-1.25 block text-3xs font-bold tracking-wider text-slate-500', wrapText)}>{privateDesign ? company?.name || `Company #${template.company_id}` : 'SHARED COLLECTION'}</span><h3 className={cx('text-base font-bold leading-relaxed', wrapText)}>{template.name}</h3><p className={cx('mt-1.5 text-xs leading-relaxed text-slate-500', wrapText)}>{template.description}</p></div></div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4"><StatusBadge value={privateDesign ? saved ? 'SAVED' : 'PRIVATE' : template.is_active ? 'ACTIVE' : 'INACTIVE'} /><Button variant={privateDesign ? 'primary' : 'secondary'} className="min-w-0 whitespace-normal" disabled={busy || (privateDesign && saved)} onClick={() => privateDesign ? onSave(template.id) : onToggle(template)}>{privateDesign ? saved ? 'Saved to collection' : 'Save to collection' : template.is_active ? 'Deactivate' : 'Activate'}</Button></div>
-    </article>;
-  }
-  return <div className="min-w-0 px-7 pb-7 pt-2 max-sm:px-4 max-sm:pb-5 max-sm:pt-1"><section><SectionHeading title="Shared template collection" note="Curated designs available to approved companies." count={data.templates.length} /><div className={gridClass}>{data.templates.map(template => card(template))}</div></section><section className="mt-9 border-t border-slate-200 pt-7"><SectionHeading title="Company designs" note="Private company styles. Save a design here to publish a shared copy." count={data.companyDesigns.length} />{data.companyDesigns.length ? <div className={gridClass}>{data.companyDesigns.map(template => card(template, true))}</div> : <div className="rounded-xl border border-dashed border-brand-100 p-7.5 text-center text-sm text-slate-500">Company designs will appear here when teams save their first style.</div>}</section></div>;
+  return (
+    <div className="space-y-6">
+      <SectionCard title="Shared templates" info="Designs every approved company can choose for its cards." action={<Count value={data.templates.length} />}>
+        {data.templates.length ? (
+          <div className={gridClass}>
+            {data.templates.map(template => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                label="Shared"
+                status={template.is_active ? 'ACTIVE' : 'INACTIVE'}
+                action={
+                  <Button variant="secondary" className="px-3 py-1.5" disabled={busy} onClick={() => onToggle(template)}>
+                    {template.is_active ? 'Deactivate' : 'Activate'}
+                  </Button>
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="py-10 text-center text-sm text-slate-500">Shared templates will appear here.</p>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        title="Company designs"
+        info="Designs a company made for itself. Only that company can use them until you add a copy to the shared templates."
+        action={<Count value={data.companyDesigns.length} />}
+      >
+        {data.companyDesigns.length ? (
+          <div className={gridClass}>
+            {data.companyDesigns.map(template => {
+              const saved = data.templates.some(item => item.style_key === `shared_${template.id}`);
+              const company = data.companies.find(item => item.id === template.company_id);
+              return (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  label={company?.name || `Company #${template.company_id}`}
+                  status={saved ? 'SHARED' : 'PRIVATE'}
+                  action={
+                    <Button
+                      variant={saved ? 'secondary' : 'primary'}
+                      className="px-3 py-1.5"
+                      disabled={busy || saved}
+                      onClick={() => onSave(template.id)}
+                    >
+                      {saved ? 'Already shared' : 'Add to shared templates'}
+                    </Button>
+                  }
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <p className="py-10 text-center text-sm text-slate-500">Designs companies make for themselves will appear here.</p>
+        )}
+      </SectionCard>
+    </div>
+  );
 }

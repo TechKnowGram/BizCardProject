@@ -2,7 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Icon } from './Iconify';
 import CardMock from './CardMock';
-import { facts, faqs, features, reasons, roles, steps, templates } from './content';
+import Reveal from './Reveal';
+import { facts, faqs, features, reasons, roles, stats, steps, templates, testimonials } from './content';
 import { cx } from '../ui';
 
 /* ---------- small shared pieces ---------- */
@@ -22,11 +23,11 @@ function Eyebrow({ children, dark = false }: { children: ReactNode; dark?: boole
 
 function SectionHead({ eyebrow, title, text, dark = false, center = false }: { eyebrow: string; title: string; text?: string; dark?: boolean; center?: boolean }) {
   return (
-    <div className={cx('max-w-3xl', center && 'mx-auto text-center [&>div:first-child]:justify-center')}>
+    <Reveal className={cx('max-w-3xl', center && 'mx-auto text-center [&>div:first-child]:justify-center')}>
       <Eyebrow dark={dark}>{eyebrow}</Eyebrow>
-      <h2 className={cx('mt-4 text-3xl leading-tight font-bold text-balance sm:text-[2.4rem]', dark ? 'text-white' : 'text-navy-900')}>{title}</h2>
+      <h2 className={cx('type-h2 mt-4 text-balance', dark ? 'text-white' : 'text-navy-900')}>{title}</h2>
       {text && <p className={cx('mt-4 text-base leading-relaxed', dark ? 'text-slate-300' : 'text-slate-600')}>{text}</p>}
-    </div>
+    </Reveal>
   );
 }
 
@@ -42,9 +43,9 @@ export function Hero() {
       <div aria-hidden="true" className="absolute top-0 right-0 -z-10 h-[520px] w-[620px] bg-[radial-gradient(closest-side,rgba(50,103,176,.35),transparent)]" />
 
       <Container className="grid items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
-        <div>
+        <Reveal>
           <Eyebrow dark>Business cards for companies</Eyebrow>
-          <h1 className="mt-5 max-w-[20ch] text-4xl leading-[1.12] font-bold text-white sm:text-5xl">
+          <h1 className="type-display mt-5 max-w-[20ch] text-white">
             Cards for your whole team, approved and ready to print.
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
@@ -58,19 +59,21 @@ export function Hero() {
               I&apos;m an employee
             </Link>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="relative mx-auto w-full max-w-[460px]">
-          <CardMock look="modern" className="absolute -top-8 -right-2 w-[78%] rotate-[5deg] opacity-90 shadow-2xl" />
-          <CardMock look="classic" className="relative mt-16 w-[88%] -rotate-2 shadow-2xl" />
-          <div className="absolute -bottom-10 right-0 flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-xl">
+        <Reveal delay={150} className="relative mx-auto w-full max-w-[500px] [perspective:1600px]">
+          {/* back of the card, lying behind */}
+          <CardMock side="back" className="absolute top-0 right-0 w-[74%] [transform:rotate(7deg)_translateY(-6%)]" />
+          {/* front of the card */}
+          <CardMock look="classic" className="relative mt-[22%] w-[90%] [transform:rotateX(8deg)_rotateY(-10deg)_rotate(-3deg)]" />
+          <div className="absolute top-[4%] left-0 z-10 flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xl sm:-left-4">
             <span className="grid size-9 place-items-center rounded-full bg-emerald-50 text-emerald-600"><Icon icon="lucide:check" className="size-5" /></span>
             <span>
-              <span className="block text-sm font-semibold text-navy-900">Request approved</span>
-              <span className="block text-xs text-slate-500">12 cards · PDFs ready</span>
+              <span className="block text-sm font-semibold text-navy-900">Approved · 12 cards</span>
+              <span className="block text-xs text-slate-500">PDFs ready to download</span>
             </span>
           </div>
-        </div>
+        </Reveal>
       </Container>
     </section>
   );
@@ -82,17 +85,19 @@ export function FactStrip() {
   return (
     <section className="relative z-10 -mt-24 pb-4">
       <Container>
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm lg:grid-cols-5">
-          {facts.map((fact, i) => (
-            <div key={fact.label} className={cx('bg-white px-4 py-6 text-center sm:p-8', i === 0 && 'col-span-2 lg:col-span-1')}>
-              <dt className="sr-only">{fact.label}</dt>
-              <dd>
-                <span className="block text-2xl font-semibold text-navy-900 sm:text-3xl">{fact.value}</span>
-                <span className="mt-2 block text-sm font-medium text-slate-500">{fact.label}</span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <Reveal>
+          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm lg:grid-cols-5">
+            {facts.map((fact, i) => (
+              <div key={fact.label} className={cx('bg-white px-4 py-6 text-center sm:p-8', i === 0 && 'col-span-2 lg:col-span-1')}>
+                <dt className="sr-only">{fact.label}</dt>
+                <dd>
+                  <span className="type-stat block font-semibold whitespace-nowrap text-navy-900">{fact.value}</span>
+                  <span className="mt-2 block text-sm font-medium text-slate-500">{fact.label}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
       </Container>
     </section>
   );
@@ -106,14 +111,14 @@ export function Features() {
       <Container>
         <SectionHead eyebrow="What it does" title="Everything a company needs to issue business cards" text="BizCard replaces the email chains, spreadsheets and back-and-forth with a printer. These are the four jobs it does." />
         <div className="mt-10 grid gap-px overflow-hidden rounded-2xl bg-slate-200 ring-1 ring-slate-200 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
-          {features.map((f) => (
-            <div key={f.title} className="group bg-white p-7 transition-colors hover:bg-brand-50/40">
+          {features.map((f, i) => (
+            <Reveal delay={i * 80} key={f.title} className="group bg-white p-7 transition-colors hover:bg-brand-50/40">
               <span className="grid size-11 place-items-center rounded-lg bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-600 group-hover:text-white">
                 <Icon icon={f.icon} className="size-5" />
               </span>
               <h3 className="mt-6 text-lg leading-snug font-semibold text-navy-900">{f.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.text}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </Container>
@@ -135,11 +140,11 @@ export function HowItWorks() {
         </div>
         <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, i) => (
-            <li key={step.title} className="border-t-2 border-slate-200 pt-6 first:border-brand-600">
+            <Reveal as="li" delay={i * 80} key={step.title} className="border-t-2 border-slate-200 pt-6 first:border-brand-600">
               <span className="text-sm font-semibold text-brand-600">Step {i + 1}</span>
               <h3 className="mt-2 text-lg font-semibold text-navy-900">{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.text}</p>
-            </li>
+            </Reveal>
           ))}
         </ol>
       </Container>
@@ -155,12 +160,12 @@ export function WhyBizCard() {
       <Container>
         <SectionHead dark eyebrow="Why BizCard" title="Built for companies, not one-off print jobs" />
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {reasons.map((r) => (
-            <div key={r.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+          {reasons.map((r, i) => (
+            <Reveal delay={i * 80} key={r.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
               <Icon icon={r.icon} className="size-7 text-brand-300" />
               <h3 className="mt-4 text-lg font-semibold text-white">{r.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-400">{r.text}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </Container>
@@ -176,14 +181,14 @@ export function Templates() {
       <Container>
         <SectionHead eyebrow="Templates" title="Start from a layout, then make it yours" text="Every template can take your logo, colours and fonts. Admins can also add ID-style layouts and designs suggested from a short description." />
         <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {templates.map((t) => (
-            <article key={t.look} className="group rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-lg">
+          {templates.map((t, i) => (
+            <Reveal as="article" delay={i * 80} key={t.look} className="group rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-lg">
               <div className="rounded-lg bg-slate-100 p-6 sm:p-8">
                 <CardMock look={t.look} />
               </div>
               <h3 className="mt-5 font-semibold text-navy-900 group-hover:text-brand-600">{t.label}</h3>
               <p className="mt-1 text-sm text-slate-600">{t.note}</p>
-            </article>
+            </Reveal>
           ))}
         </div>
       </Container>
@@ -242,8 +247,8 @@ export function Roles() {
       <Container>
         <SectionHead eyebrow="Who uses it" title="Three roles, each with its own workspace" />
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {roles.map((role) => (
-            <div key={role.title} className="rounded-xl border border-slate-200 p-7">
+          {roles.map((role, i) => (
+            <Reveal delay={i * 80} key={role.title} className="rounded-xl border border-slate-200 p-7">
               <h3 className="text-lg font-semibold text-navy-900">{role.title}</h3>
               <p className="mt-1 text-sm text-slate-500">{role.text}</p>
               <ul className="mt-5 space-y-2.5 border-t border-slate-100 pt-5 text-sm text-slate-700">
@@ -254,7 +259,49 @@ export function Roles() {
                   </li>
                 ))}
               </ul>
+            </Reveal>
+          ))}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+/* ---------- results and testimonials (sample data lives in content.ts) ---------- */
+
+export function Testimonials() {
+  return (
+    <section id="customers" className="scroll-mt-24 bg-navy-950 py-16 text-white sm:py-20 lg:py-24">
+      <Container>
+        <SectionHead dark eyebrow="Customers" title="What teams say after switching" />
+
+        <dl className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 lg:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-navy-950 px-5 py-7 text-center">
+              <dt className="sr-only">{s.label}</dt>
+              <dd>
+                <span className="block text-3xl font-semibold text-white">{s.value}</span>
+                <span className="mt-2 block text-sm text-slate-400">{s.label}</span>
+              </dd>
             </div>
+          ))}
+        </dl>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <figure key={t.name} className="flex flex-col rounded-xl border border-white/10 bg-white/[0.03] p-7">
+              <Icon icon="lucide:quote" className="size-6 text-brand-300" />
+              <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-slate-200">{t.quote}</blockquote>
+              <figcaption className="mt-6 flex items-center gap-3 border-t border-white/10 pt-5">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-600 text-sm font-semibold text-white">
+                  {t.name.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+                </span>
+                <span>
+                  <span className="block text-sm font-semibold text-white">{t.name}</span>
+                  <span className="block text-xs text-slate-400">{t.role}, {t.company}</span>
+                </span>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </Container>

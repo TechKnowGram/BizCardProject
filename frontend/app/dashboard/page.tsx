@@ -49,7 +49,17 @@ export default function DashboardPage() {
 
   function signOut() { logout(); router.replace('/login'); }
   if (error) return <main className="grid min-h-screen place-items-center bg-slate-50 p-8"><p className="max-w-md rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">{error}</p></main>;
-  if (!user) return <main className="grid min-h-screen place-items-center content-center gap-4 bg-slate-50 text-sm text-slate-500"><i className="size-9 animate-spin rounded-full border-3 border-slate-200 border-t-brand-600" /><p>Loading your workspace…</p></main>;
+  if (!user) return (
+    <main className="flex min-h-screen bg-slate-100" aria-busy="true" aria-label="Loading your workspace">
+      <div className="hidden w-64 shrink-0 bg-navy-950 md:block" />
+      <div className="flex-1 space-y-6 p-6">
+        <div className="h-14 animate-pulse rounded-xl bg-white" />
+        <div className="h-24 animate-pulse rounded-2xl bg-white" />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-white" />)}</div>
+        <div className="h-80 animate-pulse rounded-2xl bg-white" />
+      </div>
+    </main>
+  );
 
   const systemAdmin = user.role === 'SYSTEM_ADMIN';
   const employee = user.role === 'EMPLOYEE';

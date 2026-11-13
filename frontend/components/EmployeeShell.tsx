@@ -14,11 +14,11 @@ export interface EmployeeShellProps {
 
 export const EMPLOYEE_NAV_ITEMS = [
   { id: 'overview', label: 'Overview', icon: 'overview' },
-  { id: 'profile', label: 'My profile', icon: 'users' },
+  { id: 'profile', label: 'My profile', icon: 'users', section: 'account' },
   { id: 'company', label: 'Company', icon: 'company' },
   { id: 'card', label: 'My card', icon: 'card' },
   { id: 'orders', label: 'Orders', icon: 'orders' },
-  { id: 'help', label: 'Help', icon: 'help' },
+  { id: 'help', label: 'Help', icon: 'help', section: 'account' },
 ] as const;
 
 export default function EmployeeShell({ user, activeTab, onNavigate, onLogout, children }: EmployeeShellProps) {
@@ -31,6 +31,7 @@ export default function EmployeeShell({ user, activeTab, onNavigate, onLogout, c
       activeTab={activeTab}
       onNavigate={onNavigate}
       onLogout={onLogout}
+      profileTab="profile"
       storageKey="bizcard_emp_sidebar_collapsed"
     >
       {children}

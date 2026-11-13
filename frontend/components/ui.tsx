@@ -67,9 +67,9 @@ export function EmptyState({ children, className }: { children: ReactNode; class
   return <div className={cx('px-6 py-16 text-center text-sm text-slate-500', className)}>{children}</div>;
 }
 
-/** Small uppercase label with a short accent line, as used above section headings. */
-export function Eyebrow({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cx('flex items-center gap-2.5 text-xs font-semibold tracking-wider text-iris-500 uppercase', className)} {...props}><span aria-hidden="true" className="h-0.5 w-6 bg-plum-500" />{children}</p>;
+/** Small secondary label shown above a heading. */
+export function Eyebrow({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={cx('text-sm text-slate-500', className)} {...props} />;
 }
 
 /* ---------- Table class strings (use on <table>, <th>, <td>) ---------- */

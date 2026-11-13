@@ -14,7 +14,11 @@ export const sectionChipClass =
 export const sectionChipDarkClass =
   'inline-flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-brand-300';
 
-/** Two stacked cards, drawn in SVG so it stays crisp at any size. */
+/**
+ * PLACEHOLDER LOGO: two stacked cards drawn in SVG.
+ * To use the real logo, replace the <svg> below with an <img src="/logo.svg" ... />
+ * (put the file in /public). Every header, sidebar and footer uses this component.
+ */
 export function BrandMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={cx('size-8 shrink-0', className)} aria-hidden="true">

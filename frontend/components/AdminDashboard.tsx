@@ -5,13 +5,11 @@ import type { ReactNode } from 'react';
 import { api } from '../lib/api';
 import type { ApiError } from '../lib/api';
 import type {
-  AdminMembershipRecord,
   AdminPaymentRecord,
   AdminUserRecord,
   AuditLog,
   CardRequest,
   Company,
-  Role,
   Template,
   User,
 } from '../lib/types';
@@ -21,13 +19,14 @@ import ReviewDialog from './ReviewDialog';
 import Toast from './Toast';
 import AdminTemplateCollection from './AdminTemplateCollection';
 import SystemAdminShell from './SystemAdminShell';
-import Icon from './Icon';
-import {
-  Button,
-  cx,
-  inputClass,
-  inputCompactClass,
-} from './ui';
+import { Button, cx, inputClass } from './ui';
+import { PageHeader, SectionCard, StatTile, ToolbarSelect } from './dashboard/Surface';
+import DataTable, { NameCell } from './dashboard/DataTable';
+import type { Column } from './dashboard/DataTable';
+import { statusColor } from './dashboard/Charts';
+import AdminOverview from './admin/AdminOverview';
+import type { QueueItem } from './admin/AdminOverview';
+import { dateTime, money, payerLabel, plural, roleLabel, sentenceCase, shortDate } from './admin/format';
 
 export interface AdminStats {
   companies?: number;
@@ -48,7 +47,6 @@ export interface AdminData {
   audits: AuditLog[];
   stats: AdminStats;
   users: AdminUserRecord[];
-  memberships: AdminMembershipRecord[];
   payments: AdminPaymentRecord[];
 }
 
@@ -59,65 +57,74 @@ export interface AdminDashboardProps {
   onLogout?: () => void;
 }
 
-const formatDate = (value?: string | null): string =>
-  value
-    ? new Date(value).toLocaleString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      })
-    : 'Not available';
-
-const formatShortDate = (value?: string | null): string =>
-  value
-    ? new Date(value).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : '—';
-
 export const systemAdminNavigation: ReadonlyArray<readonly [string, string, string]> = [
   ['overview', 'overview', 'Overview'],
   ['companies', 'companies', 'Companies'],
   ['users', 'users', 'Users'],
-  ['memberships', 'memberships', 'Memberships'],
-  ['requests', 'requests', 'Card Orders'],
+  ['requests', 'requests', 'Card orders'],
   ['templates', 'templates', 'Templates'],
   ['payments', 'payments', 'Payments'],
-  ['reports', 'reports', 'Reports'],
-  ['settings', 'settings', 'System Settings'],
+  ['reports', 'reports', 'Activity log'],
+  ['settings', 'settings', 'Settings'],
 ] as const;
 
 type Review = Partial<Company & CardRequest> & { id: number; kind: string };
 
+/* ---------- Small presentational pieces ---------- */
+
+const compact = 'px-3 py-1.5';
+
 function ReviewField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-3xs uppercase tracking-wider tabular-nums text-slate-500 font-bold">{label}</dt>
-      <dd className="mt-1 text-sm font-semibold text-slate-900 [overflow-wrap:anywhere]">{children}</dd>
+      <dt className="text-xs text-slate-500">{label}</dt>
+      <dd className="mt-0.5 text-sm font-medium text-navy-900 [overflow-wrap:anywhere]">{children}</dd>
     </div>
   );
 }
 
-function TimelineStep({ done, mark, title, note, line }: { done: boolean; mark: string; title: string; note: string; line?: boolean }) {
+function TimelineStep({ done, title, note }: { done: boolean; title: string; note: string }) {
   return (
-    <div className="flex min-h-14 flex-none items-start">
+    <li className="relative flex gap-3 pb-5 last:pb-0">
       <span
-        className={cx(
-          'grid size-7 flex-none place-items-center rounded-full border text-3xs font-bold',
-          done ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-400'
-        )}
-      >
-        {mark}
-      </span>
-      {line && <i className="-ml-3.5 mt-7 h-7 w-px flex-none bg-slate-200" />}
-      <p className="ml-3 min-w-28">
-        <strong className="block text-2xs font-bold text-slate-900">{title}</strong>
-        <small className="mt-0.5 block text-3xs text-slate-500">{note}</small>
-      </p>
+        aria-hidden="true"
+        className="relative z-10 mt-1 size-3 shrink-0 rounded-full border-2"
+        style={done ? { background: statusColor.good, borderColor: statusColor.good } : { background: '#ffffff', borderColor: '#cbd5e1' }}
+      />
+      <div>
+        <p className="text-sm font-medium text-navy-900">{title}</p>
+        <p className="text-xs text-slate-500">{note}</p>
+      </div>
+    </li>
+  );
+}
+
+function Muted({ children }: { children: ReactNode }) {
+  return <span className="text-slate-500">{children}</span>;
+}
+
+function Note({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-xs text-slate-500">{title}</p>
+      <p className="mt-1 text-sm leading-relaxed text-slate-700">{children}</p>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  const block = 'animate-pulse rounded-2xl bg-slate-200/70';
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="Loading">
+      <div className={cx(block, 'h-24')} />
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => <div key={i} className={cx(block, 'h-28')} />)}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <div className={cx(block, 'h-80')} />
+        <div className={cx(block, 'h-80')} />
+      </div>
+      <div className={cx(block, 'h-72')} />
     </div>
   );
 }
@@ -145,7 +152,6 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
     audits: [],
     stats: {},
     users: [],
-    memberships: [],
     payments: [],
   });
 
@@ -163,7 +169,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
   const load = useCallback(async () => {
     setError('');
     try {
-      const [companies, requests, templates, audits, stats, companyDesigns, users, memberships, payments] =
+      const [companies, requests, templates, audits, stats, companyDesigns, users, payments] =
         await Promise.all([
           api<Company[]>('/admin/companies'),
           api<CardRequest[]>('/admin/card-requests'),
@@ -172,10 +178,9 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
           api<AdminStats>('/admin/stats'),
           api<Template[]>('/admin/templates/company-designs'),
           api<AdminUserRecord[]>('/admin/users').catch(() => []),
-          api<AdminMembershipRecord[]>('/admin/memberships').catch(() => []),
           api<AdminPaymentRecord[]>('/admin/payments').catch(() => []),
         ]);
-      setData({ companies, requests, templates, audits, stats, companyDesigns, users, memberships, payments });
+      setData({ companies, requests, templates, audits, stats, companyDesigns, users, payments });
     } catch (requestError) {
       setError((requestError as ApiError).message);
     } finally {
@@ -200,7 +205,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
     try {
       await api(path, { method: 'PATCH', body: JSON.stringify(body) });
       setReview(null);
-      setMessage('Decision recorded and applied successfully.');
+      setMessage('Your decision has been saved.');
       await load();
     } catch (requestError) {
       setError((requestError as ApiError).message);
@@ -214,7 +219,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
     setError('');
     try {
       await api(`/admin/templates/${id}/save`, { method: 'POST' });
-      setMessage('Design promoted to the shared template collection.');
+      setMessage('Design added to the shared templates.');
       await load();
     } catch (err) {
       setError((err as ApiError).message);
@@ -238,23 +243,21 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
     [data.requests]
   );
 
-  const attentionQueue = useMemo(() => {
-    const items = [
+  const attentionQueue = useMemo<QueueItem[]>(() => {
+    const items: QueueItem[] = [
       ...pendingCompanies.map(c => ({
         id: c.id,
-        kind: 'companies',
+        kind: 'companies' as const,
         name: c.name,
-        meta: c.admins?.[0]?.email || 'No administrator',
-        category: 'Company approval',
+        sub: c.admins?.[0]?.email || 'No administrator',
         created_at: c.created_at,
         raw: c,
       })),
       ...pendingRequests.map(r => ({
         id: r.id,
-        kind: 'requests',
+        kind: 'requests' as const,
         name: r.company?.name || `Request #${r.id}`,
-        meta: `${r.items?.length || 0} card${r.items?.length === 1 ? '' : 's'} · ${r.created_by?.username || 'Employee'}`,
-        category: 'Card batch request',
+        sub: `${plural(r.items?.length || 0, 'card')} · ${r.created_by?.username || 'Employee'}`,
         created_at: r.created_at,
         raw: r,
       })),
@@ -289,19 +292,6 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
     });
   }, [data.users, roleFilter, search]);
 
-  const filteredMemberships = useMemo(() => {
-    return data.memberships.filter(m => {
-      const matchStatus = statusFilter === 'ALL' || m.status === statusFilter;
-      const q = search.toLowerCase();
-      const matchText =
-        !q ||
-        m.official_email.toLowerCase().includes(q) ||
-        m.employee_code.toLowerCase().includes(q) ||
-        m.company_name?.toLowerCase().includes(q) ||
-        m.username?.toLowerCase().includes(q);
-      return matchStatus && matchText;
-    });
-  }, [data.memberships, statusFilter, search]);
 
   const filteredRequests = useMemo(() => {
     return data.requests.filter(r => {
@@ -355,6 +345,200 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
     [data.payments]
   );
 
+  const companyName = useCallback(
+    (id: number | null | undefined) => (id ? data.companies.find(c => c.id === id)?.name || `Company #${id}` : null),
+    [data.companies]
+  );
+
+  const refreshButton = (
+    <Button variant="secondary" onClick={load}>
+      Refresh
+    </Button>
+  );
+
+  /* ---------- Table columns ---------- */
+
+  const companyColumns: Column<Company>[] = [
+    {
+      key: 'name',
+      header: 'Company',
+      sortValue: c => c.name.toLowerCase(),
+      className: 'max-w-72',
+      render: c => <NameCell name={c.name} sub={c.website || 'No website'} />,
+    },
+    {
+      key: 'admin',
+      header: 'Admin',
+      hideOnMobile: true,
+      render: c => {
+        const owner = c.admins?.[0];
+        return owner ? (
+          <div className="min-w-0">
+            <p className="truncate font-medium text-navy-900">{owner.username}</p>
+            <p className="truncate text-xs text-slate-500">{owner.email}</p>
+          </div>
+        ) : (
+          <Muted>No admin yet</Muted>
+        );
+      },
+    },
+    { key: 'status', header: 'Status', sortValue: c => c.status, render: c => <StatusBadge value={c.status} /> },
+    {
+      key: 'registered',
+      header: 'Registered',
+      sortValue: c => c.created_at,
+      render: c => <span className="whitespace-nowrap tabular-nums">{shortDate(c.created_at)}</span>,
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'right',
+      render: c => (
+        <div className="inline-flex items-center justify-end gap-2">
+          {c.status === 'PENDING' && (
+            <Button className={compact} disabled={busy} onClick={() => mutate(`/admin/companies/${c.id}/status`, { status: 'APPROVED' })}>
+              Approve
+            </Button>
+          )}
+          {c.status === 'APPROVED' && (
+            <Button variant="secondary" className={compact} disabled={busy} onClick={() => mutate(`/admin/companies/${c.id}/status`, { status: 'SUSPENDED' })}>
+              Suspend
+            </Button>
+          )}
+          {c.status === 'SUSPENDED' && (
+            <Button variant="secondary" className={compact} disabled={busy} onClick={() => mutate(`/admin/companies/${c.id}/status`, { status: 'APPROVED' })}>
+              Reactivate
+            </Button>
+          )}
+          <Button variant="quiet" className={compact} onClick={() => openReview(c, 'companies')}>
+            Review details
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const userColumns: Column<AdminUserRecord>[] = [
+    {
+      key: 'user',
+      header: 'User',
+      sortValue: u => u.username.toLowerCase(),
+      className: 'max-w-80',
+      render: u => <NameCell name={u.username} sub={u.email} />,
+    },
+    { key: 'role', header: 'Role', sortValue: u => u.role, render: u => roleLabel[u.role] ?? sentenceCase(u.role) },
+    {
+      key: 'company',
+      header: 'Company',
+      sortValue: u => u.company_name ?? '',
+      render: u => u.company_name || <Muted>No company</Muted>,
+    },
+  ];
+
+
+  const requestColumns: Column<CardRequest>[] = [
+    {
+      key: 'id',
+      header: 'Request',
+      sortValue: r => r.id,
+      render: r => <span className="font-medium text-navy-900 tabular-nums">#{r.id}</span>,
+    },
+    {
+      key: 'company',
+      header: 'Company',
+      sortValue: r => r.company?.name ?? '',
+      render: r => r.company?.name || `Company #${r.company_id}`,
+    },
+    {
+      key: 'template',
+      header: 'Template',
+      hideOnMobile: true,
+      render: r => r.template?.name || r.template?.style_key || 'Standard',
+    },
+    {
+      key: 'cards',
+      header: 'Cards',
+      align: 'right',
+      sortValue: r => r.items?.length || 0,
+      render: r => <span className="tabular-nums">{r.items?.length || 0}</span>,
+    },
+    {
+      key: 'by',
+      header: 'Submitted by',
+      hideOnMobile: true,
+      render: r => (
+        <div className="min-w-0">
+          <p className="truncate font-medium text-navy-900">{r.created_by?.username || 'Admin'}</p>
+          {r.created_by?.email && <p className="truncate text-xs text-slate-500">{r.created_by.email}</p>}
+        </div>
+      ),
+    },
+    { key: 'status', header: 'Status', sortValue: r => r.status, render: r => <StatusBadge value={r.status} /> },
+    {
+      key: 'date',
+      header: 'Date',
+      sortValue: r => r.created_at,
+      render: r => <span className="whitespace-nowrap tabular-nums">{shortDate(r.created_at)}</span>,
+    },
+    {
+      key: 'review',
+      header: '', srHeader: 'Actions',
+      align: 'right',
+      render: r => (
+        <Button variant={r.status === 'PENDING' ? 'primary' : 'secondary'} className={compact} onClick={() => openReview(r, 'requests')}>
+          Review
+        </Button>
+      ),
+    },
+  ];
+
+  const paymentColumns: Column<AdminPaymentRecord>[] = [
+    { key: 'id', header: 'Order', sortValue: p => p.id, render: p => <span className="font-medium text-navy-900 tabular-nums">#{p.id}</span> },
+    { key: 'company', header: 'Company', sortValue: p => p.company_name.toLowerCase(), render: p => p.company_name },
+    { key: 'qty', header: 'Cards', align: 'right', sortValue: p => p.quantity, render: p => <span className="tabular-nums">{p.quantity}</span> },
+    { key: 'unit', header: 'Unit price', align: 'right', hideOnMobile: true, render: p => <span className="text-slate-500 tabular-nums">{money(p.unit_price)}</span> },
+    {
+      key: 'total',
+      header: 'Total',
+      align: 'right',
+      sortValue: p => p.total_amount,
+      render: p => <span className="font-medium text-navy-900 tabular-nums">{money(p.total_amount)}</span>,
+    },
+    { key: 'payer', header: 'Paid by', render: p => payerLabel[p.payer] ?? sentenceCase(p.payer) },
+    { key: 'status', header: 'Status', sortValue: p => p.status, render: p => <StatusBadge value={p.status} /> },
+    {
+      key: 'date',
+      header: 'Date',
+      sortValue: p => p.created_at ?? '',
+      render: p => <span className="whitespace-nowrap tabular-nums">{shortDate(p.created_at)}</span>,
+    },
+  ];
+
+  const auditColumns: Column<AuditLog>[] = [
+    { key: 'event', header: 'Event', sortValue: a => a.action, render: a => <span className="font-medium text-navy-900">{sentenceCase(a.action)}</span> },
+    { key: 'entity', header: 'Entity', render: a => <span className="whitespace-nowrap">{sentenceCase(a.entity_type)} #{a.entity_id}</span> },
+    { key: 'company', header: 'Company', hideOnMobile: true, render: a => companyName(a.company_id) || <Muted>Platform</Muted> },
+    {
+      key: 'details',
+      header: 'Details',
+      className: 'max-w-xs',
+      render: a => (a.details ? <p className="truncate text-slate-600" title={a.details}>{a.details}</p> : <Muted>—</Muted>),
+    },
+    {
+      key: 'time',
+      header: 'Time',
+      sortValue: a => a.created_at,
+      render: a => <span className="whitespace-nowrap text-slate-500 tabular-nums">{dateTime(a.created_at)}</span>,
+    },
+  ];
+
+  /* ---------- Users stat hint (only from loaded data) ---------- */
+  const companyAdminCount = data.users.filter(u => u.role === 'COMPANY_ADMIN').length;
+  const employeeCount = data.users.filter(u => u.role === 'EMPLOYEE').length;
+  const usersHint = data.users.length
+    ? `${plural(companyAdminCount, 'company admin')}, ${plural(employeeCount, 'employee')}`
+    : undefined;
+
   return (
     <SystemAdminShell
       user={user}
@@ -375,1330 +559,346 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
       />
 
       {loading ? (
-        <div className="space-y-4">
-          <div className="h-40 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="h-28 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-            <div className="h-28 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-            <div className="h-28 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-            <div className="h-28 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-          </div>
-          <div className="h-96 bg-white rounded-2xl border border-slate-200 animate-pulse" />
-        </div>
+        <LoadingSkeleton />
       ) : (
         <>
-          {/* TAB 1: OVERVIEW (OPERATIONAL COMMAND CENTER) */}
           {tab === 'overview' && (
-            <div className="space-y-6">
-              {/* Operational Hero Banner (TechKnowGram Theme) */}
-              <section className="relative overflow-hidden rounded-2xl bg-navy-950 text-white p-7 md:p-9 border border-navy-800 shadow-sm">
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="max-w-2xl">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-navy-900 border border-navy-800 px-3 py-1 text-3xs tabular-nums font-bold text-brand-300 tracking-wider uppercase mb-3">
-                      Platform Control Center
-                    </div>
-                    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">
-                      System Operations Console
-                    </h1>
-                    <p className="mt-2 text-xs md:text-sm text-slate-300 leading-relaxed">
-                      Real-time platform oversight across registered companies, user accounts, and card print queues.
-                      Review oldest pending submissions first to uphold platform SLAs.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4 bg-navy-900/60 border border-navy-800 rounded-xl px-5 py-4 shrink-0">
-                    <span className="text-4xl font-bold text-amber-400 tabular-nums">
-                      {attentionQueue.length}
-                    </span>
-                    <div className="text-left">
-                      <span className="block text-xs font-bold text-white uppercase tracking-wider">
-                        Action Items
-                      </span>
-                      <span className="block text-2xs text-slate-300">
-                        Require administrator decision
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Stripe-style 4 KPI Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Registered Workspaces
-                  </span>
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
-                      {data.companies.length}
-                    </strong>
-                    {pendingCompanies.length > 0 && (
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-3xs font-bold text-amber-800 border border-amber-200">
-                        {pendingCompanies.length} pending
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    {data.companies.filter(c => c.status === 'APPROVED').length} active companies approved
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Platform Accounts
-                  </span>
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
-                      {data.users.length || data.stats.total_users || 0}
-                    </strong>
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-bold text-emerald-800 border border-emerald-200">
-                      All Roles
-                    </span>
-                  </div>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    System, company & employee users
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Card Print Requests
-                  </span>
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
-                      {data.requests.length}
-                    </strong>
-                    {pendingRequests.length > 0 && (
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-3xs font-bold text-amber-800 border border-amber-200">
-                        {pendingRequests.length} pending
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    {data.requests.filter(r => r.status === 'COMPLETED').length} batches generated
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Cards Issued
-                  </span>
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <strong className="text-2xl font-bold text-slate-900 tabular-nums">
-                      {data.stats.generated_cards || 0}
-                    </strong>
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-semibold text-emerald-700 border border-emerald-200">
-                      Vector PDF
-                    </span>
-                  </div>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    Prepress verified & active
-                  </p>
-                </div>
-              </div>
-
-              {/* Split Operational Grid: Priority Queue (Left) & Recent Audit (Right) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Priority Queue (7 cols) */}
-                <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col">
-                  <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-3xs tabular-nums font-bold uppercase tracking-wider text-amber-800 block">
-                        Priority Queue
-                      </span>
-                      <h2 className="text-base font-semibold text-slate-900">
-                        Needs Administrator Decision
-                      </h2>
-                    </div>
-                    <Button variant="quiet" onClick={load}>
-                      ↻ Refresh
-                    </Button>
-                  </div>
-
-                  <div className="divide-y divide-slate-100 flex-1">
-                    {attentionQueue.length === 0 ? (
-                      <div className="p-8 text-center text-slate-500">
-                        <span className="grid size-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-700 text-xl mx-auto mb-2 font-bold">
-                          ✓
-                        </span>
-                        <p className="text-xs font-bold text-slate-800">Queue is clear</p>
-                        <p className="text-3xs text-slate-400 mt-1">
-                          No company workspaces or card batches are awaiting review.
-                        </p>
-                      </div>
-                    ) : (
-                      attentionQueue.slice(0, 7).map(item => (
-                        <div
-                          key={`${item.kind}-${item.id}`}
-                          className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span
-                              className={cx(
-                                'grid size-9 place-items-center rounded-xl font-bold text-xs shrink-0',
-                                item.kind === 'companies'
-                                  ? 'bg-indigo-50 text-indigo-700'
-                                  : 'bg-emerald-50 text-emerald-800'
-                              )}
-                            >
-                              {item.kind === 'companies' ? '▦' : '▤'}
-                            </span>
-                            <div className="min-w-0">
-                              <strong className="block text-xs font-bold text-slate-900 truncate">
-                                {item.name}
-                              </strong>
-                              <span className="block text-3xs text-slate-500 truncate">
-                                {item.category} · {item.meta}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3 shrink-0">
-                            <time className="text-3xs text-slate-500 tabular-nums hidden sm:block">
-                              {formatShortDate(item.created_at)}
-                            </time>
-                            <button
-                              type="button"
-                              onClick={() => openReview(item.raw, item.kind)}
-                              className="rounded-lg bg-brand-600 text-white px-3.5 py-1.5 text-2xs font-bold hover:bg-brand-700 transition-colors shadow-xs"
-                            >
-                              Review & Decide →
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Recent Decisions Audit (5 cols) */}
-                <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col">
-                  <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-3xs tabular-nums font-bold uppercase tracking-wider text-slate-500 block">
-                        System Feed
-                      </span>
-                      <h2 className="text-base font-semibold text-slate-900">
-                        Recent Audit Events
-                      </h2>
-                    </div>
-                    <Button variant="quiet" onClick={() => setTab('reports')}>
-                      All Logs →
-                    </Button>
-                  </div>
-
-                  <div className="divide-y divide-slate-100 flex-1">
-                    {data.audits.length === 0 ? (
-                      <div className="p-8 text-center text-slate-500">
-                        <p className="text-xs">No audit logs recorded yet.</p>
-                      </div>
-                    ) : (
-                      data.audits.slice(0, 6).map(log => (
-                        <div key={log.id} className="p-3.5 flex items-start gap-3 hover:bg-slate-50/80">
-                          <span className="grid size-6 place-items-center rounded-full bg-slate-100 text-slate-600 text-3xs tabular-nums shrink-0 mt-0.5">
-                            ●
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <strong className="block text-2xs font-bold text-slate-900 truncate">
-                                {log.action.replaceAll('_', ' ')}
-                              </strong>
-                              <time className="text-3xs text-slate-500 tabular-nums shrink-0">
-                                {formatShortDate(log.created_at)}
-                              </time>
-                            </div>
-                            <p className="text-3xs text-slate-500 truncate mt-0.5">
-                              {log.details || `${log.entity_type} #${log.entity_id}`}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AdminOverview
+              companies={data.companies}
+              requests={data.requests}
+              audits={data.audits}
+              userCount={data.users.length || data.stats.total_users || 0}
+              userHint={usersHint}
+              generatedCards={data.stats.generated_cards ?? 0}
+              pendingCompanies={pendingCompanies.length}
+              pendingRequests={pendingRequests.length}
+              queue={attentionQueue}
+              onReview={item => openReview(item.raw, item.kind)}
+              setTab={setTab}
+            />
           )}
 
-          {/* TAB 2: COMPANIES (TALENTPROS REFERENCE REPLICA) */}
           {tab === 'companies' && (
             <div className="space-y-6">
-              {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    Companies
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Manage all registered company workspaces, access status, and subscriptions.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      exportCsv(
-                        'companies-export.csv',
-                        ['ID', 'Name', 'Status', 'Phone', 'Website', 'Created At'],
-                        data.companies.map(c => [c.id, c.name, c.status, c.phone, c.website, c.created_at])
-                      )
-                    }
-                  >
-                    Export CSV
-                  </Button>
-                  <Button variant="quiet" onClick={load}>
-                    ↻ Refresh
-                  </Button>
-                </div>
-              </div>
-
-              {/* TalentPros-style Controls Bar */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-                <div className="relative w-full md:w-96">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
-                  <input
-                    type="search"
-                    placeholder="Search companies by name, website, admin..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Status:</span>
-                  <select
+              <PageHeader
+                title="Companies"
+                description="Every registered company. Approve new ones, suspend or review details."
+                actions={
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        exportCsv(
+                          'companies-export.csv',
+                          ['ID', 'Name', 'Status', 'Phone', 'Website', 'Created At'],
+                          data.companies.map(c => [c.id, c.name, c.status, c.phone, c.website, c.created_at])
+                        )
+                      }
+                    >
+                      Export CSV
+                    </Button>
+                    {refreshButton}
+                  </>
+                }
+              />
+              <DataTable
+                title="All companies"
+                rows={filteredCompanies}
+                columns={companyColumns}
+                rowKey={c => c.id}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search companies' }}
+                toolbar={
+                  <ToolbarSelect
+                    label="Status"
                     value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                    aria-label="Filter companies by status"
-                    className={cx(inputClass, inputCompactClass, 'font-semibold text-xs')}
-                  >
-                    <option value="ALL">All Status</option>
-                    <option value="PENDING">Pending Review</option>
-                    <option value="APPROVED">Approved / Active</option>
-                    <option value="SUSPENDED">Suspended</option>
-                    <option value="REJECTED">Rejected</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* TalentPros-style Clean Company Directory Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                        <th className="py-3 px-4">Company</th>
-                        <th className="py-3 px-4">Owner / Admin</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4">Registered</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredCompanies.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="py-12 text-center text-slate-400">
-                            No companies found matching the current search criteria.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredCompanies.map(company => {
-                          const owner = company.admins?.[0];
-                          return (
-                            <tr key={company.id} className="hover:bg-slate-50/80 transition-colors">
-                              {/* Company Column */}
-                              <td className="py-3.5 px-4">
-                                <div className="flex items-center gap-3">
-                                  <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-700 font-bold text-xs shrink-0 border border-slate-200">
-                                    {company.name.charAt(0).toUpperCase()}
-                                  </span>
-                                  <div className="min-w-0">
-                                    <strong className="block text-xs font-bold text-slate-900 truncate">
-                                      {company.name}
-                                    </strong>
-                                    <span className="block text-3xs text-slate-500 tabular-nums truncate">
-                                      {company.website || `Workspace #${company.id}`}
-                                    </span>
-                                  </div>
-                                </div>
-                              </td>
-
-                              {/* Owner Column */}
-                              <td className="py-3.5 px-4">
-                                <p className="font-semibold text-slate-800 text-xs">
-                                  {owner?.username || 'Unassigned'}
-                                </p>
-                                <span className="block text-3xs tabular-nums text-slate-500 truncate">
-                                  {owner?.email || '—'}
-                                </span>
-                              </td>
-
-                              {/* Status Badge */}
-                              <td className="py-3.5 px-4">
-                                <StatusBadge value={company.status} />
-                              </td>
-
-                              {/* Date */}
-                              <td className="py-3.5 px-4 text-slate-500 tabular-nums text-3xs">
-                                {formatShortDate(company.created_at)}
-                              </td>
-
-                              {/* Actions */}
-                              <td className="py-3.5 px-4 text-right">
-                                <div className="inline-flex items-center gap-1.5 justify-end">
-                                  {company.status === 'PENDING' && (
-                                    <button
-                                      type="button"
-                                      disabled={busy}
-                                      onClick={() => mutate(`/admin/companies/${company.id}/status`, { status: 'APPROVED' })}
-                                      className="rounded-lg bg-brand-600 text-white px-3 py-1 text-3xs font-bold hover:bg-brand-700 transition-colors shadow-xs"
-                                    >
-                                      Approve
-                                    </button>
-                                  )}
-                                  {company.status === 'APPROVED' && (
-                                    <button
-                                      type="button"
-                                      disabled={busy}
-                                      onClick={() => mutate(`/admin/companies/${company.id}/status`, { status: 'SUSPENDED' })}
-                                      className="rounded-lg border border-slate-200 bg-white text-slate-700 px-2 py-1 text-3xs font-semibold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors"
-                                    >
-                                      Suspend
-                                    </button>
-                                  )}
-                                  {company.status === 'SUSPENDED' && (
-                                    <button
-                                      type="button"
-                                      disabled={busy}
-                                      onClick={() => mutate(`/admin/companies/${company.id}/status`, { status: 'APPROVED' })}
-                                      className="rounded-lg border border-slate-200 bg-white text-emerald-700 px-2 py-1 text-3xs font-semibold hover:bg-emerald-50 transition-colors"
-                                    >
-                                      Reactivate
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() => openReview(company, 'companies')}
-                                    className="rounded-lg bg-slate-100 text-slate-700 px-2.5 py-1 text-3xs font-bold hover:bg-slate-200 transition-colors"
-                                  >
-                                    Review details ↗
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    onChange={setStatusFilter}
+                    options={[
+                      { value: 'ALL', label: 'All statuses' },
+                      { value: 'PENDING', label: 'Pending' },
+                      { value: 'APPROVED', label: 'Approved' },
+                      { value: 'SUSPENDED', label: 'Suspended' },
+                      { value: 'REJECTED', label: 'Rejected' },
+                    ]}
+                  />
+                }
+                emptyMessage="No companies match your search."
+              />
             </div>
           )}
 
-          {/* TAB 3: USERS (USER ACCOUNTS) */}
           {tab === 'users' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    User Accounts
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Platform users across System Admin, Company Admin, and Employee roles.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      exportCsv(
-                        'users-export.csv',
-                        ['ID', 'Username', 'Email', 'Role', 'Company'],
-                        data.users.map(u => [u.id, u.username, u.email, u.role, u.company_name])
-                      )
-                    }
-                  >
-                    Export Users
-                  </Button>
-                  <Button variant="quiet" onClick={load}>
-                    ↻ Refresh
-                  </Button>
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-                <div className="relative w-full md:w-96">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
-                  <input
-                    type="search"
-                    placeholder="Search users by username, email, company..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Role:</span>
-                  <select
+              <PageHeader
+                title="Users"
+                description="Everyone with an account: platform admins, company admins and employees."
+                actions={
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        exportCsv(
+                          'users-export.csv',
+                          ['ID', 'Username', 'Email', 'Role', 'Company'],
+                          data.users.map(u => [u.id, u.username, u.email, u.role, u.company_name])
+                        )
+                      }
+                    >
+                      Export CSV
+                    </Button>
+                    {refreshButton}
+                  </>
+                }
+              />
+              <DataTable
+                title="All users"
+                rows={filteredUsers}
+                columns={userColumns}
+                rowKey={u => u.id}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search name, email or company' }}
+                toolbar={
+                  <ToolbarSelect
+                    label="Role"
                     value={roleFilter}
-                    onChange={e => setRoleFilter(e.target.value)}
-                    aria-label="Filter users by role"
-                    className={cx(inputClass, inputCompactClass, 'font-semibold text-xs')}
-                  >
-                    <option value="ALL">All Roles</option>
-                    <option value="SYSTEM_ADMIN">System Admin</option>
-                    <option value="COMPANY_ADMIN">Company Admin</option>
-                    <option value="EMPLOYEE">Employee</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                        <th className="py-3 px-4">User</th>
-                        <th className="py-3 px-4">Email</th>
-                        <th className="py-3 px-4">Role</th>
-                        <th className="py-3 px-4">Company Association</th>
-                        <th className="py-3 px-4">Account Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredUsers.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="py-12 text-center text-slate-400">
-                            No users found.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredUsers.map(u => (
-                          <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-3">
-                                <span className="grid size-8 place-items-center rounded-full bg-slate-800 text-white font-bold text-xs shrink-0">
-                                  {u.username.charAt(0).toUpperCase()}
-                                </span>
-                                <strong className="text-xs font-bold text-slate-900 truncate">
-                                  {u.username}
-                                </strong>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-600">
-                              {u.email}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={cx(
-                                  'rounded-full px-2.5 py-0.5 text-3xs tabular-nums font-bold uppercase',
-                                  u.role === 'SYSTEM_ADMIN'
-                                    ? 'bg-slate-900 text-white'
-                                    : u.role === 'COMPANY_ADMIN'
-                                    ? 'bg-emerald-50 text-emerald-800 font-bold'
-                                    : 'bg-slate-100 text-slate-700'
-                                )}
-                              >
-                                {u.role.replaceAll('_', ' ')}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {u.company_name ? (
-                                <span className="font-semibold text-slate-800">
-                                  {u.company_name}
-                                </span>
-                              ) : (
-                                <span className="text-3xs tabular-nums text-slate-400">
-                                  Platform / Global
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center gap-1.5 text-2xs text-emerald-700 font-semibold">
-                                <span className="size-1.5 rounded-full bg-emerald-500" />
-                                Active
-                              </span>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: MEMBERSHIPS (GLOBAL EMPLOYEE MEMBERSHIPS) */}
-          {tab === 'memberships' && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    Global Memberships
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Cross-company employee membership requests, roster match status, and payer allocation.
-                  </p>
-                </div>
-                <Button variant="quiet" onClick={load}>
-                  ↻ Refresh
-                </Button>
-              </div>
-
-              {/* Controls */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-                <div className="relative w-full md:w-96">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
-                  <input
-                    type="search"
-                    placeholder="Search by email, employee ID, company..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all"
+                    onChange={setRoleFilter}
+                    options={[
+                      { value: 'ALL', label: 'All roles' },
+                      { value: 'SYSTEM_ADMIN', label: 'Platform admin' },
+                      { value: 'COMPANY_ADMIN', label: 'Company admin' },
+                      { value: 'EMPLOYEE', label: 'Employee' },
+                    ]}
                   />
-                </div>
-
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Status:</span>
-                  <select
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                    aria-label="Filter memberships by status"
-                    className={cx(inputClass, inputCompactClass, 'font-semibold text-xs')}
-                  >
-                    <option value="ALL">All Status</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="REJECTED">Rejected</option>
-                    <option value="REVOKED">Revoked</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Memberships Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                        <th className="py-3 px-4">Employee</th>
-                        <th className="py-3 px-4">Company</th>
-                        <th className="py-3 px-4">Official Email</th>
-                        <th className="py-3 px-4">Employee Code</th>
-                        <th className="py-3 px-4">Roster Verification</th>
-                        <th className="py-3 px-4">Payer</th>
-                        <th className="py-3 px-4">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredMemberships.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="py-12 text-center text-slate-400">
-                            No membership records found.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredMemberships.map(m => (
-                          <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4">
-                              <strong className="block text-xs font-bold text-slate-900">
-                                {m.username || `User #${m.user_id?.slice(0, 8)}`}
-                              </strong>
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-slate-800">
-                              {m.company_name || `Company #${m.company_id}`}
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-600">
-                              {m.official_email}
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs font-bold text-slate-700">
-                              {m.employee_code}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              {m.match_status === 'ROSTER_MATCHED' ? (
-                                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-3xs font-bold text-emerald-700 border border-emerald-200">
-                                  ✓ Roster Verified
-                                </span>
-                              ) : m.match_status === 'ID_MISMATCH' ? (
-                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-3xs font-bold text-amber-700 border border-amber-200">
-                                  ID or email mismatch
-                                </span>
-                              ) : m.match_status === 'INACTIVE_EMPLOYEE' ? (
-                                <span className="rounded-full bg-rose-50 px-2 py-0.5 text-3xs font-bold text-rose-700 border border-rose-200">
-                                  ✕ Inactive Roster
-                                </span>
-                              ) : (
-                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-3xs tabular-nums text-slate-600">
-                                  ? Not in Roster
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 text-3xs tabular-nums font-semibold">
-                              {m.payer === 'COMPANY' ? 'Company Sponsored' : 'Employee Self-Paid'}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <StatusBadge value={m.status} />
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                }
+                emptyMessage="No users match your search."
+              />
             </div>
           )}
 
-          {/* TAB 5: REQUESTS (CARD ORDERS & PRINT REQUESTS) */}
           {tab === 'requests' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    Card Orders & Print Requests
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Global card generation batches, prepress approval queue, and delivery tracking.
-                  </p>
-                </div>
-                <Button variant="quiet" onClick={load}>
-                  ↻ Refresh
-                </Button>
-              </div>
-
-              {/* Controls */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-                <div className="relative w-full md:w-96">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
-                  <input
-                    type="search"
-                    placeholder="Search by request ID, company, submitter..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Status:</span>
-                  <select
+              <PageHeader title="Card orders" description="Card requests from every company, newest first." actions={refreshButton} />
+              <DataTable
+                title="All card requests"
+                rows={filteredRequests}
+                columns={requestColumns}
+                rowKey={r => r.id}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search number, company or person' }}
+                toolbar={
+                  <ToolbarSelect
+                    label="Status"
                     value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                    aria-label="Filter card requests by status"
-                    className={cx(inputClass, inputCompactClass, 'font-semibold text-xs')}
-                  >
-                    <option value="ALL">All Status</option>
-                    <option value="PENDING">Pending Review</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="PROCESSING">Processing</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="REJECTED">Rejected</option>
-                    <option value="FAILED">Failed</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Requests Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                        <th className="py-3 px-4">Request</th>
-                        <th className="py-3 px-4">Company</th>
-                        <th className="py-3 px-4">Template Style</th>
-                        <th className="py-3 px-4">Items</th>
-                        <th className="py-3 px-4">Submitted By</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4">Date</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredRequests.length === 0 ? (
-                        <tr>
-                          <td colSpan={8} className="py-12 text-center text-slate-400">
-                            No card requests found matching this view.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredRequests.map(r => (
-                          <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-900">
-                              #{r.id}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-slate-800">
-                              {r.company?.name || `Company #${r.company_id}`}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="tabular-nums text-3xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                                {r.template?.name || r.template?.style_key || 'Standard'}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-700">
-                              {r.items?.length || 0} card{r.items?.length === 1 ? '' : 's'}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <p className="font-semibold text-slate-800">
-                                {r.created_by?.username || 'Admin'}
-                              </p>
-                              <span className="block text-3xs tabular-nums text-slate-500">
-                                {r.created_by?.email}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <StatusBadge value={r.status} />
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
-                              {formatShortDate(r.created_at)}
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <button
-                                type="button"
-                                onClick={() => openReview(r, 'requests')}
-                                className="rounded-lg bg-brand-600 text-white px-3 py-1 text-3xs font-bold hover:bg-brand-700 transition-colors shadow-xs"
-                              >
-                                Review & Decide ↗
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    onChange={setStatusFilter}
+                    options={[
+                      { value: 'ALL', label: 'All statuses' },
+                      { value: 'PENDING', label: 'Pending' },
+                      { value: 'APPROVED', label: 'Approved' },
+                      { value: 'PROCESSING', label: 'Processing' },
+                      { value: 'COMPLETED', label: 'Completed' },
+                      { value: 'REJECTED', label: 'Rejected' },
+                      { value: 'FAILED', label: 'Failed' },
+                    ]}
+                  />
+                }
+                emptyMessage="No card requests match your search."
+              />
             </div>
           )}
 
-          {/* TAB 6: TEMPLATES (TEMPLATE CATALOG) */}
           {tab === 'templates' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    Template Catalog
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Curated standard card layouts and company-submitted AI designs.
-                  </p>
-                </div>
-                <Button variant="quiet" onClick={load}>
-                  ↻ Refresh
-                </Button>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                <AdminTemplateCollection
-                  data={data}
-                  busy={busy}
-                  onSave={saveDesign}
-                  onToggle={template =>
-                    mutate(`/admin/templates/${template.id}`, { is_active: !template.is_active })
-                  }
-                />
-              </div>
+              <PageHeader
+                title="Templates"
+                description="Shared card designs, and designs companies have made for themselves."
+                actions={refreshButton}
+              />
+              <AdminTemplateCollection
+                data={data}
+                busy={busy}
+                onSave={saveDesign}
+                onToggle={template =>
+                  mutate(`/admin/templates/${template.id}`, { is_active: !template.is_active })
+                }
+              />
             </div>
           )}
 
-          {/* TAB 7: PAYMENTS (FINANCIALS & ORDERS) */}
           {tab === 'payments' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    Payments & Order Financials
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Platform-wide card order transactions, revenue volume, and billing split.
-                  </p>
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    exportCsv(
-                      'payments-export.csv',
-                      ['Order ID', 'Company', 'Quantity', 'Unit Price', 'Total', 'Payer', 'Status', 'Date'],
-                      data.payments.map(p => [
-                        p.id,
-                        p.company_name,
-                        p.quantity,
-                        p.unit_price,
-                        p.total_amount,
-                        p.payer,
-                        p.status,
-                        p.created_at,
-                      ])
-                    )
-                  }
-                >
-                  Export Financials
-                </Button>
+              <PageHeader
+                title="Payments"
+                description="Card orders and who paid for them."
+                actions={
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        exportCsv(
+                          'payments-export.csv',
+                          ['Order ID', 'Company', 'Quantity', 'Unit Price', 'Total', 'Payer', 'Status', 'Date'],
+                          data.payments.map(p => [
+                            p.id,
+                            p.company_name,
+                            p.quantity,
+                            p.unit_price,
+                            p.total_amount,
+                            p.payer,
+                            p.status,
+                            p.created_at,
+                          ])
+                        )
+                      }
+                    >
+                      Export CSV
+                    </Button>
+                    {refreshButton}
+                  </>
+                }
+              />
+
+              <div className="grid gap-6 sm:grid-cols-3">
+                <StatTile label="Total" value={money(totalPaymentsSpend || data.stats.total_revenue || 0)} hint={plural(data.payments.length, 'order')} />
+                <StatTile
+                  label="Paid by companies"
+                  value={money(companySponsoredSpend)}
+                  hint={plural(data.payments.filter(p => p.payer === 'COMPANY').length, 'order')}
+                />
+                <StatTile
+                  label="Paid by employees"
+                  value={money(individualSpend)}
+                  hint={plural(data.payments.filter(p => p.payer === 'INDIVIDUAL').length, 'order')}
+                />
               </div>
 
-              {/* Financial Metric Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Total Platform Volume
-                  </span>
-                  <strong className="mt-3 block text-3xl font-bold text-slate-900 tabular-nums">
-                    ৳{totalPaymentsSpend || data.stats.total_revenue || 0}
-                  </strong>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    Transacted across {data.payments.length} fulfilled orders
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Company Sponsored Volume
-                  </span>
-                  <strong className="mt-3 block text-3xl font-bold text-indigo-700 tabular-nums">
-                    ৳{companySponsoredSpend}
-                  </strong>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    Invoiced to corporate workspaces
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                  <span className="text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                    Employee Self-Paid
-                  </span>
-                  <strong className="mt-3 block text-3xl font-bold text-emerald-800 tabular-nums">
-                    ৳{individualSpend}
-                  </strong>
-                  <p className="mt-2 text-3xs text-slate-500">
-                    Self-checkout via employee portal
-                  </p>
-                </div>
-              </div>
-
-              {/* Filter */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-                <div className="relative w-full md:w-96">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
-                  <input
-                    type="search"
-                    placeholder="Search orders by ID or company..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                  <span className="text-3xs tabular-nums font-bold text-slate-500 uppercase">Payer:</span>
-                  <select
+              <DataTable
+                title="Orders"
+                rows={filteredPayments}
+                columns={paymentColumns}
+                rowKey={p => p.id}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search order or company' }}
+                toolbar={
+                  <ToolbarSelect
+                    label="Paid by"
                     value={payerFilter}
-                    onChange={e => setPayerFilter(e.target.value)}
-                    aria-label="Filter payments by payer"
-                    className={cx(inputClass, inputCompactClass, 'font-semibold text-xs')}
-                  >
-                    <option value="ALL">All Payers</option>
-                    <option value="COMPANY">Company Sponsored</option>
-                    <option value="INDIVIDUAL">Employee Self-Paid</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Transactions Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                        <th className="py-3 px-4">Order ID</th>
-                        <th className="py-3 px-4">Workspace / Customer</th>
-                        <th className="py-3 px-4">Quantity</th>
-                        <th className="py-3 px-4">Unit Price</th>
-                        <th className="py-3 px-4">Total Amount</th>
-                        <th className="py-3 px-4">Payer Allocation</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredPayments.length === 0 ? (
-                        <tr>
-                          <td colSpan={8} className="py-12 text-center text-slate-400">
-                            No payment transactions recorded.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredPayments.map(p => (
-                          <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-900">
-                              #{p.id}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-slate-800">
-                              {p.company_name}
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums">
-                              {p.quantity} cards
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-slate-500">
-                              ৳{p.unit_price}
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums font-bold text-slate-900">
-                              ৳{p.total_amount}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={cx(
-                                  'rounded-full px-2 py-0.5 text-3xs tabular-nums font-bold',
-                                  p.payer === 'COMPANY'
-                                    ? 'bg-indigo-50 text-indigo-700'
-                                    : 'bg-emerald-50 text-emerald-800'
-                                )}
-                              >
-                                {p.payer === 'COMPANY' ? 'Company Sponsored' : 'Employee Self-Paid'}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <StatusBadge value={p.status} />
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
-                              {formatShortDate(p.created_at)}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    onChange={setPayerFilter}
+                    options={[
+                      { value: 'ALL', label: 'Everyone' },
+                      { value: 'COMPANY', label: 'Paid by company' },
+                      { value: 'INDIVIDUAL', label: 'Paid by employee' },
+                    ]}
+                  />
+                }
+                emptyMessage="Paid card orders will appear here."
+              />
             </div>
           )}
 
-          {/* TAB 8: REPORTS (AUDIT & ACTIVITY LOGS) */}
           {tab === 'reports' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                    System Audit & Activity Reports
-                  </h1>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Immutable audit trail of administrative decisions, security events, and data changes.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() =>
-                      exportCsv(
-                        'audit-logs-export.csv',
-                        ['ID', 'Action', 'Entity Type', 'Entity ID', 'Company ID', 'Details', 'Timestamp'],
-                        data.audits.map(a => [
-                          a.id,
-                          a.action,
-                          a.entity_type,
-                          a.entity_id,
-                          a.company_id,
-                          a.details,
-                          a.created_at,
-                        ])
-                      )
-                    }
-                  >
-                    Export Log
-                  </Button>
-                  <Button variant="quiet" onClick={load}>
-                    ↻ Refresh
-                  </Button>
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-                <div className="relative w-full md:w-96">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
-                  <input
-                    type="search"
-                    placeholder="Filter audit logs by action or details..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-xs text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/75 border-b border-slate-200 text-3xs tabular-nums uppercase font-bold text-slate-500 tracking-wider">
-                        <th className="py-3 px-4">Event / Action</th>
-                        <th className="py-3 px-4">Target Entity</th>
-                        <th className="py-3 px-4">Company Context</th>
-                        <th className="py-3 px-4">Details</th>
-                        <th className="py-3 px-4">Timestamp</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredAudits.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="py-12 text-center text-slate-400">
-                            No audit records matching this filter.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredAudits.map(item => (
-                          <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <span className="grid size-6 place-items-center rounded-full bg-slate-100 text-slate-700 text-3xs tabular-nums shrink-0">
-                                  ✓
-                                </span>
-                                <strong className="font-bold text-slate-900 capitalize">
-                                  {item.action?.replaceAll('_', ' ')}
-                                </strong>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-700">
-                              {item.entity_type} #{item.entity_id}
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
-                              {item.company_id ? `Company #${item.company_id}` : 'Platform / System'}
-                            </td>
-                            <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
-                              {item.details || '—'}
-                            </td>
-                            <td className="py-3.5 px-4 tabular-nums text-3xs text-slate-500">
-                              {formatDate(item.created_at)}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <PageHeader
+                title="Activity log"
+                description="Approvals, rejections, orders and other changes, newest first."
+                actions={
+                  <>
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        exportCsv(
+                          'audit-logs-export.csv',
+                          ['ID', 'Action', 'Entity Type', 'Entity ID', 'Company ID', 'Details', 'Timestamp'],
+                          data.audits.map(a => [
+                            a.id,
+                            a.action,
+                            a.entity_type,
+                            a.entity_id,
+                            a.company_id,
+                            a.details,
+                            a.created_at,
+                          ])
+                        )
+                      }
+                    >
+                      Export CSV
+                    </Button>
+                    {refreshButton}
+                  </>
+                }
+              />
+              <DataTable
+                title="All activity"
+                rows={filteredAudits}
+                columns={auditColumns}
+                rowKey={a => a.id}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search event or details' }}
+                initialPageSize={25}
+                emptyMessage="No activity matches your search."
+              />
             </div>
           )}
 
-          {/* TAB 9: SETTINGS (SYSTEM SETTINGS) */}
           {tab === 'settings' && (
             <div className="space-y-6">
-              <div>
-                <h1 className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight">
-                  System Settings
-                </h1>
-                <p className="text-xs text-slate-500 mt-1">
-                  Platform runtime configuration, prepress engine settings, and security policies.
-                </p>
-              </div>
+              <PageHeader title="Settings" description="Your account and the format cards are produced in." />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Engine Card */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700 font-bold text-sm">
-                      ⚙
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900">Prepress Card Engine</h2>
-                      <p className="text-3xs text-slate-500">Rendering pipeline parameters</p>
-                    </div>
-                  </div>
-
-                  <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Resolution Target</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">Vector PDF, 3.5 × 2 in</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Bleed Margin Standard</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">3.0 mm (Print Safe Area)</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Card Dimensions</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">3.5&quot; × 2.0&quot; (Standard US / ISO)</dd>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <dt className="text-slate-500">Engine Health</dt>
-                      <dd className="text-emerald-700 font-bold flex items-center gap-1.5">
-                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Online & Active
-                      </dd>
-                    </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                <SectionCard title="Your account">
+                  <dl className="divide-y divide-slate-100 text-sm">
+                    <div className="flex justify-between gap-4 py-2.5 first:pt-0"><dt className="text-slate-500">Name</dt><dd className="font-medium text-navy-900">{user.username}</dd></div>
+                    <div className="flex justify-between gap-4 py-2.5"><dt className="text-slate-500">Email</dt><dd className="truncate text-slate-700">{user.email}</dd></div>
+                    <div className="flex justify-between gap-4 py-2.5 last:pb-0"><dt className="text-slate-500">Role</dt><dd className="font-medium text-navy-900">Platform admin</dd></div>
                   </dl>
-                </div>
+                </SectionCard>
 
-                {/* Security Card */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-700"><svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg></span>
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900">Security & Authentication</h2>
-                      <p className="text-3xs text-slate-500">Access policies and session parameters</p>
-                    </div>
-                  </div>
-
-                  <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">JWT Token Lifespan</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">1440 Minutes (24 Hours)</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Role Verification</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">Strict RBAC Enforced</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Token Encoding</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">HS256 Cryptographic Signature</dd>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <dt className="text-slate-500">Session Guard</dt>
-                      <dd className="text-emerald-700 font-bold">Enabled</dd>
-                    </div>
+                <SectionCard title="Card output">
+                  <dl className="divide-y divide-slate-100 text-sm">
+                    <div className="flex justify-between gap-4 py-2.5 first:pt-0"><dt className="text-slate-500">File</dt><dd className="font-medium text-navy-900">Vector PDF</dd></div>
+                    <div className="flex justify-between gap-4 py-2.5"><dt className="text-slate-500">Size</dt><dd className="font-medium text-navy-900">3.5 × 2 in</dd></div>
+                    <div className="flex justify-between gap-4 py-2.5 last:pb-0"><dt className="text-slate-500">Verification</dt><dd className="font-medium text-navy-900">QR code on every card</dd></div>
                   </dl>
-                </div>
-
-                {/* Administrator Profile Card */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-navy-900 text-white font-bold text-sm">
-                      {user.username.charAt(0).toUpperCase()}
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900">Active Operator</h2>
-                      <p className="text-3xs text-slate-500">Super administrator account</p>
-                    </div>
-                  </div>
-
-                  <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Username</dt>
-                      <dd className="font-bold text-slate-900">{user.username}</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Email</dt>
-                      <dd className="tabular-nums text-slate-700">{user.email}</dd>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <dt className="text-slate-500">Permissions Level</dt>
-                      <dd className="rounded-full bg-slate-900 text-white px-2 py-0.5 text-3xs tabular-nums font-bold">
-                        SYSTEM_ADMIN (Full Root)
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-
-                {/* Platform Infrastructure */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-700 font-bold text-sm">
-                      ▦
-                    </span>
-                    <div>
-                      <h2 className="text-sm font-bold text-slate-900">Platform Stack</h2>
-                      <p className="text-3xs text-slate-500">Runtime environment information</p>
-                    </div>
-                  </div>
-
-                  <dl className="space-y-3 border-t border-slate-100 pt-3 text-xs">
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Backend Framework</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">FastAPI (Python 3.12)</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Frontend Client</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">Next.js 14 (App Router)</dd>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-slate-50">
-                      <dt className="text-slate-500">Database Engine</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">SQLAlchemy ORM + SQLite/PG</dd>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <dt className="text-slate-500">API Health</dt>
-                      <dd className="text-emerald-700 font-bold flex items-center gap-1">
-                        <span className="size-1.5 rounded-full bg-emerald-500" />
-                        Passing All 20 Unit Tests
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
+                </SectionCard>
               </div>
             </div>
           )}
 
-          {/* REVIEW DIALOG (COMPANY OR CARD REQUEST) */}
           {review && (
             <ReviewDialog
-              title={
-                review.kind === 'companies'
-                  ? `Review Company: ${review.name}`
-                  : `Review Card Request #${review.id}`
-              }
+              title={review.kind === 'companies' ? review.name : `Card request #${review.id}`}
               onClose={() => setReview(null)}
               busy={busy}
-              eyebrow={review.kind === 'companies' ? 'WORKSPACE APPROVAL' : 'CARD BATCH APPROVAL'}
+              eyebrow={review.kind === 'companies' ? 'Company' : 'Card request'}
             >
-              <div className="mb-4 flex items-center gap-3">
+              <div className="mb-5 flex flex-wrap items-center gap-3">
                 <StatusBadge value={review.status ?? ''} />
-                <span className="text-3xs text-slate-500 tabular-nums">
-                  Submitted {formatDate(review.created_at)}
-                </span>
+                <span className="text-sm text-slate-500">Submitted {dateTime(review.created_at)}</span>
               </div>
 
-              {/* COMPANY DETAILS */}
               {review.kind === 'companies' && (
-                <div className="space-y-5">
-                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-                    <ReviewField label="Company Name">{review.name}</ReviewField>
-                    <ReviewField label="Registered Date">{formatDate(review.created_at)}</ReviewField>
-                    <ReviewField label="Primary Administrator">
+                <div className="space-y-4">
+                  <dl className="grid grid-cols-1 gap-4 rounded-xl border border-slate-200 p-4 sm:grid-cols-2">
+                    <ReviewField label="Company name">{review.name}</ReviewField>
+                    <ReviewField label="Registered">{shortDate(review.created_at)}</ReviewField>
+                    <ReviewField label="Admin">
                       {review.admins?.[0]?.username || 'Not assigned'}
-                      <span className="block text-3xs tabular-nums text-slate-500 font-normal">
-                        {review.admins?.[0]?.email}
-                      </span>
+                      {review.admins?.[0]?.email && (
+                        <span className="block text-xs font-normal text-slate-500">{review.admins[0].email}</span>
+                      )}
                     </ReviewField>
-                    <ReviewField label="Phone Contact">{review.phone || 'Not provided'}</ReviewField>
+                    <ReviewField label="Phone">{review.phone || 'Not provided'}</ReviewField>
                     <ReviewField label="Website">{review.website || 'Not provided'}</ReviewField>
-                    <ReviewField label="Registered Address">{review.address || 'Not provided'}</ReviewField>
-                    <ReviewField label="Logo Asset">
-                      {review.has_logo ? '✓ Uploaded' : 'No logo uploaded'}
-                    </ReviewField>
+                    <ReviewField label="Address">{review.address || 'Not provided'}</ReviewField>
+                    <ReviewField label="Logo">{review.has_logo ? 'Uploaded' : 'Not uploaded'}</ReviewField>
                   </dl>
 
-                  {review.description && (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-                      <strong className="block text-2xs tabular-nums uppercase text-slate-500 mb-1">
-                        About Workspace
-                      </strong>
-                      <p className="text-xs text-slate-700 leading-relaxed">{review.description}</p>
-                    </div>
-                  )}
-
-                  {review.rejection_reason && (
-                    <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
-                      <strong className="block text-2xs tabular-nums uppercase text-rose-800 mb-1">
-                        Current Rejection Note
-                      </strong>
-                      <p className="text-xs text-rose-900 leading-relaxed">{review.rejection_reason}</p>
-                    </div>
-                  )}
+                  {review.description && <Note title="About the company">{review.description}</Note>}
+                  {review.rejection_reason && <Note title="Reason given for the last rejection">{review.rejection_reason}</Note>}
                 </div>
               )}
 
-              {/* CARD REQUEST DETAILS */}
               {review.kind === 'requests' && (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-[1.4fr_1fr]">
                     <div>
-                      <h3 className="text-xs font-bold text-slate-800 mb-2">
-                        Selected Template · {review.template?.name || review.template?.style_key}
-                      </h3>
+                      <p className="mb-2 text-sm font-medium text-navy-900">
+                        Template: {review.template?.name || review.template?.style_key}
+                      </p>
                       <CardPreview
                         design={review.template?.design}
                         style={review.template?.style_key}
@@ -1709,92 +909,62 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     </div>
 
                     <div>
-                      <h3 className="text-xs font-bold text-slate-800 mb-2">Request Lifecycle</h3>
-                      <div className="my-2 flex flex-col">
-                        <TimelineStep
-                          done
-                          mark="✓"
-                          title="Submitted"
-                          note={formatDate(review.created_at)}
-                          line
-                        />
+                      <p className="mb-3 text-sm font-medium text-navy-900">Progress</p>
+                      <ol className="relative before:absolute before:top-2 before:bottom-2 before:left-[5px] before:w-px before:bg-slate-200">
+                        <TimelineStep done title="Submitted" note={dateTime(review.created_at)} />
                         <TimelineStep
                           done={!!review.decided_at}
-                          mark={review.decided_at ? '✓' : '2'}
-                          title="Administrator Decision"
-                          note={review.decided_at ? formatDate(review.decided_at) : 'Waiting for review'}
-                          line
+                          title="Decision"
+                          note={review.decided_at ? dateTime(review.decided_at) : 'Waiting for review'}
                         />
                         <TimelineStep
                           done={review.status === 'COMPLETED'}
-                          mark={review.status === 'COMPLETED' ? '✓' : '3'}
-                          title="Cards Generated"
-                          note={review.status === 'COMPLETED' ? 'PDFs ready' : 'Waiting'}
+                          title="Cards generated"
+                          note={review.status === 'COMPLETED' ? 'PDFs ready' : 'Not yet'}
                         />
-                      </div>
+                      </ol>
                     </div>
                   </div>
 
-                  <h3 className="text-xs font-bold text-slate-800 mt-4">
-                    Employees Included in Batch ({review.items?.length || 0})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                    {review.items?.map(item => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-2.5 rounded-xl border border-slate-200 p-2.5 bg-slate-50/50"
-                      >
-                        <span className="grid size-7 flex-none place-items-center rounded-lg bg-slate-800 text-white text-3xs font-bold">
-                          {item.employee.name.charAt(0)}
-                        </span>
-                        <div className="min-w-0">
-                          <strong className="block text-2xs font-bold text-slate-900 truncate">
-                            {item.employee.name}
-                          </strong>
-                          <small className="block text-3xs tabular-nums text-slate-500 truncate">
-                            {item.employee.employee_id} · {item.employee.designation} · {item.employee.department}
-                          </small>
-                        </div>
-                      </div>
-                    ))}
+                  <div>
+                    <p className="mb-2 text-sm font-medium text-navy-900">
+                      Employees in this request ({review.items?.length || 0})
+                    </p>
+                    <ul className="max-h-56 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
+                      {review.items?.map(item => (
+                        <li key={item.id} className="px-3 py-2.5">
+                          <NameCell
+                            name={item.employee.name}
+                            sub={[item.employee.employee_id, item.employee.designation, item.employee.department].filter(Boolean).join(' · ')}
+                          />
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  {review.rejection_reason && (
-                    <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
-                      <strong className="block text-2xs tabular-nums uppercase text-rose-800 mb-1">
-                        Rejection Note
-                      </strong>
-                      <p className="text-xs text-rose-900 leading-relaxed">{review.rejection_reason}</p>
-                    </div>
-                  )}
+                  {review.rejection_reason && <Note title="Reason given for rejection">{review.rejection_reason}</Note>}
                 </div>
               )}
 
-              {/* ACTION / DECISION CONTROLS */}
               <div className="mt-6 border-t border-slate-200 pt-5">
                 {(review.status === 'PENDING' || review.kind === 'companies') && (
-                  <div className="mb-4">
-                    <label className="block">
-                      <span className="mb-1.5 block text-2xs tabular-nums uppercase font-bold text-slate-600">
-                        Decision Note / Rejection Reason
-                      </span>
-                      <textarea
-                        className={cx(inputClass, 'min-h-20 text-xs')}
-                        maxLength={500}
-                        value={reason}
-                        onChange={e => setReason(e.target.value)}
-                        placeholder="Required when rejecting. Explain what must be corrected before re-submitting."
-                      />
-                    </label>
-                  </div>
+                  <label className="mb-4 block">
+                    <span className="mb-1.5 block text-sm font-medium text-slate-700">Note to the company</span>
+                    <textarea
+                      className={cx(inputClass, 'min-h-20')}
+                      maxLength={500}
+                      value={reason}
+                      onChange={e => setReason(e.target.value)}
+                      placeholder="Required when rejecting. Say what needs to change before they send it again."
+                    />
+                  </label>
                 )}
 
                 <div className="flex flex-wrap items-center justify-end gap-2.5">
-                  <Button variant="secondary" disabled={busy} onClick={() => setReview(null)}>
+                  <Button variant="quiet" disabled={busy} onClick={() => setReview(null)}>
                     Cancel
                   </Button>
 
-                  {/* Reject Button */}
                   <Button
                     variant="danger"
                     disabled={busy || !reason.trim()}
@@ -1812,7 +982,6 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     Reject
                   </Button>
 
-                  {/* Suspend or Reactivate (Company only) */}
                   {review.kind === 'companies' && review.status === 'APPROVED' && (
                     <Button
                       variant="danger"
@@ -1821,11 +990,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                         mutate(`/admin/companies/${review.id}/status`, { status: 'SUSPENDED' })
                       }
                     >
-                      Suspend Company
+                      Suspend company
                     </Button>
                   )}
 
-                  {/* Approve Button */}
                   <Button
                     variant="primary"
                     disabled={busy}
@@ -1841,10 +1009,10 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
                     }
                   >
                     {busy
-                      ? 'Saving decision…'
+                      ? 'Saving…'
                       : review.kind === 'companies'
-                      ? 'Approve Company'
-                      : 'Approve & Generate Cards'}
+                      ? 'Approve company'
+                      : 'Approve and generate cards'}
                   </Button>
                 </div>
               </div>

@@ -73,11 +73,24 @@ function GovtIdCard({ design, base, cardStyle, name, designation, department, em
   </div>;
 }
 
+// Colours and accents mirror STYLES in backend/app/services/card_generation.py
+// so this preview looks like the printed PDF.
 const classicStyles: Record<string, string> = {
-  classic: 'border border-[#e2e6ed] border-t-7 border-t-[#243e4f] bg-white text-[#243e4f]',
-  modern: 'border-l-7 border-l-[#c7e79d] bg-[#24243c] bg-[radial-gradient(circle_at_top_right,#6254a8,transparent_65%)] text-white',
-  minimal: 'border-l-3 border-l-[#7d8b70] bg-[#f4f1e8] text-[#4f4a3c]',
+  classic: 'border border-slate-200 bg-white text-[#17324D] pl-[12%]',
+  modern: 'bg-[#18233F] text-white pl-[12%]',
+  minimal: 'bg-[#F7F5F0] text-[#151515] pl-[12%]',
 };
+
+function StyleAccent({ style }: { style: string }) {
+  if (style === 'modern') {
+    return <>
+      <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[4.8%] bg-[#6D7CFF]" />
+      <span aria-hidden="true" className="absolute top-[-10%] right-[-5.5%] aspect-square w-[28.6%] rounded-full bg-[#6D7CFF]" />
+    </>;
+  }
+  if (style === 'minimal') return <span aria-hidden="true" className="absolute top-[15%] bottom-[15%] left-[7.1%] w-[1.2%] bg-[#151515]" />;
+  return <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[6.25%] bg-[#17324D]" />;
+}
 
 export default function CardPreview({ style = 'classic', name = 'Alex Morgan', company = 'Your company', designation = 'Product Designer', email = 'hello@company.com', phone = '', department = '', design, logoPath, photoPath, back = false, website, variant = 'default', className }: CardPreviewProps) {
   const studio = variant === 'studio';
@@ -119,11 +132,12 @@ export default function CardPreview({ style = 'classic', name = 'Alex Morgan', c
       className,
     )}
     aria-label={`${style} template preview`}>
-    <div className="flex items-center justify-between text-2xs font-bold uppercase tracking-2xl"><span className={cx('flex max-w-[85%] items-center gap-2.25', library && '[overflow-wrap:anywhere]')}>{logoPath && <ProtectedImage path={logoPath} alt="Company logo" className="size-6.25 rounded-md object-contain" />}{company}</span><span>✦</span></div>
+    <StyleAccent style={style} />
+    <div className="relative flex items-center justify-between text-2xs font-bold uppercase tracking-2xl"><span className={cx('flex max-w-[85%] items-center gap-2.25', library && '[overflow-wrap:anywhere]')}>{logoPath && <ProtectedImage path={logoPath} alt="Company logo" className="size-6.25 rounded-md object-contain" />}{company}</span></div>
     {photoPath && <ProtectedImage path={photoPath} alt={name} className="absolute right-7 top-18 size-11.25 rounded-xl object-cover" />}
     <div className={cx('font-semibold tracking-tight', library ? cx('mt-[7%]', 'text-[length:5.8cqw]') : 'mt-7 text-lg', studio && 'max-w-[78%]')}>{name}</div>
     <div className={cx('mt-1 opacity-65', library ? 'text-[length:3.8cqw]' : 'text-xs')}>{designation}</div>
-    <div className={cx('flex flex-wrap justify-between gap-2 opacity-60', library ? cx('mt-[5%]', 'text-[length:2.6cqw]') : 'mt-5 text-3xs')}><span>{email}</span><span>{phone || 'Business, beautifully connected.'}</span></div>
+    <div className={cx('flex flex-wrap justify-between gap-2 opacity-60', library ? cx('mt-[5%]', 'text-[length:2.6cqw]') : 'mt-5 text-3xs')}><span>{email}</span>{phone && <span>{phone}</span>}</div>
   </div>;
   return library ? <div className="min-w-0 overflow-hidden rounded-xl [container-type:inline-size]">{card}</div> : card;
 }

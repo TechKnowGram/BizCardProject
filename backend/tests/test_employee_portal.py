@@ -81,9 +81,37 @@ def test_imported_existing_employee_is_linked_and_mock_checkout(context):
     checkout = client.post(f"/employee/checkout/company/{company['company']['id']}", headers=employee,
         json={'quantity': 3, 'template_id': templates[0]['id'], 'payer': 'INDIVIDUAL'})
     assert checkout.status_code == 201, checkout.text
-    assert checkout.json()['total_amount'] == 150
+    # Imported staff are company-sponsored, so the body's 'INDIVIDUAL' is ignored and cards are free.
+    assert checkout.json()['payer'] == 'COMPANY'
+    assert checkout.json()['total_amount'] == 0
     assert len(checkout.json()['card_ids']) == 3
     personal = client.post('/employee/checkout/personal', headers=employee,
         json={'quantity': 2, 'name': 'Existing', 'designation': 'Engineer'})
     assert personal.status_code == 201, personal.text
     assert personal.json()['total_amount'] == 100
+
+
+def test_company_checkout_payer_comes_from_membership(context):
+    client, _, _ = context
+    company, owner = register_company(client)
+    admin = login(client, 'system@example.com')
+    approve_company(client, company['company']['id'], admin)
+    assert client.post('/auth/employee/register', json={'username': 'Self Payer', 'email': 'self@example.com', 'password': 'Password@123'}).status_code == 201
+    employee = login(client, 'self@example.com')
+    assert client.post('/employees', headers=owner, json={
+        'employee_id': 'S-001', 'name': 'Self Payer', 'designation': 'Analyst',
+        'department': 'Finance', 'email': 'self@example.com', 'phone': '+8805',
+    }).status_code == 201
+    joined = client.post(f"/memberships/{company['company']['id']}", headers=employee,
+                         json={'official_email': 'self@example.com', 'employee_id': 'S-001', 'payer': 'INDIVIDUAL'})
+    assert joined.status_code == 201, joined.text
+    membership = client.get('/company/memberships', headers=owner).json()[0]
+    if membership['status'] != 'APPROVED':
+        assert client.patch(f"/company/memberships/{membership['id']}", headers=owner, json={'decision': 'APPROVED'}).status_code == 200
+    templates = client.get(f"/employee/templates/{company['company']['id']}", headers=employee).json()
+    # A self-paid member cannot get free cards by claiming the company pays.
+    checkout = client.post(f"/employee/checkout/company/{company['company']['id']}", headers=employee,
+        json={'quantity': 2, 'template_id': templates[0]['id'], 'payer': 'COMPANY'})
+    assert checkout.status_code == 201, checkout.text
+    assert checkout.json()['payer'] == 'INDIVIDUAL'
+    assert checkout.json()['total_amount'] == 100

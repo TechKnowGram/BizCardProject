@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { api } from '../lib/api';
@@ -7,8 +7,8 @@ import CardPreview from './CardPreview';
 import DesignEditor, { contrastError } from './DesignEditor';
 import PdfPreview from './PdfPreview';
 import BrandKit from './BrandKit';
-import { Button, FieldLabel, buttonClass, inputClass } from './ui';
-import { Kicker, aiErrorClass, aiParagraphClass, aiSuccessClass, pillClass } from './StudioParts';
+import { Button, cx, inputClass } from './ui';
+import { StudioHeading, aiErrorClass, aiParagraphClass, aiSuccessClass, optionClass, studioLabelClass } from './StudioParts';
 
 const ideas = ['Clean tech feel, white background, colorful accent, generous space', 'Luxury navy and gold, serif typography, elegant thin frame', 'Minimal warm ivory, charcoal text, centered typography'];
 
@@ -49,7 +49,7 @@ export default function AiDesigner({ company, employee, onSaved }: AiDesignerPro
     try {
       const template = await api<Template>('/templates/ai/save', { method: 'POST', body: JSON.stringify(draft) });
       await onSaved(template);
-      setMessage('Ready in your private company templates. Select it below to create cards.');
+      setMessage('Saved to your company templates. Select it under Card designs to use it.');
       setDraft(null); setVariants([]);
     } catch (err) { setError(err instanceof Error ? err.message : String(err)); }
     finally { setBusy(false); }
@@ -57,19 +57,65 @@ export default function AiDesigner({ company, employee, onSaved }: AiDesignerPro
   const logoPath = company.has_logo ? '/company/logo' : null;
   const promptShort = busy || prompt.trim().length < 10;
   const draftBlocked = busy || (!!draft && !!contrastError(draft));
-  return <section className="mb-7.5 rounded-xl border border-slate-200 bg-slate-100 p-7 max-md:p-5">
-    <div className="mb-6 flex justify-between gap-4 max-md:flex-col"><div><Kicker>IMAGINE YOUR SIGNATURE</Kicker><h3 className="my-1.5 text-2xl font-[750] tracking-tighter">Meet your AI designer</h3><p className={aiParagraphClass}>Describe a mood. Shape a card. Make it yours.</p></div><span className={`${pillClass} inline-flex items-center gap-1.75 self-start whitespace-nowrap`}><svg className="flex-none text-brand-400" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 2C12 8 8 12 2 12c6 0 10 4 10 10 0-6 4-10 10-10-6 0-10-4-10-10Z" /></svg>Powered by Gemini</span></div>
-    <BrandKit />
-    <div className="grid grid-cols-2 items-center gap-8 max-md:grid-cols-1"><div>
-      <FieldLabel htmlFor="ai-prompt">What should your card feel like?</FieldLabel>
-      <textarea id="ai-prompt" className={`${inputClass} min-h-28.75 resize-y`} rows={4} maxLength={2000} disabled={busy} value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="A polished tech card with a white background, vibrant blue accent and clean typography..." />
-      <div className="my-3 flex flex-wrap gap-1.75">{ideas.map(idea => <button key={idea} className="rounded-xl border border-brand-100 bg-white px-2.5 py-1.75 text-xs" disabled={busy} onClick={() => setPrompt(idea)}>{idea.split(',')[0]}</button>)}</div>
-      <p className={`mb-4.5 ${aiParagraphClass}`}>Original styles, print-safe layouts. Only your prompt and saved brand preferences go to AI; keep confidential details out.</p>
-      <div className="flex flex-wrap gap-2"><button className={buttonClass('primary')} disabled={promptShort} onClick={() => generate()}>{busy ? 'Working…' : 'Generate design'}</button><Button variant="secondary" disabled={promptShort} onClick={() => generate(false, true)}>Explore 3 styles</Button>{draft && <Button variant="secondary" disabled={promptShort} onClick={() => generate(true)}>Refine this design</Button>}</div>
-      {draft && <DesignEditor design={draft} onChange={setDraft} disabled={busy} />}
-      {error && <p className={aiErrorClass} role="alert">{error}</p>}{message && <p className={aiSuccessClass} role="status">{message}</p>}
-    </div><div className="min-w-0 text-center" aria-live="polite">{draft ? <><CardPreview className="mx-auto mb-4" back={back && draft.two_sided} website={company.website} logoPath={logoPath} photoPath={employee?.has_photo ? `/employees/${employee.id}/photo` : null} design={draft} company={company.name} name={employee?.name || 'Alex Morgan'} designation={employee?.designation || 'Product Designer'} department={employee?.department || 'Design'} email={employee?.email || 'hello@company.com'} phone={employee?.phone || '+880 1700 000000'} /><div><strong className="text-base">{draft.name}</strong><p className={`mb-3.5 mt-1.5 ${aiParagraphClass}`}>{draft.description}</p><div className="flex flex-wrap justify-center gap-2"><Button variant="secondary" className="text-xs!" disabled={draftBlocked} onClick={() => setPdfOpen(true)}>Actual PDF preview</Button>{draft.two_sided && <Button variant="secondary" className="text-xs!" onClick={() => setBack(!back)}>{back ? 'Show front' : 'Show back'}</Button>}<Button variant="primary" className="text-xs!" disabled={draftBlocked} onClick={save}>Use in my company</Button></div></div></> : <div className="rounded-xl border border-dashed border-brand-200 px-4 py-10.5"><span className="block text-5xl text-brand-400" aria-hidden="true">✦</span><h4 className="text-lg font-bold">Your next great first impression</h4><p className={`mb-3.5 mt-1.5 ${aiParagraphClass}`}>A new original design will appear here.<br />Preview it before saving.</p></div>}</div></div>
-    {variants.length > 0 && <div className="mt-7 grid grid-cols-3 gap-4 max-sm:grid-cols-1">{variants.map((item, index) => <button key={index} className="min-w-0 rounded-xl border border-brand-100 bg-white p-3 text-left aria-pressed:border-brand-400 aria-pressed:ring-3 aria-pressed:ring-brand-400/5" disabled={busy} aria-pressed={draft?.name === item.name} onClick={() => { setDraft(item); setBack(false); }}><CardPreview design={item} company={company.name} name={employee?.name} designation={employee?.designation} /><strong className="mb-1.25 mt-3.5 block text-xs [overflow-wrap:anywhere]">0{index + 1} · {item.name}</strong><span className="block text-2xs leading-relaxed text-slate-500">{item.description}</span></button>)}</div>}
+  return <section className="rounded-2xl border border-slate-200 bg-white shadow-xs">
+    <div className="border-b border-slate-100 px-6 py-5">
+      <StudioHeading
+        title="Create a design from a description"
+        description="Describe the look you want. You can preview the result, adjust it and save it as a company template."
+        aside={<span className="text-xs text-slate-500">Generated with Gemini</span>}
+      />
+    </div>
+    <div className="space-y-6 p-6">
+      <BrandKit />
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+        <div>
+          <label htmlFor="ai-prompt" className={studioLabelClass}>Describe your card</label>
+          <textarea id="ai-prompt" className={cx(inputClass, 'min-h-28 resize-y')} rows={4} maxLength={2000} disabled={busy} value={prompt} onChange={event => setPrompt(event.target.value)} placeholder="For example: white background, blue accent, clean modern typography" />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-500">Examples:</span>
+            {ideas.map(idea => <button type="button" key={idea} className={optionClass(prompt === idea, 'px-2.5 py-1 text-xs text-slate-700')} disabled={busy} onClick={() => setPrompt(idea)}>{idea.split(',')[0]}</button>)}
+          </div>
+          <p className={cx('mt-4', aiParagraphClass)}>Only your description and saved brand preferences are sent to the AI service. Do not include confidential details.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button disabled={promptShort} onClick={() => generate()}>{busy ? 'Working…' : 'Generate design'}</Button>
+            <Button variant="secondary" disabled={promptShort} onClick={() => generate(false, true)}>Show 3 options</Button>
+            {draft && <Button variant="secondary" disabled={promptShort} onClick={() => generate(true)}>Refine this design</Button>}
+          </div>
+          {prompt.trim().length > 0 && prompt.trim().length < 10 && <p className="mt-2 text-xs text-slate-500">Write at least 10 characters.</p>}
+          {draft && <DesignEditor design={draft} onChange={setDraft} disabled={busy} />}
+          {error && <p className={aiErrorClass} role="alert">{error}</p>}
+          {message && <p className={aiSuccessClass} role="status">{message}</p>}
+        </div>
+
+        <div className="min-w-0" aria-live="polite">
+          {draft ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+            <CardPreview className="mx-auto" back={back && draft.two_sided} website={company.website} logoPath={logoPath} photoPath={employee?.has_photo ? `/employees/${employee.id}/photo` : null} design={draft} company={company.name} name={employee?.name || 'Alex Morgan'} designation={employee?.designation || 'Product Designer'} department={employee?.department || 'Design'} email={employee?.email || 'hello@company.com'} phone={employee?.phone || '+880 1700 000000'} />
+            <p className="mt-4 text-sm font-semibold text-navy-900">{draft.name}</p>
+            {draft.description && <p className={cx('mt-1', aiParagraphClass)}>{draft.description}</p>}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="secondary" className="px-3 py-1.5" disabled={draftBlocked} onClick={() => setPdfOpen(true)}>Preview PDF</Button>
+              {draft.two_sided && <Button variant="secondary" className="px-3 py-1.5" onClick={() => setBack(!back)}>{back ? 'Show front' : 'Show back'}</Button>}
+              <Button className="px-3 py-1.5" disabled={draftBlocked} onClick={save}>Save as company template</Button>
+            </div>
+          </div> : <div className="grid min-h-60 place-content-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
+            <p className="text-sm font-semibold text-navy-900">No design yet</p>
+            <p className={cx('mt-1', aiParagraphClass)}>Your generated design will appear here so you can check it before saving.</p>
+          </div>}
+        </div>
+      </div>
+
+      {variants.length > 0 && <div>
+        <p className={studioLabelClass}>Options</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">{variants.map((item, index) => {
+          const selected = draft?.name === item.name;
+          return <button type="button" key={index} className={optionClass(selected, 'min-w-0 p-3')} disabled={busy} aria-pressed={selected} onClick={() => { setDraft(item); setBack(false); }}>
+            <CardPreview design={item} company={company.name} name={employee?.name} designation={employee?.designation} />
+            <span className={cx('mt-3 block text-sm font-medium [overflow-wrap:anywhere]', selected ? 'text-brand-700' : 'text-navy-900')}>Option {index + 1}: {item.name}</span>
+            {item.description && <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{item.description}</span>}
+          </button>;
+        })}</div>
+      </div>}
+    </div>
     {pdfOpen && draft && <PdfPreview design={draft} employeeId={employee?.id} onClose={() => setPdfOpen(false)} />}
   </section>;
 }

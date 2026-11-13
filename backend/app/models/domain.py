@@ -178,6 +178,8 @@ class CardOrder(Base):
     payer: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='PAID')
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    # Read-only link used by the admin payments list; the foreign key above already exists.
+    company = relationship('Company')
     __table_args__ = (CheckConstraint('quantity > 0', name='check_order_quantity'),
                       CheckConstraint("payer IN ('COMPANY','INDIVIDUAL')", name='check_order_payer'),)
 

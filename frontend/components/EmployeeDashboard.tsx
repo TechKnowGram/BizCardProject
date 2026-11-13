@@ -1,217 +1,22 @@
-// @ts-nocheck
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { api, download } from '../lib/api';
 import type { User } from '../lib/types';
 import StatusBadge from './StatusBadge';
 import Toast from './Toast';
-import ReviewDialog from './ReviewDialog';
+import Icon from './Icon';
 import { isValidEmail } from '../lib/validation';
-import { Button, cx, inputClass, tableClass, tdClass, thClass } from './ui';
-
-const PRICE = 50;
-
-const MATCH_HINTS: Record<string, { text: string; tone: string }> = {
-  ROSTER_MATCHED: { text: 'Verified with company roster. Membership activated automatically.', tone: 'bg-brand-50 text-brand-700 border-brand-100' },
-  ID_MISMATCH: { text: 'Employee ID was recognized but email differs. Company admin will review.', tone: 'bg-amber-100 text-amber-800 border-amber-200' },
-  NOT_FOUND: { text: 'Your details will be reviewed by the company administrator.', tone: 'bg-slate-100 text-slate-700 border-slate-200' },
-  INACTIVE_EMPLOYEE: { text: 'Roster record is currently inactive. Awaiting administrator review.', tone: 'bg-red-100 text-red-800 border-rose-200' },
-};
-
-function PageTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
-      {subtitle && <p className="mt-1 text-xs text-slate-500 leading-relaxed max-w-3xl">{subtitle}</p>}
-    </div>
-  );
-}
-
-function SectionHeading({ title, copy, action }: { title: string; copy?: string; action?: ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <div>
-        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-        {copy && <p className="mt-0.5 text-xs text-slate-500">{copy}</p>}
-      </div>
-      {action && <div>{action}</div>}
-    </div>
-  );
-}
-
-function LiveCardPreview({
-  theme = 'navy',
-  name,
-  designation,
-  department,
-  phone,
-  email,
-  companyName,
-  isCompany,
-  templateName,
-}: {
-  theme?: 'navy' | 'clean' | 'royal';
-  name?: string;
-  designation?: string;
-  department?: string;
-  phone?: string;
-  email?: string;
-  companyName?: string;
-  isCompany: boolean;
-  templateName?: string;
-}) {
-  const displayName = name?.trim() || 'Your Full Name';
-  const displayTitle = designation?.trim() || (isCompany ? 'Senior Consultant' : 'Independent Professional');
-  const displayDept = department?.trim() || (isCompany ? 'Engineering & Operations' : 'Strategy & Consulting');
-  const displayPhone = phone?.trim() || '+880 1700 000000';
-  const displayEmail = email?.trim() || 'contact@bizcard.me';
-  const displayOrg = isCompany ? (companyName || 'Verified Organization') : 'BIZCARD INDEPENDENT';
-
-  const isNavy = theme === 'navy';
-  const isRoyal = theme === 'royal';
-  const isClean = theme === 'clean';
-
-  const cardBgClass = isNavy
-    ? 'bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 text-white border border-navy-800 shadow-2xl'
-    : isRoyal
-    ? 'bg-gradient-to-br from-navy-900 via-navy-900 to-navy-950 text-white border border-brand-800 shadow-2xl'
-    : 'bg-gradient-to-br from-white via-slate-50 to-slate-100 text-slate-900 border border-slate-200/90 shadow-xl';
-
-  const accentPillClass = isNavy
-    ? 'bg-brand-600 text-white'
-    : isRoyal
-    ? 'bg-amber-400 text-slate-950'
-    : 'bg-slate-900 text-white';
-
-  const secondaryTextClass = isClean ? 'text-slate-600' : 'text-slate-300';
-  const subtleTextClass = isClean ? 'text-slate-400' : 'text-slate-400';
-
-  return (
-    <div className="relative w-full max-w-md mx-auto select-none">
-      {/* Physical Card Mockup with standard 1.75:1 aspect ratio */}
-      <div
-        className={cx(
-          'relative aspect-[1.75/1] w-full rounded-2xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300',
-          cardBgClass
-        )}
-      >
-        {/* Ambient mesh glow */}
-        {!isClean && (
-          <div
-            className="absolute -right-16 -top-16 size-48 rounded-full blur-3xl opacity-20 pointer-events-none"
-            style={{ backgroundColor: isNavy ? '#4dffc8' : '#c084fc' }}
-          />
-        )}
-        <div
-          className="absolute -left-12 -bottom-12 size-36 rounded-full blur-2xl opacity-10 pointer-events-none"
-          style={{ backgroundColor: isNavy ? '#2bbbc4' : '#efb53e' }}
-        />
-
-        {/* Card Header */}
-        <div className="relative z-10 flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span
-              className={cx(
-                'grid size-8 place-items-center rounded-lg text-xs font-bold shadow-xs shrink-0',
-                accentPillClass
-              )}
-            >
-              {displayOrg.charAt(0)}
-            </span>
-            <div className="min-w-0">
-              <span
-                className={cx(
-                  'block text-2xs font-semibold uppercase tracking-wider truncate',
-                  accentPillClass.includes('text-slate-950') && !isClean
-                    ? 'text-emerald-600'
-                    : isRoyal
-                    ? 'text-amber-400'
-                    : 'text-slate-900'
-                )}
-              >
-                {displayOrg}
-              </span>
-              <span className={cx('block text-3xs tabular-nums tracking-tight truncate', subtleTextClass)}>
-                {isCompany ? (templateName ? `Template: ${templateName}` : 'Corporate Workspace') : 'Verified Personal Card'}
-              </span>
-            </div>
-          </div>
-
-          {/* NFC / Prepress badge */}
-          <div className="flex items-center gap-1.5 opacity-70 shrink-0">
-            <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 14.5A2.5 2.5 0 0 0 11 12a2.5 2.5 0 0 0-2.5-2.5M12 17.5a5.5 5.5 0 0 0 0-11M15.5 20.5a8.5 8.5 0 0 0 0-17" />
-            </svg>
-            <span className="text-3xs tabular-nums font-bold tracking-wider">Vector PDF</span>
-          </div>
-        </div>
-
-        {/* Card Body: Name & Title */}
-        <div className="relative z-10 my-auto py-1">
-          <h3
-            className={cx(
-              'text-lg sm:text-xl font-bold tracking-tight leading-tight line-clamp-1',
-              isClean ? 'text-slate-900' : 'text-white'
-            )}
-          >
-            {displayName}
-          </h3>
-          <p className={cx('text-2xs sm:text-xs font-semibold tracking-wide uppercase mt-0.5 line-clamp-1', secondaryTextClass)}>
-            {displayTitle}
-          </p>
-          <span className={cx('text-3xs tracking-wider block mt-0.5 line-clamp-1', subtleTextClass)}>
-            {displayDept}
-          </span>
-        </div>
-
-        {/* Card Footer: Contact & QR Code */}
-        <div className="relative z-10 flex items-end justify-between gap-2 border-t pt-2.5 border-current/10">
-          <div className="space-y-0.5 text-3xs min-w-0">
-            <div className="flex items-center gap-1.5 tabular-nums truncate">
-              <span className="opacity-60 shrink-0">TEL</span>
-              <span className={cx('truncate', secondaryTextClass)}>{displayPhone}</span>
-            </div>
-            <div className="flex items-center gap-1.5 tabular-nums truncate">
-              <span className="opacity-60 shrink-0">EMAIL</span>
-              <span className={cx('truncate', secondaryTextClass)}>{displayEmail}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div
-              className={cx(
-                'size-8 rounded p-1 grid grid-cols-3 gap-0.5 place-items-center',
-                isClean ? 'bg-slate-900 text-white' : 'bg-white text-slate-950'
-              )}
-              title="Prepress certified QR code"
-            >
-              <span className="size-1.5 bg-current rounded-xs" />
-              <span className="size-1 bg-current" />
-              <span className="size-1.5 bg-current rounded-xs" />
-              <span className="size-1 bg-current" />
-              <span className="size-1 bg-current" />
-              <span className="size-1 bg-current" />
-              <span className="size-1.5 bg-current rounded-xs" />
-              <span className="size-1 bg-current" />
-              <span className="size-1.5 bg-current rounded-xs" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Prepress Specs Note */}
-      <div className="mt-2.5 flex items-center justify-between text-3xs text-slate-500 tabular-nums px-1">
-        <span>ISO/IEC 7810 ID-1 · 85.6 × 54 mm</span>
-        <span className="flex items-center gap-1 text-emerald-600 font-semibold">
-          <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Prepress Vector Ready
-        </span>
-      </div>
-    </div>
-  );
-}
+import { site } from '../lib/site';
+import { Button, buttonClass } from './ui';
+import { CardLink, PageHeader, SectionCard, ToolbarSelect } from './dashboard/Surface';
+import DataTable, { NameCell } from './dashboard/DataTable';
+import type { Column } from './dashboard/DataTable';
+import CardOrderStudio from './employee/CardOrderStudio';
+import JoinCompanyDialog from './employee/JoinCompanyDialog';
+import { CompanyMark, DetailList, EmptyNote, MATCH_HINTS, PRICE, cardDownloadPath, formatDate, formatSize, payerText } from './employee/shared';
 
 export interface EmployeeDashboardProps {
   tab: string;
@@ -228,20 +33,22 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
   const [templates, setTemplates] = useState<any[]>([]);
   const [selected, setSelected] = useState('');
   const [companySearch, setCompanySearch] = useState('');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderType, setOrderType] = useState('all');
 
-  // Card Studio view toggle ('order' or 'vault')
+  // My card: design/order view or saved cards
   const [cardSubView, setCardSubView] = useState<'order' | 'vault'>('order');
 
-  // Card Type Selector Pattern ('PERSONAL' or 'COMPANY')
+  // Card type: 'PERSONAL' or 'COMPANY'
   const [cardOrderType, setCardOrderType] = useState<'PERSONAL' | 'COMPANY'>('PERSONAL');
 
-  // Card Theme Palette for Live Interactive Preview
+  // Colour of the on-screen personal card preview
   const [cardTheme, setCardTheme] = useState<'navy' | 'clean' | 'royal'>('navy');
 
-  // Request to Change Company workflow state
+  // Change company section (for active members)
   const [changeCompanyOpen, setChangeCompanyOpen] = useState(false);
 
-  // Modal state for joining a specific company
+  // Join company dialog
   const [targetCompany, setTargetCompany] = useState<any>(null);
   const [joinForm, setJoinForm] = useState({ official_email: '', employee_id: '', payer: 'COMPANY' });
   const [joinErrors, setJoinErrors] = useState<Record<string, string | undefined>>({});
@@ -294,18 +101,16 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     if (user?.username && !order.name) {
       setOrder(curr => ({ ...curr, name: user.username }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Determine actual membership state
+  // Membership state
   const activeMembership = memberships.find(m => m.status === 'APPROVED');
   const pendingMembership = memberships.find(m => m.status === 'PENDING');
   const rejectedMembership = memberships.find(m => m.status === 'REJECTED');
 
   const membershipState: 'ACTIVE' | 'PENDING' | 'REJECTED' | 'NO_COMPANY' =
     activeMembership ? 'ACTIVE' : pendingMembership ? 'PENDING' : rejectedMembership ? 'REJECTED' : 'NO_COMPANY';
-
-  const isCompanySponsored = order.payer === 'COMPANY' && activeMembership?.payer === 'COMPANY';
-  const total = isCompanySponsored ? 0 : Number(order.quantity || 0) * PRICE;
 
   function openJoinModal(company: any) {
     setTargetCompany(company);
@@ -326,16 +131,16 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     }
   }
 
-  async function handleJoinSubmit(e: any) {
+  async function handleJoinSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!joinForm.official_email.trim()) {
-      errs.official_email = 'Official work email is required.';
+      errs.official_email = 'Enter your work email.';
     } else if (!isValidEmail(joinForm.official_email)) {
       errs.official_email = 'Enter a valid email address.';
     }
     if (!joinForm.employee_id.trim()) {
-      errs.employee_id = 'Employee ID or registration number is required.';
+      errs.employee_id = 'Enter your employee ID.';
     }
     setJoinErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -354,9 +159,9 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
       setTargetCompany(null);
       setChangeCompanyOpen(false);
       if (result.status === 'APPROVED') {
-        setMessage(`Success! Your details matched ${targetCompany.name}'s roster. Membership is now active.`);
+        setMessage(`Your details matched the staff list at ${targetCompany.name}. You are now a member.`);
       } else {
-        setMessage(`Request submitted to ${targetCompany.name}. Your details will be reviewed by the administrator.`);
+        setMessage(`Request sent to ${targetCompany.name}. The company admin will review it.`);
       }
       await load();
     } catch (err: any) {
@@ -366,6 +171,7 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
     }
   }
 
+  // Unused by the current screens; kept as it was.
   async function selectCompany(value: string) {
     setSelected(value);
     setTemplates(value ? ((await api(`/employee/templates/${value}`)) as any[]) : []);
@@ -380,21 +186,22 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
         const companyId = selected || activeMembership?.company_id;
         if (!companyId) throw new Error('No active company selected.');
         const tId = Number(order.template_id);
-        if (!tId || tId <= 0) throw new Error('Please select an approved company template.');
+        if (!tId || tId <= 0) throw new Error('Choose one of your company designs.');
         const body = {
           quantity: Math.max(1, Number(order.quantity) || 1),
           template_id: tId,
-          payer: order.payer || 'INDIVIDUAL',
+          // Informational only: the server uses the membership's payer.
+          payer: activeMembership?.payer || 'INDIVIDUAL',
         };
         const result: any = await api(`/employee/checkout/company/${companyId}`, {
           method: 'POST',
           body: JSON.stringify(body),
         });
-        setMessage(`Order confirmed! ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'} generated; total ৳${result.total_amount}.`);
+        setMessage(`Order placed: ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'}, total ৳${result.total_amount}.`);
       } else {
         const nameVal = order.name?.trim() || user?.username || '';
-        if (!nameVal) throw new Error('Full Name is required for personal visiting cards.');
-        // Strictly exclude template_id so backend validation succeeds!
+        if (!nameVal) throw new Error('Enter your full name.');
+        // template_id is left out on purpose so the backend accepts the personal order.
         const body: Record<string, any> = {
           quantity: Math.max(1, Number(order.quantity) || 1),
           payer: 'INDIVIDUAL',
@@ -408,12 +215,12 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
           method: 'POST',
           body: JSON.stringify(body),
         });
-        setMessage(`Personal card order confirmed! ${result.quantity} ${result.quantity === 1 ? 'personal card' : 'personal cards'} generated; total ৳${result.total_amount}.`);
+        setMessage(`Order placed: ${result.quantity} personal ${result.quantity === 1 ? 'card' : 'cards'}, total ৳${result.total_amount}.`);
       }
       await load();
       setCardSubView('vault');
     } catch (err: any) {
-      setError(err.message || 'Failed to place card order');
+      setError(err.message || 'The order could not be placed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -432,1564 +239,579 @@ export default function EmployeeDashboard({ tab, setTab, user }: EmployeeDashboa
       String(c.id).includes(companySearch)
   );
 
-  const employeeName = user?.username || 'Team Member';
+  const employeeName = user?.username || 'there';
+  const companyNameById = (id: number | null | undefined) =>
+    id == null ? '' : companies.find(c => c.id === id)?.name || memberships.find(m => m.company_id === id)?.company?.name || '';
 
-  /* ==============================================================================================
-     VIEW A: MY PROFILE (UX Corrections A.1 - A.6)
-     ============================================================================================== */
-  if (tab === 'profile') {
-    return (
-      <div className="space-y-6">
-        <PageTitle
-          title="My Profile"
-          subtitle="Your personal account credentials and organizational employment record."
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Section 1: Account Identifier */}
-          <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h2 className="text-3xs font-semibold text-brand-600 uppercase tracking-wider">
-              ACCOUNT IDENTIFIER
-            </h2>
-            <div className="mt-4 flex items-center gap-3.5">
-              <span className="grid size-12 place-items-center rounded-2xl bg-brand-50 font-display text-lg font-bold text-brand-600">
-                {employeeName.charAt(0).toUpperCase()}
-              </span>
-              <div>
-                <strong className="block text-base font-bold text-slate-900">{employeeName}</strong>
-                <span className="text-xs text-slate-500">ID: #{user?.id || '—'}</span>
-              </div>
-            </div>
-
-            <dl className="mt-6 divide-y divide-slate-100 text-xs">
-              <div className="py-2.5 flex justify-between items-center">
-                <dt className="text-slate-500">Account Role</dt>
-                <dd className="font-semibold text-slate-800">Employee</dd>
-              </div>
-              <div className="py-2.5 flex justify-between items-center">
-                <dt className="text-slate-500">Account / Login Email</dt>
-                <dd className="font-medium text-slate-800">{user?.email || '—'}</dd>
-              </div>
-              <div className="py-2.5 flex justify-between items-center">
-                <dt className="text-slate-500">Total Cards Ordered</dt>
-                <dd className="font-semibold text-slate-800">
-                  {cardRows.length} {cardRows.length === 1 ? 'card' : 'cards'}
-                </dd>
-              </div>
-              <div className="py-2.5 flex justify-between items-center">
-                <dt className="text-slate-500">Order Transactions</dt>
-                <dd className="font-semibold text-slate-800">
-                  {orders.length} {orders.length === 1 ? 'order' : 'orders'}
-                </dd>
-              </div>
-            </dl>
-          </section>
-
-          {/* Section 2: Company Association */}
-          <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h2 className="text-3xs font-semibold text-brand-600 uppercase tracking-wider">
-              COMPANY ASSOCIATION
-            </h2>
-            <div className="mt-4">
-              {membershipState === 'ACTIVE' && activeMembership ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <strong className="block text-base font-bold text-slate-900">
-                        {activeMembership.company?.name}
-                      </strong>
-                      <span className="text-2xs text-slate-500 tabular-nums">
-                        Workspace ID: #{activeMembership.company_id}
-                      </span>
-                    </div>
-                    <StatusBadge value="ACTIVE" />
-                  </div>
-
-                  <dl className="mt-4 divide-y divide-slate-100 text-xs">
-                    <div className="py-2.5 flex justify-between items-center">
-                      <dt className="text-slate-500">Employee ID</dt>
-                      <dd className="tabular-nums font-bold text-slate-900">{activeMembership.employee_code}</dd>
-                    </div>
-                    <div className="py-2.5 flex justify-between items-center">
-                      <dt className="text-slate-500">Official Work Email</dt>
-                      <dd className="font-medium text-slate-800">{activeMembership.official_email}</dd>
-                    </div>
-                    <div className="py-2.5 flex justify-between items-start">
-                      <dt className="text-slate-500">Billing Responsibility</dt>
-                      <dd className="text-right">
-                        <strong className="block font-bold text-slate-900">
-                          {activeMembership.payer === 'COMPANY' ? 'Company Covered' : 'Employee Self-Paid'}
-                        </strong>
-                        <span className="text-2xs text-slate-500">
-                          {activeMembership.payer === 'COMPANY'
-                            ? 'Employee payable: ৳0 (100% employer sponsored)'
-                            : 'Employee payable: ৳50 per card'}
-                        </span>
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              ) : membershipState === 'PENDING' && pendingMembership ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <strong className="block text-base font-bold text-slate-900">
-                        {pendingMembership.company?.name}
-                      </strong>
-                      <span className="text-2xs text-slate-500 tabular-nums">
-                        Workspace ID: #{pendingMembership.company_id}
-                      </span>
-                    </div>
-                    <StatusBadge value="PENDING" />
-                  </div>
-                  <dl className="mt-3 divide-y divide-slate-100 text-xs">
-                    <div className="py-2 flex justify-between">
-                      <dt className="text-slate-500">Submitted Employee ID</dt>
-                      <dd className="tabular-nums font-bold text-slate-800">{pendingMembership.employee_code}</dd>
-                    </div>
-                    <div className="py-2 flex justify-between">
-                      <dt className="text-slate-500">Official Work Email</dt>
-                      <dd className="text-slate-800">{pendingMembership.official_email}</dd>
-                    </div>
-                  </dl>
-                  <p className="mt-2 text-2xs text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                    Association request submitted. Awaiting administrator review.
-                  </p>
-                </div>
-              ) : membershipState === 'REJECTED' && rejectedMembership ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <strong className="block text-base font-bold text-slate-900">
-                        {rejectedMembership.company?.name}
-                      </strong>
-                      <span className="text-2xs text-slate-500 tabular-nums">
-                        Workspace ID: #{rejectedMembership.company_id}
-                      </span>
-                    </div>
-                    <StatusBadge value="REJECTED" />
-                  </div>
-                  <p className="text-xs text-rose-800 bg-rose-50 p-2.5 rounded-lg border border-rose-200">
-                    Association request was not approved. Please verify details with your HR team.
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center py-5">
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    No company currently linked. You are using an independent employee account.
-                  </p>
-                  <Button
-                    variant="secondary"
-                    className="mt-4 !text-xs font-bold"
-                    onClick={() => setTab?.('company')}
-                  >
-                    Connect to a Company →
-                  </Button>
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-      </div>
-    );
+  function goToOrderCompanyCards() {
+    setTab?.('card');
+    setCardSubView('order');
+    setCardOrderType('COMPANY');
   }
 
-  /* ==============================================================================================
-     VIEW B: COMPANY PAGE (UX Corrections B.1 - B.8)
-     ============================================================================================== */
-  if (tab === 'company') {
-    return (
-      <div className="space-y-6">
-        <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
-
-        <PageTitle
-          title="Company Workspace"
-          subtitle="Manage your organizational connection, view verified company credentials, and explore approved workplaces."
-        />
-
-        {/* B.2: When membership is ACTIVE, show connected company as PRIMARY content */}
-        {membershipState === 'ACTIVE' && activeMembership ? (
-          <div className="space-y-6">
-            <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-7 shadow-xs">
-              <div className="flex flex-wrap items-start justify-between gap-5">
-                <div className="flex items-start gap-4">
-                  {/* B.7: Monogram / Initials fallback */}
-                  <span className="grid size-14 place-items-center rounded-2xl bg-navy-950 font-display text-xl font-bold text-white border border-navy-800 shadow-xs">
-                    {activeMembership.company?.name?.charAt(0) || 'C'}
-                  </span>
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">{activeMembership.company?.name}</h2>
-                    <p className="text-2xs text-slate-500 tabular-nums mt-0.5">
-                      Company Workspace ID: #{activeMembership.company_id}
-                    </p>
-
-                    {/* B.8: Clearly distinguish company verification from employee verification */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-300 px-3 py-1 text-3xs font-bold text-slate-700 shadow-xs">
-                        <span className="size-1.5 rounded-full bg-emerald-600" />
-                        Verified Company Workspace
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 border border-brand-100 px-3 py-1 text-3xs font-bold text-brand-700 shadow-xs">
-                        <span className="size-1.5 rounded-full bg-brand-600" />
-                        Verified Employee Membership
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="sun"
-                    className="!px-5 !py-2.5 !text-xs font-bold"
-                    onClick={() => {
-                      setTab?.('card');
-                      setCardOrderType('COMPANY');
-                    }}
-                  >
-                    Order Company Cards ↗
-                  </Button>
-                </div>
-              </div>
-
-              {/* Company Details Grid */}
-              <div className="mt-6 pt-5 border-t border-emerald-200/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Employee ID</span>
-                  <strong className="mt-0.5 block tabular-nums text-slate-900">{activeMembership.employee_code}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Official Work Email</span>
-                  <span className="mt-0.5 block text-slate-800">{activeMembership.official_email}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Website</span>
-                  <span className="mt-0.5 block text-slate-800">{activeMembership.company?.website || '—'}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block text-3xs uppercase font-bold tracking-wider">Billing Policy</span>
-                  <strong className="mt-0.5 block text-emerald-800 font-bold">
-                    {activeMembership.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Employee Self-Paid'}
-                  </strong>
-                </div>
-              </div>
-            </section>
-
-            {/* B.3 & B.4: Single Active Membership Policy & Request to Change Company Workflow */}
-            <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">Single Active Organization Policy</h3>
-                  <p className="mt-1 text-xs text-slate-500 max-w-2xl leading-relaxed">
-                    Your account is actively linked to <strong>{activeMembership.company?.name}</strong>.
-                    To maintain brand standards and authorization limits, employees hold one active company membership at a time.
-                  </p>
-                </div>
-
-                <Button
-                  variant="secondary"
-                  className="!text-xs font-bold"
-                  onClick={() => setChangeCompanyOpen(!changeCompanyOpen)}
-                >
-                  {changeCompanyOpen ? 'Hide Transfer Workflow' : 'Request to Change Company'}
-                </Button>
-              </div>
-
-              {changeCompanyOpen && (
-                <div className="mt-6 pt-5 border-t border-slate-200">
-                  <div className="rounded-xl bg-amber-50/80 border border-amber-200 p-4 mb-5 text-xs text-amber-900 leading-relaxed">
-                    <strong>Notice:</strong> Submitting a request to another organization will replace your active membership with <strong>{activeMembership.company?.name}</strong> upon approval by the new company administrator.
-                  </div>
-
-                  <SectionHeading
-                    title="Select New Organization to Request Transfer"
-                    copy="Search approved organizations to submit credentials."
-                    action={
-                      <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900">
-                        <span className="text-sm text-slate-400">⌕</span>
-                        <input
-                          className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
-                          placeholder="Search organizations…"
-                          value={companySearch}
-                          onChange={e => setCompanySearch(e.target.value)}
-                        />
-                      </div>
-                    }
-                  />
-
-                  {/* B.5 & B.6: Distinct company records (never merging by name) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-4">
-                    {filteredCompanies
-                      .filter(c => c.id !== activeMembership.company_id)
-                      .map(company => (
-                        <div
-                          key={company.id}
-                          className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-5"
-                        >
-                          <div>
-                            <div className="flex items-start justify-between gap-2">
-                              <span className="grid size-10 place-items-center rounded-xl bg-navy-950 font-display text-xs font-bold text-white border border-navy-800">
-                                {company.name?.charAt(0) || 'C'}
-                              </span>
-                              <span className="text-3xs tabular-nums text-slate-400">ID: #{company.id}</span>
-                            </div>
-                            <h4 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h4>
-                            <p className="mt-1 text-xs text-slate-500 line-clamp-2">
-                              {company.description || company.website || 'Verified corporate workspace'}
-                            </p>
-                          </div>
-                          <Button
-                            variant="secondary"
-                            className="mt-4 w-full !py-2 !text-xs font-bold"
-                            onClick={() => openJoinModal(company)}
-                          >
-                            Request Transfer →
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </section>
-          </div>
-        ) : (
-          /* When NOT active: Show Pending / Directory with Request to Join */
-          <div className="space-y-6">
-            {membershipState === 'PENDING' && pendingMembership && (
-              <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-6 shadow-xs">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <span className="text-3xs font-semibold uppercase tracking-wider text-amber-800">
-                      ASSOCIATION PENDING REVIEW
-                    </span>
-                    <h2 className="mt-1 text-base font-bold text-slate-900">
-                      {pendingMembership.company?.name} (Workspace #{pendingMembership.company_id})
-                    </h2>
-                    <p className="mt-2 text-xs text-slate-600">
-                      Submitted Employee ID: <strong className="tabular-nums">{pendingMembership.employee_code}</strong> · {pendingMembership.official_email}
-                    </p>
-                    <p className="mt-2 text-xs text-amber-900 leading-relaxed">
-                      {MATCH_HINTS[pendingMembership.match_status]?.text ||
-                        'Your details are awaiting review by the company administrator.'}
-                    </p>
-                  </div>
-                  <StatusBadge value="PENDING" />
-                </div>
-              </div>
-            )}
-
-            {/* Organizations Directory */}
-            <section className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-              <SectionHeading
-                title="Approved Organizations Directory"
-                copy="Find your employer to submit official credentials and unlock verified branding."
-                action={
-                  <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900">
-                    <span className="text-sm text-slate-400">⌕</span>
-                    <input
-                      className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
-                      placeholder="Search company or ID…"
-                      value={companySearch}
-                      onChange={e => setCompanySearch(e.target.value)}
-                    />
-                  </div>
-                }
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-5">
-                {filteredCompanies.map(company => {
-                  const membership = memberships.find(item => item.company_id === company.id);
-                  const isPendingThisCompany = pendingMembership?.company_id === company.id;
-
-                  return (
-                    <div
-                      key={company.id}
-                      className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-5 hover:bg-white hover:shadow-xs transition-all"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between gap-3">
-                          <span className="grid size-10 place-items-center rounded-xl bg-navy-950 font-display text-xs font-bold text-white border border-navy-800">
-                            {company.name?.charAt(0) || 'C'}
-                          </span>
-                          <span className="text-3xs tabular-nums text-slate-400">Workspace #{company.id}</span>
-                        </div>
-
-                        <h3 className="mt-3 text-sm font-bold text-slate-900">{company.name}</h3>
-                        <p className="mt-1 text-xs text-slate-500 line-clamp-2">
-                          {company.description || company.website || 'Verified corporate workspace'}
-                        </p>
-                      </div>
-
-                      <div className="mt-5 pt-3.5 border-t border-slate-200/60">
-                        {isPendingThisCompany ? (
-                          <span className="text-xs font-medium text-amber-700">⏳ Request Pending Review</span>
-                        ) : (
-                          <Button
-                            variant="secondary"
-                            className="w-full !py-2 !text-xs font-bold"
-                            onClick={() => openJoinModal(company)}
-                          >
-                            Request to join →
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          </div>
-        )}
-      </div>
-    );
+  function goToSavedCards() {
+    setTab?.('card');
+    setCardSubView('vault');
   }
 
-  /* ==============================================================================================
-     VIEW C: MY CARD PAGE — VISITING CARD STUDIO (Interactive 2-Column Real-time Design Studio)
-     ============================================================================================== */
-  if (tab === 'card') {
-    const isCompanySponsored = order.payer === 'COMPANY' && activeMembership?.payer === 'COMPANY';
-    const total = isCompanySponsored ? 0 : Number(order.quantity || 1) * PRICE;
-    const selectedTemplateObj = templates.find(t => String(t.id) === String(order.template_id));
-    const QUANTITY_PRESETS = [20, 50, 100, 250, 500];
+  /* ---------- Pieces shared by several tabs ---------- */
 
-    return (
-      <div className="space-y-6">
-        <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
+  const toast = <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />;
 
-        {/* Top Header with Tab Switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <PageTitle
-            title="Visiting Card Studio"
-            subtitle="Design, preview in real-time, and order business cards for yourself or through your company."
+  const joinDialog = targetCompany && (
+    <JoinCompanyDialog
+      company={targetCompany}
+      form={joinForm}
+      errors={joinErrors}
+      busy={modalBusy}
+      apiError={modalApiError}
+      onFormChange={setJoinForm}
+      onErrorsChange={setJoinErrors}
+      onClose={closeJoinModal}
+      onSubmit={handleJoinSubmit}
+    />
+  );
+
+  const statusLine =
+    membershipState === 'ACTIVE'
+      ? `You are a member of ${activeMembership.company?.name}.`
+      : membershipState === 'PENDING'
+        ? `Your request to join ${pendingMembership.company?.name} is waiting for review.`
+        : membershipState === 'REJECTED'
+          ? `Your request to join ${rejectedMembership.company?.name} was not approved.`
+          : 'You have an independent account. You can order personal cards or join your company.';
+
+  /** Membership block used on the overview, profile and company pages. */
+  function membershipSummary(detailed = false) {
+    if (membershipState === 'ACTIVE' && activeMembership) {
+      return (
+        <div className="space-y-5">
+          <div className="flex items-center gap-3">
+            <CompanyMark name={activeMembership.company?.name} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-navy-900">{activeMembership.company?.name}</p>
+              {activeMembership.company?.website && <p className="truncate text-xs text-slate-500">{activeMembership.company.website}</p>}
+            </div>
+            <StatusBadge value="ACTIVE" />
+          </div>
+          <DetailList
+            items={[
+              { label: 'Employee ID', value: activeMembership.employee_code },
+              { label: 'Work email', value: activeMembership.official_email },
+              { label: 'Card payment', value: activeMembership.payer === 'COMPANY' ? 'Paid by company' : `Paid by you (৳${PRICE} per card)` },
+              detailed && Boolean(activeMembership.decided_at) && { label: 'Member since', value: formatDate(activeMembership.decided_at) },
+            ]}
           />
-
-          {/* Sub-toggle: Studio Designer vs Card Vault */}
-          <div className="flex items-center rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-xs">
-            <button
-              type="button"
-              className={cx(
-                'flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all',
-                cardSubView === 'order'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              )}
-              onClick={() => setCardSubView('order')}
-            >
-              Card designer
-            </button>
-            <button
-              type="button"
-              className={cx(
-                'flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-all',
-                cardSubView === 'vault'
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              )}
-              onClick={() => setCardSubView('vault')}
-            >
-              Saved cards
-              <span
-                className={cx(
-                  'ml-1 rounded-full px-2 py-0.5 text-3xs font-semibold',
-                  cardSubView === 'vault' ? 'bg-brand-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-                )}
-              >
-                {cardRows.length}
-              </span>
-            </button>
-          </div>
         </div>
+      );
+    }
+    const request = membershipState === 'PENDING' ? pendingMembership : membershipState === 'REJECTED' ? rejectedMembership : null;
+    if (request) {
+      const pending = membershipState === 'PENDING';
+      return (
+        <div className="space-y-5">
+          <div className="flex items-center gap-3">
+            <CompanyMark name={request.company?.name} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold text-navy-900">{request.company?.name}</p>
+              <p className="text-xs text-slate-500">Requested {formatDate(request.requested_at)}</p>
+            </div>
+            <StatusBadge value={request.status} />
+          </div>
+          <p className="text-sm text-slate-600">
+            {pending
+              ? MATCH_HINTS[request.match_status] || 'The company admin will review your request. You do not need to send it again.'
+              : 'Check your employee ID and work email with your HR team, then send a new request.'}
+          </p>
+          {detailed && (
+            <DetailList
+              items={[
+                { label: 'Employee ID sent', value: request.employee_code },
+                { label: 'Work email sent', value: request.official_email },
+              ]}
+            />
+          )}
+        </div>
+      );
+    }
+    return <p className="text-sm text-slate-600">You are not linked to a company. Join your company to order cards with its approved designs.</p>;
+  }
 
-        {cardSubView === 'order' ? (
-          <div className="space-y-6">
-            {/* Step 1: Card-Type Selection Pattern */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Option 01: Personal Visiting Card */}
-              <button
-                type="button"
-                onClick={() => setCardOrderType('PERSONAL')}
-                className={cx(
-                  'relative rounded-2xl border p-5 text-left transition-all',
-                  cardOrderType === 'PERSONAL'
-                    ? 'border-slate-900 bg-white ring-2 ring-slate-900/10 shadow-xs'
-                    : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-3xs font-semibold uppercase tracking-wider text-slate-500">
-                    Option 01
-                  </span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs font-bold text-slate-700">
-                    ৳{PRICE} / card
-                  </span>
-                </div>
-                <div className="mt-2.5 flex items-center gap-2">
-                  <span className={cx(
-                    'size-2.5 rounded-full',
-                    cardOrderType === 'PERSONAL' ? 'bg-brand-600' : 'bg-slate-300'
-                  )} />
-                  <strong className="text-base font-bold text-slate-900">Personal Visiting Card</strong>
-                </div>
-                <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                  Direct personal contact card. Customize your designation, phone, and styling. Generated instantly without waiting for company approval.
-                </p>
-              </button>
+  /* ---------- My profile ---------- */
+  if (tab === 'profile') {
+    const memberSince = (user as any)?.created_at;
+    const companyName = activeMembership?.company?.name;
+    const initials = (user?.username || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
-              {/* Option 02: Company Branded Card */}
-              <button
-                type="button"
-                disabled={membershipState !== 'ACTIVE'}
-                onClick={() => setCardOrderType('COMPANY')}
-                className={cx(
-                  'relative rounded-2xl border p-5 text-left transition-all',
-                  membershipState !== 'ACTIVE'
-                    ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-50'
-                    : cardOrderType === 'COMPANY'
-                    ? 'border-brand-600 bg-white ring-2 ring-brand-600/15 shadow-xs'
-                    : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-3xs font-semibold uppercase tracking-wider text-brand-600">
-                    Option 02
-                  </span>
-                  {membershipState === 'ACTIVE' ? (
-                    <span className="rounded-full bg-brand-50 border border-brand-100 px-2.5 py-0.5 text-3xs font-bold text-brand-700">
-                      {activeMembership?.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Self-Paid'}
+    /** One settings section: explanation on the left, content card on the right. */
+    const Section = ({ title, text, children }: { title: string; text: string; children: ReactNode }) => (
+      <section className="grid gap-4 border-t border-slate-200 pt-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10">
+        <div>
+          <h2 className="text-base font-semibold text-navy-900">{title}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-slate-500">{text}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-xs">{children}</div>
+      </section>
+    );
+    const Row = ({ label, children, last = false }: { label: string; children: ReactNode; last?: boolean }) => (
+      <div className={`grid gap-1 px-6 py-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-6 ${last ? '' : 'border-b border-slate-100'}`}>
+        <dt className="text-sm text-slate-500">{label}</dt>
+        <dd className="min-w-0 text-sm font-medium break-words text-navy-900">{children}</dd>
+      </div>
+    );
+
+    return (
+      <div className="space-y-8">
+        {toast}
+
+        {/* Profile header */}
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+          <div className="flex flex-col gap-6 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <div className="flex min-w-0 items-center gap-5">
+              <span className="grid size-16 shrink-0 place-items-center rounded-full bg-navy-900 text-xl font-semibold text-white">{initials}</span>
+              <div className="min-w-0">
+                <h1 className="truncate text-2xl font-semibold tracking-tight text-navy-900">{user?.username || 'Your profile'}</h1>
+                <p className="mt-0.5 truncate text-sm text-slate-500">{user?.email}</p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">Employee</span>
+                  {membershipState === 'ACTIVE' && companyName ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200 ring-inset">
+                      <span className="size-1.5 rounded-full bg-emerald-500" />Member of {companyName}
+                    </span>
+                  ) : membershipState === 'PENDING' ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-200 ring-inset">
+                      <span className="size-1.5 rounded-full bg-amber-500" />Waiting for company approval
                     </span>
                   ) : (
-                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-3xs font-bold text-amber-800">
-                      Requires Active Company Member
-                    </span>
+                    <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">Independent account</span>
                   )}
                 </div>
-                <div className="mt-2.5 flex items-center gap-2">
-                  <span className={cx(
-                    'size-2.5 rounded-full',
-                    cardOrderType === 'COMPANY' ? 'bg-brand-600' : 'bg-slate-300'
-                  )} />
-                  <strong className="text-base font-bold text-slate-900">Company Branded Card</strong>
-                </div>
-                <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                  Official corporate cards formatted to your verified organization&apos;s approved brand standard and verified templates.
-                </p>
-              </button>
+              </div>
             </div>
-
-            {/* Step 2: Interactive 2-Column Studio Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* LEFT COLUMN: Form & Configuration (lg:col-span-7) */}
-              <div className="lg:col-span-7 space-y-6">
-                {cardOrderType === 'PERSONAL' ? (
-                  /* Personal Card Studio Controls */
-                  <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-5">
-                    <SectionHeading
-                      title="Personal Card Customization"
-                      copy="Fill in your contact and designation details. The live preview updates automatically."
-                    />
-
-                    {/* Inputs */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                          Full Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          className={inputClass}
-                          placeholder="e.g. Alex Rahman"
-                          value={order.name}
-                          onChange={e => setOrder({ ...order, name: e.target.value })}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                            Professional Title / Designation
-                          </label>
-                          <input
-                            className={inputClass}
-                            placeholder="e.g. Senior Software Architect"
-                            value={order.designation}
-                            onChange={e => setOrder({ ...order, designation: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                            Department / Field
-                          </label>
-                          <input
-                            className={inputClass}
-                            placeholder="e.g. Product Engineering"
-                            value={order.department}
-                            onChange={e => setOrder({ ...order, department: e.target.value })}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                            Phone Number
-                          </label>
-                          <input
-                            className={inputClass}
-                            placeholder="e.g. +880 1712 345678"
-                            value={order.phone}
-                            onChange={e => setOrder({ ...order, phone: e.target.value })}
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                            Contact Email (Pre-filled)
-                          </label>
-                          <input
-                            className={cx(inputClass, 'bg-slate-50 text-slate-600 cursor-not-allowed')}
-                            disabled
-                            value={user?.email || 'contact@bizcard.me'}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quantity Presets & Selector */}
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-800">
-                          Print Batch Quantity
-                        </label>
-                        <span className="text-3xs tabular-nums text-slate-500">Rate: ৳{PRICE} / card</span>
-                      </div>
-
-                      {/* Preset Chips */}
-                      <div className="flex flex-wrap gap-2">
-                        {QUANTITY_PRESETS.map(qty => (
-                          <button
-                            key={qty}
-                            type="button"
-                            onClick={() => setOrder({ ...order, quantity: qty })}
-                            className={cx(
-                              'px-3.5 py-2 rounded-xl text-xs font-bold border transition-all',
-                              Number(order.quantity) === qty
-                                ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
-                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                            )}
-                          >
-                            {qty} cards
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Custom Stepper Input */}
-                      <div className="pt-2 flex items-center gap-3">
-                        <span className="text-xs text-slate-500">Custom count:</span>
-                        <input
-                          type="number"
-                          min="1"
-                          max="1000"
-                          value={order.quantity}
-                          onChange={e =>
-                            setOrder({
-                              ...order,
-                              quantity: Math.max(1, Math.min(1000, Number(e.target.value) || 1)),
-                            })
-                          }
-                          className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-900"
-                        />
-                        <span className="text-3xs text-slate-400 tabular-nums">(1 - 1,000 max)</span>
-                      </div>
-                    </div>
-
-                    {/* Order Price & Prepress Breakdown */}
-                    <div className="rounded-2xl border border-slate-200/90 bg-white p-5 space-y-2.5 text-xs">
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span>Unit Rate</span>
-                        <span className="tabular-nums">৳{PRICE} / card</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span>Batch Size</span>
-                        <span className="font-semibold text-slate-800">{Number(order.quantity || 1)} cards</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span>Print-ready vector PDF</span>
-                        <span className="font-bold text-emerald-700 text-3xs uppercase">Included (Free)</span>
-                      </div>
-                      <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-                        <span className="font-bold text-slate-900">Total Amount Payable</span>
-                        <div className="text-right">
-                          <strong className="text-lg font-semibold text-slate-900">৳{total}</strong>
-                          <span className="block text-3xs text-slate-400 tabular-nums">
-                            ({Number(order.quantity || 1)} × ৳{PRICE})
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Primary Action Button */}
-                    <Button
-                      disabled={busy || !order.name.trim()}
-                      variant="primary"
-                      className="w-full !py-4 !text-sm font-bold shadow-sm"
-                      onClick={() => checkout(false)}
-                    >
-                      {busy
-                        ? 'Generating cards…'
-                        : `Confirm & Order Personal Cards (৳${total}) →`}
-                    </Button>
-                  </div>
-                ) : (
-                  /* Company Branded Card Studio Controls */
-                  <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-5">
-                    <SectionHeading
-                      title="Company Branded Card Order"
-                      copy={`Official visiting cards locked to ${activeMembership?.company?.name || 'your company'} brand standard.`}
-                    />
-
-                    {membershipState !== 'ACTIVE' ? (
-                      <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6 text-center">
-                        <h4 className="text-sm font-bold text-amber-900">Active Membership Required</h4>
-                        <p className="mt-1 text-xs text-amber-800 leading-relaxed max-w-md mx-auto">
-                          Company branded cards require an approved employee membership. Connect with your organization in the Company tab to unlock corporate templates.
-                        </p>
-                        <Button
-                          variant="secondary"
-                          className="mt-4 !text-xs font-bold"
-                          onClick={() => setTab?.('company')}
-                        >
-                          Go to Company Tab →
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-5">
-                        {/* Auto-populated Verified Profile Summary */}
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
-                          <span className="text-3xs font-semibold uppercase tracking-wider text-brand-600 block">
-                            VERIFIED ROSTER IDENTITY
-                          </span>
-                          <div className="mt-2.5 grid grid-cols-2 gap-3">
-                            <div>
-                              <span className="text-slate-400 block text-3xs">Employee Name</span>
-                              <strong className="text-slate-800">{user?.username}</strong>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block text-3xs">Verified Employee ID</span>
-                              <strong className="tabular-nums text-slate-800">{activeMembership?.employee_code}</strong>
-                            </div>
-                            <div className="col-span-2">
-                              <span className="text-slate-400 block text-3xs">Official Work Email</span>
-                              <span className="text-slate-800 tabular-nums">{activeMembership?.official_email}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Approved Template Selection */}
-                        <div>
-                          <label className="mb-1.5 block text-3xs font-bold uppercase tracking-wider text-slate-500">
-                            Approved Company Template <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            className={inputClass}
-                            value={order.template_id}
-                            onChange={e => setOrder({ ...order, template_id: e.target.value })}
-                          >
-                            <option value="">Select an approved company template…</option>
-                            {templates.map(t => (
-                              <option key={t.id} value={t.id}>
-                                {t.name} ({t.style_key || 'Standard'})
-                              </option>
-                            ))}
-                          </select>
-                          {!order.template_id && (
-                            <p className="mt-1.5 text-2xs text-amber-800">
-                              Please select an approved brand template above to proceed with your order.
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Billing Policy Display */}
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-500">Billing Responsibility</span>
-                            <strong className="text-slate-900">
-                              {activeMembership?.payer === 'COMPANY'
-                                ? `Billed to ${activeMembership.company?.name}`
-                                : 'Employee Self-Paid'}
-                            </strong>
-                          </div>
-                          <div className="mt-2 pt-2 border-t border-slate-200/70 flex items-center justify-between">
-                            <span className="text-slate-500">Employee Cost</span>
-                            <strong className={activeMembership?.payer === 'COMPANY' ? 'text-emerald-700' : 'text-slate-900'}>
-                              {activeMembership?.payer === 'COMPANY' ? '৳0 (100% Company Covered)' : `৳${PRICE} / card`}
-                            </strong>
-                          </div>
-                        </div>
-
-                        {/* Quantity Presets & Selector */}
-                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-800">
-                              Print Batch Quantity
-                            </label>
-                            <span className="text-3xs tabular-nums text-slate-500">Standard batch</span>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            {QUANTITY_PRESETS.map(qty => (
-                              <button
-                                key={qty}
-                                type="button"
-                                onClick={() => setOrder({ ...order, quantity: qty })}
-                                className={cx(
-                                  'px-3.5 py-2 rounded-xl text-xs font-bold border transition-all',
-                                  Number(order.quantity) === qty
-                                    ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
-                                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                                )}
-                              >
-                                {qty} cards
-                              </button>
-                            ))}
-                          </div>
-
-                          <div className="pt-2 flex items-center gap-3">
-                            <span className="text-xs text-slate-500">Custom count:</span>
-                            <input
-                              type="number"
-                              min="1"
-                              max="1000"
-                              value={order.quantity}
-                              onChange={e =>
-                                setOrder({
-                                  ...order,
-                                  quantity: Math.max(1, Math.min(1000, Number(e.target.value) || 1)),
-                                })
-                              }
-                              className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-900"
-                            />
-                            <span className="text-3xs text-slate-400 tabular-nums">(1 - 1,000 max)</span>
-                          </div>
-                        </div>
-
-                        {/* Price Summary */}
-                        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 space-y-2.5 text-xs">
-                          <div className="flex items-center justify-between text-slate-600">
-                            <span>Batch Size</span>
-                            <span className="font-semibold text-slate-800">{Number(order.quantity || 1)} cards</span>
-                          </div>
-                          <div className="flex items-center justify-between text-slate-600">
-                            <span>Print-ready vector PDF</span>
-                            <span className="font-bold text-emerald-700 text-3xs uppercase">Included (Free)</span>
-                          </div>
-                          <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
-                            <span className="font-bold text-slate-900">Total Payable</span>
-                            {isCompanySponsored ? (
-                              <div className="text-right">
-                                <strong className="text-lg font-semibold text-emerald-700">৳0</strong>
-                                <span className="block text-3xs text-emerald-600">
-                                  100% Covered by {activeMembership?.company?.name}
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="text-right">
-                                <strong className="text-lg font-semibold text-slate-900">৳{total}</strong>
-                                <span className="block text-3xs text-slate-400 tabular-nums">
-                                  ({Number(order.quantity || 1)} × ৳{PRICE})
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Primary Action Button */}
-                        <Button
-                          disabled={busy || !order.template_id}
-                          variant="sun"
-                          className="w-full !py-4 !text-sm font-bold shadow-sm"
-                          onClick={() => checkout(true)}
-                        >
-                          {busy
-                            ? 'Generating company cards…'
-                            : order.template_id
-                            ? `Confirm & Order Company Cards (${isCompanySponsored ? '৳0' : '৳' + total}) →`
-                            : 'Select a template to place order'}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* RIGHT COLUMN: Sticky Live Card Preview (lg:col-span-5) */}
-              <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-                <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-                  <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-3xs font-semibold uppercase tracking-wider text-slate-700">
-                        Live Interactive Card Studio
-                      </span>
-                    </div>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-3xs tabular-nums font-bold text-slate-600">
-                      Print-ready PDF
-                    </span>
-                  </div>
-
-                  {/* Real-time Card Mockup */}
-                  <LiveCardPreview
-                    theme={cardTheme}
-                    name={order.name || user?.username || ''}
-                    designation={order.designation}
-                    department={order.department}
-                    phone={order.phone}
-                    email={
-                      cardOrderType === 'COMPANY'
-                        ? (activeMembership?.official_email || user?.email || '')
-                        : (user?.email || 'contact@bizcard.me')
-                    }
-                    companyName={activeMembership?.company?.name}
-                    isCompany={cardOrderType === 'COMPANY'}
-                    templateName={selectedTemplateObj?.name}
-                  />
-
-                  {/* Theme Switcher for Personal Cards */}
-                  {cardOrderType === 'PERSONAL' && (
-                    <div className="mt-5 pt-4 border-t border-slate-100">
-                      <label className="block text-3xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                        Card Aesthetic Finish
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { key: 'navy', label: 'TechKnowGram Navy', color: 'bg-navy-950', dot: 'bg-brand-600' },
-                          { key: 'clean', label: 'Pure White', color: 'bg-white border border-slate-300', dot: 'bg-slate-900' },
-                          { key: 'royal', label: 'Imperial Violet', color: 'bg-navy-900', dot: 'bg-amber-400' },
-                        ].map(t => (
-                          <button
-                            key={t.key}
-                            type="button"
-                            onClick={() => setCardTheme(t.key as any)}
-                            className={cx(
-                              'flex items-center gap-2 p-2 rounded-xl text-left border text-3xs font-bold transition-all',
-                              cardTheme === t.key
-                                ? 'border-slate-900 bg-slate-50 ring-2 ring-slate-900/10'
-                                : 'border-slate-200 bg-white hover:border-slate-300'
-                            )}
-                          >
-                            <span className={cx('size-3.5 rounded-full shrink-0 flex items-center justify-center', t.color)}>
-                              <span className={cx('size-1 rounded-full', t.dot)} />
-                            </span>
-                            <span className="truncate text-slate-800">{t.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <p className="mt-4 text-center text-3xs text-slate-400 leading-relaxed">
-                    The preview updates as you type.
-                  </p>
-                </div>
-              </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button onClick={() => setTab?.('card')}>Order cards</Button>
             </div>
           </div>
-        ) : (
-          /* Card Vault Archive View */
-          <div className="rounded-xl border border-slate-200/80 bg-white p-6 sm:p-7 shadow-xs space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-slate-900">Visiting Card Archive Vault</h2>
-                <p className="mt-0.5 text-xs text-slate-500">
-                  Download vector PDFs you can send straight to a printer.
-                </p>
-              </div>
-              <Button
-                variant="secondary"
-                className="!text-xs font-bold"
-                onClick={() => setCardSubView('order')}
-              >
-                + Order More Cards
-              </Button>
-            </div>
-
-            {cardRows.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
-                {cardRows.map(c => {
-                  const isPersonal = c.kind === 'personal';
-                  return (
-                    <div
-                      key={`${c.kind}-${c.id}`}
-                      className="rounded-xl border border-slate-200/90 bg-slate-50 p-5 hover:bg-white hover:shadow-xs transition-all flex flex-col justify-between"
-                    >
-                      <div>
-                        {/* Mini Card Header */}
-                        <div className="flex items-center justify-between gap-2">
-                          <span
-                            className={cx(
-                              'rounded-full px-2.5 py-0.5 text-3xs font-semibold uppercase tracking-wider',
-                              isPersonal
-                                ? 'bg-slate-200/70 text-slate-700'
-                                : 'bg-brand-50 text-brand-700 border border-brand-100'
-                            )}
-                          >
-                            {isPersonal ? 'Personal Card' : 'Company Branded'}
-                          </span>
-                          <span className="text-3xs tabular-nums text-slate-400">
-                            #{c.id}
-                          </span>
-                        </div>
-
-                        {/* Mini Card Mockup Representation */}
-                        <div
-                          className={cx(
-                            'mt-3.5 aspect-[1.75/1] rounded-xl p-3.5 flex flex-col justify-between text-white shadow-inner select-none',
-                            isPersonal
-                              ? 'bg-gradient-to-br from-navy-950 to-navy-900 border border-navy-800'
-                              : 'bg-gradient-to-br from-navy-900 to-navy-950 border border-brand-800'
-                          )}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-3xs font-semibold uppercase tracking-wider text-brand-300 truncate">
-                              {isPersonal ? 'Personal' : (activeMembership?.company?.name || 'Company')}
-                            </span>
-                            <span className="text-3xs tabular-nums opacity-60">Vector PDF</span>
-                          </div>
-                          <div>
-                            <strong className="block text-xs font-bold truncate">
-                              {c.file_name}
-                            </strong>
-                            <span className="block text-3xs opacity-75">
-                              {new Date(c.created_at).toLocaleDateString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-3xs opacity-70">
-                            <span>Vector Print PDF</span>
-                            <span>✓ Certified</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 flex items-center justify-between text-3xs text-slate-500">
-                          <span className="flex items-center gap-1.5">
-                            Status: <StatusBadge value={c.status} />
-                          </span>
-                          <span className="tabular-nums">{c.file_size ? `${Math.ceil(c.file_size / 1024)} KB` : 'Vector PDF'}</span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="mt-4 pt-3.5 border-t border-slate-200/70 flex items-center gap-2">
-                        <Button
-                          variant="primary"
-                          className="w-full !py-2 !text-xs font-bold"
-                          onClick={() =>
-                            download(
-                              isPersonal
-                                ? `/employee/personal-cards/${c.id}/download`
-                                : `/employee/cards/${c.id}/download`,
-                              c.file_name
-                            )
-                          }
-                        >
-                          Download PDF ↓
-                        </Button>
-                        {!isPersonal && c.verification_token && (
-                          <a
-                            href={`/verify/${c.verification_token}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-2 rounded-full border border-slate-200 text-3xs font-bold text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
-                          >
-                            Verify ↗
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-16 text-slate-400">
-                
-                <p className="text-sm font-bold text-slate-700">No visiting cards generated yet.</p>
-                <p className="mt-1 text-xs text-slate-400">Order your first batch using the Card Designer.</p>
-                <Button
-                  variant="secondary"
-                  className="mt-4 !text-xs font-bold"
-                  onClick={() => setCardSubView('order')}
-                >
-                  Open Card Designer →
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  /* ==============================================================================================
-     VIEW D: ORDERS (GOV.UK Table Standard)
-     ============================================================================================== */
-  if (tab === 'orders') {
-    return (
-      <div className="space-y-6">
-        <PageTitle
-          title="Orders & Transactions"
-          subtitle="Complete transparent record of personal checkouts and company-sponsored orders."
-        />
-
-        <div className="rounded-xl border border-slate-200/80 bg-white overflow-hidden shadow-xs">
-          {orders.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className={tableClass}>
-                <thead>
-                  <tr>
-                    <th className={thClass}>Order Reference</th>
-                    <th className={thClass}>Quantity & Rate</th>
-                    <th className={thClass}>Payer Account</th>
-                    <th className={thClass}>Total Amount</th>
-                    <th className={thClass}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map(o => (
-                    <tr key={o.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className={tdClass}>
-                        <strong className="tabular-nums text-xs text-slate-900 font-bold">#{o.id}</strong>
-                      </td>
-                      <td className={tdClass}>
-                        <span className="text-xs text-slate-700">
-                          {o.quantity} {o.quantity === 1 ? 'card' : 'cards'} × ৳{o.unit_price}
-                        </span>
-                      </td>
-                      <td className={tdClass}>
-                        <span className="inline-block rounded-md bg-brand-50 px-2.5 py-0.5 text-3xs font-semibold text-brand-600 uppercase">
-                          {o.payer === 'COMPANY' ? 'Company sponsored' : 'Self paid'}
-                        </span>
-                      </td>
-                      <td className={tdClass}>
-                        <strong className="text-sm font-semibold text-slate-900">৳{o.total_amount}</strong>
-                      </td>
-                      <td className={tdClass}>
-                        <StatusBadge value={o.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-12 text-center text-xs text-slate-400">No checkout orders placed yet.</div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  /* ==============================================================================================
-     VIEW E: HELP
-     ============================================================================================== */
-  if (tab === 'help') {
-    return (
-      <div className="space-y-6">
-        <PageTitle
-          title="Employee Support & Guidance"
-          subtitle="Frequently asked questions about company verification, card printing, and billing."
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900">How does company verification work?</h3>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              When you submit your official company email and employee ID, BizCard compares it against the company roster.
-              If an exact match is found, your membership is activated immediately. If not, it is forwarded to your
-              company administrator for manual approval.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900">Can I order cards without a company?</h3>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              Yes. You can order independent personal visiting cards at any time at the standard rate of ৳50 per card
-              without joining or waiting for any organization approval.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900">Who pays for my company cards?</h3>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              If your company has designated card orders as company-sponsored, the checkout total is ৳0 (Free for you).
-              You can also select self-payment if you prefer to cover your own card orders.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900">How do I download and print?</h3>
-            <p className="mt-2 text-xs text-slate-600 leading-relaxed">
-              Open &quot;My card&quot; and choose &quot;Saved cards&quot;. Click &quot;Download PDF&quot; on any card to get a vector PDF you can send to any printer.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /* ==============================================================================================
-     DEFAULT VIEW: OVERVIEW
-     ============================================================================================== */
-  return (
-    <div className="space-y-6">
-      <Toast type={error ? 'error' : 'success'} message={error || message} onClose={() => { setError(''); setMessage(''); }} />
-
-      <PageTitle
-        title={`Welcome, ${employeeName}`}
-        subtitle={
-          membershipState === 'ACTIVE'
-            ? `Verified employee at ${activeMembership.company?.name}. Access corporate templates or order personal cards below.`
-            : membershipState === 'PENDING'
-            ? `Your membership request with ${pendingMembership.company?.name} is currently under review.`
-            : membershipState === 'REJECTED'
-            ? 'Your previous company association request was not approved. You can correct details or connect with another company.'
-            : 'You are using an independent account. Connect with your employer or order personal cards anytime.'
-        }
-      />
-
-      {/* STATE B: PENDING REQUEST BANNER */}
-      {membershipState === 'PENDING' && pendingMembership && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-6 shadow-xs">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <span className="text-3xs font-semibold uppercase tracking-wider text-amber-800">
-                MEMBERSHIP REQUEST UNDER REVIEW
-              </span>
-              <h2 className="mt-1 text-base font-bold text-slate-900">
-                Awaiting approval by {pendingMembership.company?.name} (Workspace #{pendingMembership.company_id})
-              </h2>
-              <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-600">
-                <div>
-                  <span className="text-slate-400">Submitted ID: </span>
-                  <strong className="tabular-nums text-slate-800">{pendingMembership.employee_code}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-400">Official Work Email: </span>
-                  <span className="text-slate-800">{pendingMembership.official_email}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400">Requested: </span>
-                  <span>{new Date(pendingMembership.requested_at).toLocaleDateString()}</span>
-                </div>
-              </dl>
-              <p className="mt-3 text-xs text-amber-900/90 leading-relaxed max-w-2xl">
-                {MATCH_HINTS[pendingMembership.match_status]?.text ||
-                  'Your request has been forwarded to the company administrator. No duplicate submission is needed.'}
-              </p>
-            </div>
-            <StatusBadge value="PENDING" />
-          </div>
-        </div>
-      )}
-
-      {/* STATE D: REJECTED REQUEST BANNER */}
-      {membershipState === 'REJECTED' && rejectedMembership && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-6 shadow-xs">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <span className="text-3xs font-semibold uppercase tracking-wider text-rose-800">
-                MEMBERSHIP REQUEST NOT APPROVED
-              </span>
-              <h2 className="mt-1 text-base font-bold text-slate-900">
-                Request rejected by {rejectedMembership.company?.name} (Workspace #{rejectedMembership.company_id})
-              </h2>
-              <p className="mt-2 text-xs text-slate-600">
-                Submitted Employee ID: <strong className="tabular-nums">{rejectedMembership.employee_code}</strong> · {rejectedMembership.official_email}
-              </p>
-              <p className="mt-2 text-xs text-rose-800 leading-relaxed max-w-2xl">
-                Please check with your company HR to verify your active employee ID and email, or browse other organizations in the Company tab.
-              </p>
-            </div>
-            <StatusBadge value="REJECTED" />
-          </div>
-        </div>
-      )}
-
-      {/* STATE C: ACTIVE VERIFIED MEMBERSHIP HUB */}
-      {membershipState === 'ACTIVE' && activeMembership && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <span className="grid size-12 place-items-center rounded-2xl bg-navy-950 font-semibold text-white shadow-xs text-lg border border-navy-800">
-                {activeMembership.company?.name?.charAt(0) || 'C'}
-              </span>
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <strong className="text-base font-bold text-slate-900">{activeMembership.company?.name}</strong>
-                  <StatusBadge value="ACTIVE" />
-                </div>
-                <p className="text-xs text-slate-600 mt-1">
-                  Employee ID: <strong className="tabular-nums text-slate-800">{activeMembership.employee_code}</strong> · {activeMembership.official_email} ·{' '}
-                  <span className="font-semibold text-emerald-800">
-                    {activeMembership.payer === 'COMPANY' ? 'Company Covered (৳0)' : 'Employee Self-Paid'}
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            <Button
-              variant="sun"
-              className="!px-6 !py-3 !text-sm font-bold shadow-xs"
-              onClick={() => {
-                setTab?.('card');
-                setCardOrderType('COMPANY');
-              }}
-            >
-              Order New Cards ↗
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* 2-COLUMN SUMMARY: LATEST CARD & RECENT ORDERS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Latest Card Preview */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-          <SectionHeading
-            title="My Visiting Card"
-            copy="Instant download of your latest print-ready visiting card file."
-            action={
-              latestCard && (
-                <button
-                  type="button"
-                  className="text-xs font-bold text-brand-600 hover:underline"
-                  onClick={() => setTab?.('card')}
-                >
-                  View all ({cardRows.length}) →
-                </button>
-              )
-            }
-          />
-
-          {latestCard ? (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center justify-between">
-                <span className="text-3xs tabular-nums font-bold uppercase text-slate-400">
-                  {latestCard.kind === 'personal' ? 'Personal Card' : 'Company Branded'}
-                </span>
-                <span className="text-3xs text-slate-400">{new Date(latestCard.created_at).toLocaleDateString()}</span>
-              </div>
-              <strong className="mt-2 block text-sm font-bold text-slate-900">{latestCard.file_name}</strong>
-              <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-200/70">
-                <span className="text-2xs text-slate-500 font-medium">Vector PDF · 3.5 × 2 in</span>
-                <Button
-                  variant="primary"
-                  className="!px-3.5 !py-1.5 !text-xs font-bold"
-                  onClick={() =>
-                    download(
-                      latestCard.kind === 'personal'
-                        ? `/employee/personal-cards/${latestCard.id}/download`
-                        : `/employee/cards/${latestCard.id}/download`,
-                      latestCard.file_name
-                    )
-                  }
-                >
-                  Download PDF ↓
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
-              No visiting cards generated yet.
-              <div className="mt-3">
-                <Button variant="secondary" className="!text-xs font-bold" onClick={() => setTab?.('card')}>
-                  Order your first card →
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Recent Orders */}
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-          <SectionHeading
-            title="Recent Orders"
-            copy="Status of your recent visiting card print orders."
-            action={
-              orders.length > 0 && (
-                <button
-                  type="button"
-                  className="text-xs font-bold text-brand-600 hover:underline"
-                  onClick={() => setTab?.('orders')}
-                >
-                  View order history →
-                </button>
-              )
-            }
-          />
-
-          {orders.length > 0 ? (
-            <div className="mt-4 divide-y divide-slate-100">
-              {orders.slice(0, 3).map(o => (
-                <div key={o.id} className="py-2.5 flex items-center justify-between text-xs">
-                  <div>
-                    <strong className="tabular-nums text-slate-900 font-bold">Order #{o.id}</strong>
-                    <span className="ml-2 text-slate-500">
-                      {o.quantity} {o.quantity === 1 ? 'card' : 'cards'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <strong className="font-semibold text-slate-900">৳{o.total_amount}</strong>
-                    <StatusBadge value={o.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-xs text-slate-500">
-              No orders placed yet.
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* STATE A / REJECTED: SEARCH & CONNECT TO A COMPANY */}
-      {(membershipState === 'NO_COMPANY' || membershipState === 'REJECTED') && (
-        <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs">
-          <SectionHeading
-            title="Connect to Your Company Workspace"
-            copy="Find your employer and submit your official credentials to unlock corporate templates."
-            action={
-              <div className="flex items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-slate-900">
-                <span className="text-sm text-slate-400">⌕</span>
-                <input
-                  className="bg-transparent px-2 py-1.5 text-xs outline-none w-48 sm:w-64"
-                  placeholder="Search by company or ID…"
-                  value={companySearch}
-                  onChange={e => setCompanySearch(e.target.value)}
-                />
-              </div>
-            }
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-5">
-            {filteredCompanies.slice(0, 6).map(c => (
-              <div
-                key={c.id}
-                className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50 p-5 hover:bg-white hover:shadow-xs transition-all"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="grid size-10 place-items-center rounded-xl bg-navy-950 font-display text-xs font-bold text-white border border-navy-800">
-                      {c.name?.charAt(0) || 'C'}
-                    </span>
-                    <span className="text-3xs tabular-nums text-slate-400">ID: #{c.id}</span>
-                  </div>
-                  <h3 className="mt-3 text-sm font-bold text-slate-900">{c.name}</h3>
-                  <p className="mt-1 text-xs text-slate-500 line-clamp-2">{c.description || 'Corporate workspace'}</p>
-                </div>
-                <Button
-                  variant="secondary"
-                  className="mt-4 w-full !py-2 !text-xs font-bold"
-                  onClick={() => openJoinModal(c)}
-                >
-                  Connect to {c.name} →
-                </Button>
+          <dl className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/60">
+            {[
+              { label: 'Saved cards', value: cardRows.length },
+              { label: 'Orders', value: orders.length },
+              { label: memberSince ? 'Member since' : 'Company', value: memberSince ? formatDate(memberSince) : companyName || 'None yet' },
+            ].map(item => (
+              <div key={item.label} className="px-6 py-4 sm:px-8">
+                <dt className="text-xs text-slate-500">{item.label}</dt>
+                <dd className="mt-0.5 truncate text-lg font-semibold text-navy-900 tabular-nums">{item.value}</dd>
               </div>
             ))}
+          </dl>
+        </section>
+
+        <Section title="Personal details" text="The name and email on your account. You can set the details printed on each card when you order it.">
+          <dl>
+            <Row label="Full name">{user?.username || '—'}</Row>
+            <Row label="Email">{user?.email || '—'}</Row>
+            <Row label="Account type" last>Employee</Row>
+          </dl>
+        </Section>
+
+        <Section title="Company" text="Joining your employer lets you order cards in its approved designs. Your company decides who pays.">
+          <div className="px-6 py-5">
+            {membershipSummary(true)}
+            <div className="mt-5 flex flex-wrap gap-2">
+              {membershipState === 'ACTIVE' ? (
+                <Button variant="secondary" onClick={() => setTab?.('company')}>View company</Button>
+              ) : membershipState !== 'PENDING' ? (
+                <Button variant="secondary" onClick={() => setTab?.('company')}>Find your company</Button>
+              ) : null}
+            </div>
           </div>
-        </div>
-      )}
+        </Section>
 
-      {/* MODAL: JOIN COMPANY VERIFICATION DIALOG */}
-      {targetCompany && (
-        <ReviewDialog
-          title={`Connect to ${targetCompany.name}`}
-          eyebrow="EMPLOYEE VERIFICATION"
-          busy={modalBusy}
-          onClose={closeJoinModal}
-        >
-          <p className="mb-5 text-xs leading-relaxed text-slate-600">
-            Enter your official credentials for <strong>{targetCompany.name}</strong> (Workspace #{targetCompany.id}). If your details match the
-            company roster, your membership activates automatically. Otherwise, it will be forwarded to the company
-            administrator for manual review.
-          </p>
-
-          <form onSubmit={handleJoinSubmit} noValidate>
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Official Work Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className={cx(inputClass, joinErrors.official_email && 'border-red-500')}
-                  type="email"
-                  placeholder="e.g. yourname@company.com"
-                  value={joinForm.official_email}
-                  disabled={modalBusy}
-                  onChange={e => {
-                    setJoinForm({ ...joinForm, official_email: e.target.value });
-                    setJoinErrors({ ...joinErrors, official_email: undefined });
-                  }}
-                />
-                {joinErrors.official_email && (
-                  <span className="mt-1 block text-3xs text-red-600">{joinErrors.official_email}</span>
+        <Section title="Account" text="Reference details if you need help from your company admin or BizCard support.">
+          <dl>
+            <Row label="Account ID">
+              <span className="flex items-center gap-2">
+                <code className="truncate font-mono text-xs font-normal text-slate-600">{user?.id || '—'}</code>
+                {user?.id && (
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard?.writeText(String(user.id))}
+                    className="shrink-0 rounded-md border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    Copy
+                  </button>
                 )}
-              </div>
+              </span>
+            </Row>
+            <Row label="Sign out" last>
+              <span className="font-normal text-slate-500">Use the sign-out button at the bottom of the menu.</span>
+            </Row>
+          </dl>
+        </Section>
+      </div>
+    );
+  }
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Employee ID / Registration Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className={cx(inputClass, joinErrors.employee_id && 'border-red-500')}
-                  type="text"
-                  placeholder="e.g. BSH-1001 or EMP-001"
-                  value={joinForm.employee_id}
-                  disabled={modalBusy}
-                  onChange={e => {
-                    setJoinForm({ ...joinForm, employee_id: e.target.value });
-                    setJoinErrors({ ...joinErrors, employee_id: undefined });
-                  }}
-                />
-                {joinErrors.employee_id && (
-                  <span className="mt-1 block text-3xs text-red-600">{joinErrors.employee_id}</span>
-                )}
-              </div>
+  /* ---------- Company ---------- */
+  if (tab === 'company') {
+    const isMember = membershipState === 'ACTIVE' && activeMembership;
+    const directoryRows = isMember ? filteredCompanies.filter(c => c.id !== activeMembership.company_id) : filteredCompanies;
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-700">Card Sponsorship Preference</label>
-                <select
-                  className={inputClass}
-                  value={joinForm.payer}
-                  disabled={modalBusy}
-                  onChange={e => setJoinForm({ ...joinForm, payer: e.target.value })}
-                >
-                  <option value="COMPANY">Company sponsored (Default)</option>
-                  <option value="INDIVIDUAL">I pay for cards (Individual)</option>
-                </select>
-                <small className="mt-1 block text-3xs text-slate-400">
-                  Select whether card orders are billed to the company or self-sponsored.
-                </small>
-              </div>
-            </div>
+    const directoryColumns: Column<any>[] = [
+      {
+        key: 'name',
+        header: 'Company',
+        sortValue: c => c.name,
+        render: c => <NameCell name={c.name || 'Company'} sub={c.description || undefined} />,
+        className: 'max-w-80',
+      },
+      {
+        key: 'website',
+        header: 'Website',
+        hideOnMobile: true,
+        render: c => (c.website ? <span className="text-slate-600">{c.website}</span> : <span className="text-slate-400">—</span>),
+      },
+      {
+        key: 'action',
+        header: 'Action',
+        align: 'right',
+        render: c =>
+          pendingMembership?.company_id === c.id ? (
+            <StatusBadge value="PENDING" />
+          ) : (
+            <Button variant="secondary" className="px-3 py-1.5" onClick={() => openJoinModal(c)}>
+              {isMember ? 'Request to move' : 'Request to join'}
+            </Button>
+          ),
+      },
+    ];
 
-            {modalApiError && (
-              <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-xs text-red-700">
-                {modalApiError}
+    const directory = (
+      <DataTable
+        title={isMember ? 'Other companies' : 'Find your company'}
+        description={isMember ? 'Send a request to the company you are moving to.' : 'Search for your employer and send a request to join.'}
+        rows={directoryRows}
+        columns={directoryColumns}
+        rowKey={c => c.id}
+        search={{ value: companySearch, onChange: setCompanySearch, placeholder: 'Search companies' }}
+        emptyMessage={companySearch ? 'No companies match your search.' : 'No companies are listed yet.'}
+      />
+    );
+
+    return (
+      <div className="space-y-6">
+        {toast}
+        <PageHeader
+          title="Company"
+          description={isMember ? 'Your company membership and card details.' : 'Join your company to order cards with its approved designs.'}
+          actions={isMember ? <Button onClick={goToOrderCompanyCards}>Order company cards</Button> : undefined}
+        />
+
+        {isMember ? (
+          <>
+            <SectionCard title="Your company">
+              {membershipSummary(true)}
+            </SectionCard>
+
+            <SectionCard
+              title="Change company"
+              action={
+                <Button variant="secondary" className="px-3 py-1.5" onClick={() => setChangeCompanyOpen(!changeCompanyOpen)}>
+                  {changeCompanyOpen ? 'Close' : 'Change company'}
+                </Button>
+              }
+            >
+              <p className="text-sm text-slate-600">
+                You can belong to one company at a time. If another company approves your request, it replaces your membership with{' '}
+                {activeMembership.company?.name}.
               </p>
-            )}
+            </SectionCard>
 
-            <div className="mt-6 flex justify-end gap-2.5 border-t border-slate-100 pt-4">
-              <Button variant="secondary" disabled={modalBusy} onClick={closeJoinModal}>
-                Cancel
-              </Button>
-              <Button variant="primary" type="submit" disabled={modalBusy}>
-                {modalBusy ? 'Submitting…' : 'Submit Verification Request'}
-              </Button>
+            {changeCompanyOpen && directory}
+          </>
+        ) : (
+          <>
+            {(membershipState === 'PENDING' || membershipState === 'REJECTED') && (
+              <SectionCard title="Your request">
+                {membershipSummary(true)}
+              </SectionCard>
+            )}
+            {directory}
+          </>
+        )}
+
+        {joinDialog}
+      </div>
+    );
+  }
+
+  /* ---------- My card ---------- */
+  if (tab === 'card') {
+    return (
+      <>
+        {toast}
+        <CardOrderStudio
+          user={user}
+          order={order}
+          setOrder={setOrder}
+          cardOrderType={cardOrderType}
+          setCardOrderType={setCardOrderType}
+          cardTheme={cardTheme}
+          setCardTheme={setCardTheme}
+          cardSubView={cardSubView}
+          setCardSubView={setCardSubView}
+          isMember={membershipState === 'ACTIVE'}
+          activeMembership={activeMembership}
+          templates={templates}
+          cardRows={cardRows}
+          busy={busy}
+          onCheckout={checkout}
+          onGoToCompany={() => setTab?.('company')}
+        />
+      </>
+    );
+  }
+
+  /* ---------- Orders ---------- */
+  const orderKind = (o: any) => (o.company_id == null ? 'personal' : 'company');
+
+  if (tab === 'orders') {
+    const q = orderSearch.trim().toLowerCase().replace(/^#/, '');
+    const orderRows = orders.filter(
+      o =>
+        (orderType === 'all' || orderKind(o) === orderType) &&
+        (!q || String(o.id).includes(q) || companyNameById(o.company_id).toLowerCase().includes(q))
+    );
+
+    const orderColumns: Column<any>[] = [
+      { key: 'id', header: 'Order #', sortValue: o => o.id, render: o => <span className="font-medium text-navy-900 tabular-nums">#{o.id}</span> },
+      {
+        key: 'type',
+        header: 'Type',
+        sortValue: o => orderKind(o),
+        render: o =>
+          orderKind(o) === 'personal' ? (
+            'Personal'
+          ) : (
+            <div className="min-w-0">
+              <p>Company</p>
+              {companyNameById(o.company_id) && <p className="truncate text-xs text-slate-500">{companyNameById(o.company_id)}</p>}
             </div>
-          </form>
-        </ReviewDialog>
-      )}
+          ),
+      },
+      { key: 'cards', header: 'Cards', align: 'right', sortValue: o => o.quantity, render: o => <span className="tabular-nums">{o.quantity}</span> },
+      {
+        key: 'amount',
+        header: 'Amount',
+        align: 'right',
+        sortValue: o => Number(o.total_amount),
+        render: o => (
+          <div>
+            <p className="font-medium text-navy-900 tabular-nums">৳{o.total_amount}</p>
+            <p className="text-xs text-slate-500 tabular-nums">
+              {o.quantity} × ৳{o.unit_price}
+            </p>
+          </div>
+        ),
+      },
+      { key: 'payer', header: 'Payer', render: o => payerText(o.payer) },
+      { key: 'status', header: 'Status', render: o => <StatusBadge value={o.status} /> },
+      { key: 'date', header: 'Date', sortValue: o => new Date(o.created_at).getTime(), render: o => <span className="whitespace-nowrap">{formatDate(o.created_at)}</span> },
+      { key: 'action', header: 'Action', align: 'right', render: () => <CardLink onClick={goToSavedCards}>View cards</CardLink> },
+    ];
+
+    return (
+      <div className="space-y-6">
+        {toast}
+        <PageHeader
+          title="Orders"
+          description="All card orders you have placed, personal and company."
+          actions={<Button onClick={() => { setTab?.('card'); setCardSubView('order'); }}>New order</Button>}
+        />
+        <DataTable
+          rows={orderRows}
+          columns={orderColumns}
+          rowKey={o => o.id}
+          search={{ value: orderSearch, onChange: setOrderSearch, placeholder: 'Search order # or company' }}
+          toolbar={
+            <ToolbarSelect
+              label="Order type"
+              value={orderType}
+              onChange={setOrderType}
+              options={[
+                { value: 'all', label: 'All types' },
+                { value: 'personal', label: 'Personal' },
+                { value: 'company', label: 'Company' },
+              ]}
+            />
+          }
+          emptyMessage={orders.length ? 'No orders match your filters.' : 'Your orders will appear here after you order cards.'}
+        />
+      </div>
+    );
+  }
+
+  /* ---------- Help ---------- */
+  if (tab === 'help') {
+    const faqs = [
+      {
+        q: 'How do I join my company?',
+        a: 'Open Company, find your employer and choose Request to join. Enter your work email and employee ID. If they match the company staff list, you become a member straight away. If not, the company admin reviews your request.',
+      },
+      {
+        q: 'Can I order cards without a company?',
+        a: `Yes. Choose Personal card on the My card page. Personal cards cost ৳${PRICE} each and do not need any approval.`,
+      },
+      {
+        q: 'Who pays for company cards?',
+        a: 'Your company decides. The Card payment line on your company details shows whether cards are paid by the company or by you. The order summary shows the total before you confirm.',
+      },
+      {
+        q: 'How do I download my card?',
+        a: 'Open My card and choose Saved cards, then Download PDF. The PDF is a vector file at 3.5 × 2 in that you can send to any printer.',
+      },
+      {
+        q: 'Can I move to another company?',
+        a: 'Yes. On the Company page choose Change company and send a request to the new company. You can be a member of one company at a time, so the new membership replaces the current one once it is approved.',
+      },
+      {
+        q: 'My request was not approved. What now?',
+        a: 'Check your employee ID and work email with your HR team, then send a new request from the Company page.',
+      },
+    ];
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Help" description="Answers to common questions about joining a company, ordering and downloading cards." />
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <SectionCard title="Frequently asked questions" bodyClassName="px-0 pb-2">
+          <div className="divide-y divide-slate-100 border-t border-slate-100">
+            {faqs.map(item => (
+              <details key={item.q} className="group px-6 py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-navy-900 [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <svg viewBox="0 0 20 20" className="size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="m6 8 4 4 4-4" />
+                  </svg>
+                </summary>
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </SectionCard>
+
+        <div className="space-y-6">
+          <SectionCard title="Quick links">
+            <ul className="-mx-2 space-y-0.5">
+              {[
+                { label: 'Order cards', tab: 'card' },
+                { label: 'Find or change your company', tab: 'company' },
+                { label: 'View your orders', tab: 'orders' },
+                { label: 'Your profile', tab: 'profile' },
+              ].map(link => (
+                <li key={link.tab}>
+                  <button type="button" onClick={() => setTab?.(link.tab)} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm font-medium text-navy-900 hover:bg-slate-50">
+                    {link.label}
+                    <Icon name="chevronRight" size={16} className="text-slate-400" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </SectionCard>
+          <SectionCard title="Still need help?">
+            <p className="text-sm text-slate-600">For questions about your membership, ask your company admin first. For anything else, contact BizCard support.</p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li><a href={`mailto:${site.contact.email}`} className="font-medium text-brand-600 hover:text-brand-700">{site.contact.email}</a></li>
+              <li className="text-navy-900">{site.contact.phone}</li>
+              <li className="text-xs text-slate-500">{site.contact.hours}</li>
+            </ul>
+          </SectionCard>
+        </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------- Overview ---------- */
+  return (
+    <div className="space-y-6">
+      {toast}
+      <PageHeader
+        title={`Hi, ${employeeName}`}
+        description={statusLine}
+        actions={<Button onClick={() => { setTab?.('card'); setCardSubView('order'); }}>Order cards</Button>}
+      />
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        <SectionCard title="Your card" action={latestCard ? <CardLink onClick={goToSavedCards}>All saved cards ({cardRows.length})</CardLink> : undefined}>
+          {latestCard ? (
+            <div className="space-y-5">
+              <div className="flex items-center gap-4 rounded-xl border border-slate-200 p-4">
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-700">
+                  <Icon name="card" size={20} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-navy-900">{latestCard.file_name}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {latestCard.kind === 'personal' ? 'Personal card' : 'Company card'} · {formatDate(latestCard.created_at)} · {formatSize(latestCard.file_size)}
+                  </p>
+                </div>
+                <StatusBadge value={latestCard.status} />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button onClick={() => download(cardDownloadPath(latestCard), latestCard.file_name)}>Download PDF</Button>
+                {latestCard.kind !== 'personal' && latestCard.verification_token && (
+                  <a href={`/verify/${latestCard.verification_token}`} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary')}>
+                    Verify card
+                  </a>
+                )}
+                <span className="text-xs text-slate-500">Vector PDF, 3.5 × 2 in</span>
+              </div>
+            </div>
+          ) : (
+            <EmptyNote action={<Button onClick={() => { setTab?.('card'); setCardSubView('order'); }}>Create your card</Button>}>
+              Your card will appear here after your first order.
+            </EmptyNote>
+          )}
+        </SectionCard>
+
+        <SectionCard title="Company" action={membershipState === 'ACTIVE' ? <CardLink onClick={() => setTab?.('company')}>View company</CardLink> : undefined}>
+          {membershipSummary()}
+          {membershipState === 'ACTIVE' ? (
+            <Button variant="secondary" className="mt-5" onClick={goToOrderCompanyCards}>
+              Order company cards
+            </Button>
+          ) : membershipState !== 'PENDING' ? (
+            <Button variant="secondary" className="mt-5" onClick={() => setTab?.('company')}>
+              Find your company
+            </Button>
+          ) : null}
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Recent orders" action={orders.length > 0 ? <CardLink onClick={() => setTab?.('orders')}>View all orders</CardLink> : undefined} bodyClassName={orders.length ? 'px-0 pb-2' : undefined}>
+        {orders.length > 0 ? (
+          <ul className="divide-y divide-slate-100 border-t border-slate-100">
+            {orders.slice(0, 5).map(o => (
+              <li key={o.id} className="flex flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3 text-sm">
+                <span className="w-20 font-medium text-navy-900 tabular-nums">#{o.id}</span>
+                <span className="w-24 text-slate-600">{orderKind(o) === 'personal' ? 'Personal' : 'Company'}</span>
+                <span className="w-20 text-slate-600 tabular-nums">
+                  {o.quantity} {o.quantity === 1 ? 'card' : 'cards'}
+                </span>
+                <span className="hidden w-28 text-slate-500 sm:inline">{formatDate(o.created_at)}</span>
+                <span className="ml-auto flex items-center gap-4">
+                  <span className="font-medium text-navy-900 tabular-nums">৳{o.total_amount}</span>
+                  <StatusBadge value={o.status} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyNote>Your orders will appear here after you order cards.</EmptyNote>
+        )}
+      </SectionCard>
+
+      {joinDialog}
     </div>
   );
 }

@@ -6,8 +6,9 @@ import CardPreview from './CardPreview';
 import Icon from './Icon';
 import AiDesigner from './AiDesigner';
 import PdfPreview from './PdfPreview';
-import { Button, FieldLabel, Panel, PanelHeader, buttonClass, cx, inputClass } from './ui';
-import { Kicker, pillClass } from './StudioParts';
+import { Button, cx, inputClass } from './ui';
+import { SectionCard } from './dashboard/Surface';
+import { StudioHeading, optionClass, studioLabelClass } from './StudioParts';
 
 export interface CardStudioProps {
   company: CompanySummary;
@@ -19,8 +20,8 @@ export interface CardStudioProps {
   busy?: boolean;
 }
 
-const faceClass = 'absolute inset-0 overflow-hidden rounded-xl shadow-xl [backface-visibility:hidden]';
-const zoomButtonClass = 'size-7 rounded-lg border border-brand-300/30';
+const faceClass = 'absolute inset-0 overflow-hidden rounded-xl shadow-lg [backface-visibility:hidden]';
+const zoomButtonClass = 'grid size-8 place-items-center rounded-lg border border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40';
 
 export default function CardStudio({ company, employees, templates, templateId, onChoose, onSaved, busy = false }: CardStudioProps) {
   const active = employees.filter(employee => employee.is_active);
@@ -32,33 +33,97 @@ export default function CardStudio({ company, employees, templates, templateId, 
   const [pdfOpen, setPdfOpen] = useState(false);
   const employee = active.find(item => String(item.id) === String(employeeId)) || active[0];
   const template = templates.find(item => item.id === draftId) || templates[0];
-  if (!template) return <div className="grid min-h-90 place-content-center place-items-center p-8.75 text-center"><h3 className="text-lg font-semibold text-slate-700">No active templates available</h3><p className="mt-2 max-w-90 text-xs leading-relaxed text-slate-500">Your administrator can activate a company card style.</p></div>;
+  if (!template) return (
+    <SectionCard>
+      <div className="py-12 text-center">
+        <p className="text-base font-semibold text-navy-900">No templates available</p>
+        <p className="mt-1 text-sm text-slate-500">The platform team can make a card template available to your company.</p>
+      </div>
+    </SectionCard>
+  );
   const frontOnly = template.design?.decoration === 'govt';
   const showBack = back && !frontOnly;
   const logoPath = company.has_logo ? '/company/logo' : null;
-  return <Panel>
-    <PanelHeader className="max-sm:p-4.5"><div><Kicker>YOUR BRAND, IN FOCUS</Kicker><h2 className="text-lg font-semibold tracking-tighter">Card Studio</h2><p className="mt-1.25 text-xs text-slate-500">Explore your signature style with real team details.</p></div><span className={pillClass}>Your design collection</span></PanelHeader>
-    <AiDesigner company={company} employee={employee} onSaved={onSaved} />
-    <div className="grid grid-cols-[calc(var(--spacing)*65)_minmax(0,1fr)] max-lg:grid-cols-1">
-      <aside className="border-r border-slate-200 p-6.5 max-lg:border-b max-lg:border-r-0">
-        <FieldLabel htmlFor="studio-employee">Preview employee</FieldLabel>
-        <select id="studio-employee" className={inputClass} value={employeeId} onChange={event => setEmployeeId(event.target.value)}>{active.length ? active.map(item => <option value={item.id} key={item.id}>{item.name}</option>) : <option value="">Sample employee</option>}</select>
-        <p className="mb-3 mt-7 text-2xs font-semibold uppercase tracking-wider text-slate-500">Signature styles</p>
-        <div className="grid gap-2.25 max-lg:grid-cols-3 max-sm:grid-cols-1">{templates.map((item, index) => <button key={item.id} aria-pressed={draftId === item.id} className={cx('flex items-center gap-3 rounded-xl border px-3 py-3.5 text-left transition-all duration-200 max-lg:flex-wrap', draftId === item.id ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-50' : 'border-slate-200')} onClick={() => setDraftId(item.id)}><span className="text-2xs text-slate-400">0{index + 1}</span><div><strong className="block text-xs">{item.name}</strong><small className="mt-1 block text-3xs text-slate-400 max-lg:hidden">{item.description}</small></div><Icon name={draftId === item.id ? 'check' : 'arrow'} className="ml-auto shrink-0 text-brand-600" /></button>)}</div>
-        <div className="mt-8.75 flex gap-2.5 text-2xs leading-relaxed text-slate-500 max-lg:hidden"><Icon name="check" /><p>Company-owned data.<br /><strong>One consistent brand.</strong></p></div>
-      </aside>
-      <div className={cx('min-h-117.5 overflow-hidden p-6.25 transition-[background] duration-300 max-sm:p-3.75', surface === 'light' ? 'bg-slate-100 bg-[radial-gradient(ellipse_at_center,#e8ddfa,transparent_70%)]' : 'bg-navy-900 bg-[radial-gradient(ellipse_at_center,#49316c,transparent_70%)] text-brand-50')}>
-        <div className="flex items-center justify-between gap-3.75"><span className="flex items-center gap-1.75 text-3xs font-[850] tracking-2xl max-sm:text-3xs max-sm:tracking-wider"><i className="size-1.5 rounded-full bg-emerald-500" /> LIVE DESIGN PREVIEW</span><Button variant="secondary" onClick={() => setSurface(surface === 'light' ? 'dark' : 'light')}>{surface === 'light' ? 'Dark' : 'Light'} surface</Button></div>
-        <div className="grid min-h-80 place-items-center px-2.5 py-7.5 [perspective:calc(var(--spacing)*300)] max-sm:px-5">
-          <div className="relative aspect-[7/4] w-full max-w-105 transition-transform duration-[550ms] ease-[cubic-bezier(.2,.8,.2,1)] [transform-style:preserve-3d] motion-reduce:transition-none" style={{ transform: showBack ? `scale(${zoom}) rotateY(180deg)` : `scale(${zoom})` }}>
-            <div className={faceClass}><CardPreview variant="studio" design={template.design} department={employee?.department} style={template.style_key} company={company.name} name={employee?.name || 'Your employee'} designation={employee?.designation || 'Job title'} email={employee?.email || 'name@company.com'} phone={employee?.phone || ''} logoPath={logoPath} photoPath={employee?.has_photo ? `/employees/${employee.id}/photo` : null} /></div>
-            <div className={cx(faceClass, '[transform:rotateY(180deg)]', template.design?.two_sided ? 'block bg-transparent p-0' : 'flex flex-col items-center justify-center bg-navy-900 p-5 text-white')}>{template.design?.two_sided ? <CardPreview variant="studio" design={template.design} back company={company.name} website={company.website} logoPath={logoPath} /> : <><strong className="text-base uppercase tracking-wider">{company.name}</strong><span className="text-5xl text-amber-400">✦</span><p className="text-xs text-brand-200">{company.website || 'Your people. Your brand.'}</p><small className="absolute bottom-4 text-3xs text-brand-300">Brand view · exported PDF is single-sided</small></>}</div>
+  const isCurrent = draftId === templateId;
+
+  return <div className="space-y-6">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+      <div className="border-b border-slate-100 px-6 py-5">
+        <StudioHeading title="Card designs" description="Preview each template with one of your employees, then choose the one your company uses." />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <aside className="border-slate-100 p-6 max-lg:border-b lg:border-r">
+          <label htmlFor="studio-employee" className={studioLabelClass}>Preview with</label>
+          <select id="studio-employee" className={inputClass} value={employeeId} onChange={event => setEmployeeId(event.target.value)}>
+            {active.length ? active.map(item => <option value={item.id} key={item.id}>{item.name}</option>) : <option value="">Sample employee</option>}
+          </select>
+
+          <p className={cx(studioLabelClass, 'mt-6')}>Templates</p>
+          <div className="grid gap-2 max-lg:grid-cols-2 max-sm:grid-cols-1">
+            {templates.map(item => {
+              const selected = draftId === item.id;
+              return <button type="button" key={item.id} aria-pressed={selected} className={optionClass(selected, 'flex items-start gap-3 px-3.5 py-3')} onClick={() => setDraftId(item.id)}>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className={cx('truncate text-sm font-medium', selected ? 'text-brand-700' : 'text-navy-900')}>{item.name}</span>
+                    {item.id === templateId && <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">In use</span>}
+                  </span>
+                  {item.description && <span className="mt-0.5 line-clamp-2 block text-xs text-slate-500">{item.description}</span>}
+                </span>
+                {selected && <Icon name="check" size={16} className="mt-0.5 shrink-0 text-brand-600" />}
+              </button>;
+            })}
+          </div>
+        </aside>
+
+        <div className={cx('flex min-h-110 flex-col p-6 transition-colors duration-300 max-sm:p-4', surface === 'light' ? 'bg-slate-100' : 'bg-navy-900')}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className={cx('text-sm font-medium', surface === 'light' ? 'text-slate-600' : 'text-slate-200')}>{showBack ? 'Back' : 'Front'}</span>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" className="px-3 py-1.5" onClick={() => setSurface(surface === 'light' ? 'dark' : 'light')}>{surface === 'light' ? 'Dark background' : 'Light background'}</Button>
+            </div>
+          </div>
+          <div className="grid flex-1 place-items-center px-2.5 py-8 [perspective:calc(var(--spacing)*300)] max-sm:px-2">
+            <div className="relative aspect-[7/4] w-full max-w-105 transition-transform duration-[550ms] ease-[cubic-bezier(.2,.8,.2,1)] [transform-style:preserve-3d] motion-reduce:transition-none" style={{ transform: showBack ? `scale(${zoom}) rotateY(180deg)` : `scale(${zoom})` }}>
+              <div className={faceClass}><CardPreview variant="studio" design={template.design} department={employee?.department} style={template.style_key} company={company.name} name={employee?.name || 'Your employee'} designation={employee?.designation || 'Job title'} email={employee?.email || 'name@company.com'} phone={employee?.phone || ''} logoPath={logoPath} photoPath={employee?.has_photo ? `/employees/${employee.id}/photo` : null} /></div>
+              <div className={cx(faceClass, '[transform:rotateY(180deg)]', template.design?.two_sided ? 'block bg-transparent p-0' : 'flex flex-col items-center justify-center gap-1.5 bg-navy-900 p-5 text-center text-white')}>
+                {template.design?.two_sided
+                  ? <CardPreview variant="studio" design={template.design} back company={company.name} website={company.website} logoPath={logoPath} />
+                  : <>
+                    <span className="text-base font-semibold">{company.name}</span>
+                    {company.website && <span className="text-sm text-slate-300">{company.website}</span>}
+                    <span className="absolute bottom-4 text-xs text-slate-400">This design is printed on one side only.</span>
+                  </>}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" className="px-3 py-1.5" onClick={() => setPdfOpen(true)}>Preview PDF</Button>
+              {frontOnly
+                ? <span className={cx('self-center text-sm', surface === 'light' ? 'text-slate-500' : 'text-slate-300')}>Front only (single-sided ID card)</span>
+                : <Button variant="secondary" className="px-3 py-1.5" onClick={() => setBack(!back)}><Icon name="flip" size={16} /> {back ? 'Show front' : 'Show back'}</Button>}
+            </div>
+            <div className={cx('flex items-center gap-2 text-sm tabular-nums', surface === 'light' ? 'text-slate-600' : 'text-slate-200')}>
+              <button type="button" className={zoomButtonClass} aria-label="Zoom out" disabled={zoom <= .85} onClick={() => setZoom(value => Math.max(.85, value - .1))}>−</button>
+              <span className="w-11 text-center">{Math.round(zoom * 100)}%</span>
+              <button type="button" className={zoomButtonClass} aria-label="Zoom in" disabled={zoom >= 1.15} onClick={() => setZoom(value => Math.min(1.15, value + .1))}>+</button>
+            </div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" className="gap-2.25" onClick={() => setPdfOpen(true)}>Actual PDF preview</Button>{frontOnly ? <span className="text-2xs text-slate-500">Front only · single-sided ID card</span> : <Button variant="secondary" className="gap-2.25" onClick={() => setBack(!back)}><Icon name="flip" /> {back ? 'Employee view' : 'Brand view'}</Button>}<div className="flex items-center gap-3 text-2xs"><button className={zoomButtonClass} aria-label="Zoom out" disabled={zoom <= .85} onClick={() => setZoom(value => Math.max(.85, value - .1))}>−</button><span>{Math.round(zoom * 100)}%</span><button className={zoomButtonClass} aria-label="Zoom in" disabled={zoom >= 1.15} onClick={() => setZoom(value => Math.min(1.15, value + .1))}>+</button></div></div>
       </div>
-    </div>
-    <div className="flex items-center justify-between gap-3.75 border-t border-slate-200 px-6.5 py-5.5 max-sm:flex-col max-sm:items-stretch"><div><strong className="text-sm">{template.name}</strong><p className="mt-1 text-2xs text-slate-400">{draftId === templateId ? 'Current company standard' : 'Previewing a new company standard'}</p></div><button className={buttonClass('primary', 'gap-2.25')} disabled={busy || draftId === templateId} onClick={() => onChoose(template.id)}>{busy ? 'Saving…' : draftId === templateId ? 'Selected template' : `Use ${template.name}`} <Icon name="check" /></button></div>
+
+      <div className="flex items-center justify-between gap-4 border-t border-slate-100 px-6 py-4 max-sm:flex-col max-sm:items-stretch">
+        <div>
+          <p className="text-sm font-semibold text-navy-900">{template.name}</p>
+          <p className="mt-0.5 text-sm text-slate-500">{isCurrent ? 'This is the template your company uses.' : 'Previewing. Not yet used by your company.'}</p>
+        </div>
+        <Button disabled={busy || isCurrent} onClick={() => onChoose(template.id)}>{busy ? 'Saving…' : isCurrent ? 'Template in use' : 'Use this template'}</Button>
+      </div>
+    </section>
+
+    <AiDesigner company={company} employee={employee} onSaved={onSaved} />
     {pdfOpen && <PdfPreview templateId={template.id} employeeId={employee?.id} onClose={() => setPdfOpen(false)} />}
-  </Panel>;
+  </div>;
 }

@@ -32,5 +32,12 @@ export default function PdfPreview({ design, templateId, employeeId, onClose }: 
     load();
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [design, templateId, employeeId]);
-  return <ReviewDialog title="Print preview" eyebrow="ACTUAL PDF · 3.5 × 2 INCHES" onClose={onClose}><p className="mb-4.5">Rendered by the same service that creates your final cards. This preview is not issued; verification activates after approval.</p>{error ? <p role="alert">{error}</p> : url ? <><iframe className="my-4 h-107.5 w-full rounded-xl border border-brand-100 max-sm:h-87.5" title="Actual card PDF preview" src={url} /><a className={buttonClass('secondary')} href={url} download="card-preview.pdf">Download preview PDF</a></> : <p role="status">Preparing your print preview…</p>}</ReviewDialog>;
+  return <ReviewDialog title="PDF preview" eyebrow="Card PDF, 3.5 × 2 in" onClose={onClose}>
+    <p className="text-sm leading-relaxed text-slate-600">This is made by the same service that creates your final cards. It is a preview only: the QR verification works once a request is approved.</p>
+    {error
+      ? <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
+      : url
+        ? <><iframe className="mt-4 h-107.5 w-full rounded-xl border border-slate-200 bg-slate-100 max-sm:h-87.5" title="Card PDF preview" src={url} /><div className="mt-4 flex justify-end"><a className={buttonClass('secondary')} href={url} download="card-preview.pdf">Download preview PDF</a></div></>
+        : <p role="status" className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-12 text-center text-sm text-slate-500">Preparing the preview…</p>}
+  </ReviewDialog>;
 }

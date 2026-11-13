@@ -7,7 +7,7 @@ import Icon from './Icon';
 import { api } from '../lib/api';
 import { employeeHeaders, parseEmployeeCsv, type CsvRow } from '../lib/csv';
 import type { Employee } from '../lib/types';
-import { Button, Notice, cx, tableClass, tdClass, thClass } from './ui';
+import { Button, Notice, cx } from './ui';
 import { cellNoteClass, errorMessage, hintClass } from './CompanyDashboardParts';
 
 export interface CsvImportDialogProps {
@@ -15,6 +15,9 @@ export interface CsvImportDialogProps {
   onClose: () => void;
   onComplete: (imported: number) => void | Promise<void>;
 }
+
+const th = 'bg-slate-50 px-4 py-2.5 text-left text-xs font-semibold tracking-wide whitespace-nowrap text-slate-500 uppercase';
+const td = 'border-t border-slate-100 px-4 py-3 align-top text-sm text-slate-700';
 
 export default function CsvImportDialog({ employees, onClose, onComplete }: CsvImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
@@ -38,11 +41,47 @@ export default function CsvImportDialog({ employees, onClose, onComplete }: CsvI
     finally { setBusy(false); }
   }
   const invalid = rows.filter(item => item.errors.length).length;
-  const rowPad = 'max-md:p-3.5';
-  return <ReviewDialog title="Bring your team together" eyebrow="EMPLOYEE CSV IMPORT" busy={busy} onClose={onClose}>
-    <label className={cx('flex cursor-pointer flex-col items-center gap-2.5 rounded-xl border border-dashed px-5 py-8 text-center [&_svg]:text-brand-600', dragging ? 'border-brand-600 bg-brand-50' : 'border-brand-300 bg-slate-100')} onDragOver={(event: DragEvent) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={(event: DragEvent) => { event.preventDefault(); setDragging(false); inspect(event.dataTransfer.files[0]); }}><Icon name="upload" size={32} /><strong className="text-base">{file ? file.name : 'Drop your employee CSV here'}</strong><span className="text-xs text-slate-500">or choose a file · up to 5 MB</span><input className="w-full max-w-57.5 text-2xs" disabled={busy} type="file" accept=".csv" onChange={event => inspect(event.target.files?.[0])} /><small className="mt-2 text-3xs [overflow-wrap:anywhere] text-slate-500">Required: {employeeHeaders.join(', ')}</small></label>
-    {rows.length > 0 && <><div className="flex gap-5 py-5 text-xs text-emerald-600"><span><b>{rows.length - invalid}</b> ready to import</span><span className={invalid ? 'text-red-600' : ''}><b>{invalid}</b> rows need attention</span></div><div className="max-h-75 overflow-auto rounded-xl border border-slate-200"><table className={tableClass}><thead><tr><th className={cx(thClass, rowPad)}>Row</th><th className={cx(thClass, rowPad)}>Employee</th><th className={cx(thClass, rowPad)}>Department</th><th className={cx(thClass, rowPad)}>Validation</th></tr></thead><tbody>{rows.slice(0, 100).map(item => <tr key={item.row} className="hover:bg-slate-100"><td className={cx(tdClass, rowPad)}>{item.row}</td><td className={cx(tdClass, rowPad)}><strong>{item.values.name}</strong><small className={cellNoteClass}>{item.values.employee_id}</small></td><td className={cx(tdClass, rowPad)}>{item.values.department}</td><td className={cx(tdClass, rowPad)}>{item.errors.length ? <span className="text-2xs text-red-600">{item.errors.join(' ')}</span> : 'Ready'}</td></tr>)}</tbody></table></div>{rows.length > 100 && <p className={hintClass}>Showing the first 100 of {rows.length} rows. All rows were checked.</p>}<p className={hintClass}>All rows must pass. The server revalidates the file before saving anything.</p></>}
+  return <ReviewDialog title="Import employees from CSV" eyebrow="Employees" busy={busy} onClose={onClose}>
+    <label
+      className={cx('flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed px-5 py-8 text-center transition-colors', dragging ? 'border-brand-600 bg-brand-50' : 'border-slate-300 bg-slate-50 hover:border-brand-300')}
+      onDragOver={(event: DragEvent) => { event.preventDefault(); setDragging(true); }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(event: DragEvent) => { event.preventDefault(); setDragging(false); inspect(event.dataTransfer.files[0]); }}
+    >
+      <Icon name="upload" size={28} className="text-slate-400" />
+      <span className="text-sm font-semibold text-navy-900">{file ? file.name : 'Drop your CSV file here'}</span>
+      <span className="text-sm text-slate-500">or choose a file, up to 5 MB</span>
+      <input className="mt-1 w-full max-w-64 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700" disabled={busy} type="file" accept=".csv" onChange={event => inspect(event.target.files?.[0])} />
+    </label>
+    <p className={cx(hintClass, '[overflow-wrap:anywhere]')}>Required columns: {employeeHeaders.join(', ')}</p>
+
+    {rows.length > 0 && <>
+      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+        <span className="text-slate-700"><span className="font-semibold text-navy-900">{rows.length - invalid}</span> ready to import</span>
+        <span className={invalid ? 'text-red-700' : 'text-slate-500'}><span className="font-semibold">{invalid}</span> need attention</span>
+      </div>
+      <div className="mt-3 max-h-72 overflow-auto rounded-xl border border-slate-200">
+        <table className="w-full text-sm">
+          <thead><tr><th className={th}>Row</th><th className={th}>Employee</th><th className={th}>Department</th><th className={th}>Check</th></tr></thead>
+          <tbody>{rows.slice(0, 100).map(item => <tr key={item.row}>
+            <td className={cx(td, 'text-slate-500 tabular-nums')}>{item.row}</td>
+            <td className={td}><span className="font-medium text-navy-900">{item.values.name}</span><span className={cellNoteClass}>{item.values.employee_id}</span></td>
+            <td className={td}>{item.values.department}</td>
+            <td className={td}>{item.errors.length ? <span className="text-red-700">{item.errors.join(' ')}</span> : <span className="text-emerald-700">Ready</span>}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      {rows.length > 100 && <p className={hintClass}>Showing the first 100 of {rows.length} rows. All rows were checked.</p>}
+      <p className={hintClass}>Every row must pass. The file is checked again on the server before anything is saved.</p>
+    </>}
+
     {error && <Notice tone="error" className="mt-4">{error}</Notice>}
-    <div className="mt-4 flex items-center justify-between gap-4 border-t border-slate-200 pt-5.5 max-sm:flex-col max-sm:items-stretch"><span className="text-2xs text-slate-500">No partial imports</span><Button disabled={busy || !rows.length || invalid > 0} onClick={importFile}>{busy ? 'Importing…' : `Import ${rows.length || ''} employees`} <Icon name="arrow" /></Button></div>
+    <div className="mt-6 flex items-center justify-between gap-4 border-t border-slate-100 pt-5 max-sm:flex-col max-sm:items-stretch">
+      <span className="text-sm text-slate-500">If any row fails, nothing is imported.</span>
+      <div className="flex gap-2 max-sm:justify-end">
+        <Button variant="secondary" disabled={busy} onClick={onClose}>Cancel</Button>
+        <Button disabled={busy || !rows.length || invalid > 0} onClick={importFile}>{busy ? 'Importing…' : rows.length ? `Import ${rows.length} employees` : 'Import employees'}</Button>
+      </div>
+    </div>
   </ReviewDialog>;
 }
