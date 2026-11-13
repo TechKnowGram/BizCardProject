@@ -24,3 +24,8 @@ venv-active.txt
 # Internal docs & design research
 important-information.md
 docs/design-research/
+
+# Local secrets and scratch files
+.env
+**/.env
+*.local.md

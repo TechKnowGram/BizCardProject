@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api, download } from '../lib/api';
+import { api, downloadOrReport } from '../lib/api';
 import type { CardRequest, Company, Employee, GeneratedCard, Template, User } from '../lib/types';
 import type { EmployeeValues } from '../lib/validation';
 import StatusBadge from './StatusBadge';
@@ -10,6 +10,7 @@ import CompanyProfilePanel from './CompanyProfilePanel';
 import ReviewDialog from './ReviewDialog';
 import Toast from './Toast';
 import CardStudio from './CardStudio';
+import DesignUploader from './company/DesignUploader';
 import CsvImportDialog from './CsvImportDialog';
 import RequestWizard from './RequestWizard';
 import CompanyAdminShell from './CompanyAdminShell';
@@ -115,7 +116,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
         body: JSON.stringify(values),
       });
       setEmployeeEditor(undefined);
-      setMessage(editing ? 'Employee details updated.' : 'Employee added successfully.');
+      setMessage(editing ? 'Employee details updated.' : 'Employee added.');
       await load();
     } catch (requestError) {
       setEmployeeError(errorMessage(requestError));
@@ -166,7 +167,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
     setError('');
     try {
       await api(`/templates/${id}/select`, { method: 'POST' });
-      setMessage('Your brand card template standard has been updated.');
+      setMessage('Template selected for new card requests.');
       await load();
     } catch (requestError) {
       setError(errorMessage(requestError));
@@ -180,7 +181,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
     setError('');
     try {
       await api(`/company/memberships/${id}`, { method: 'PATCH', body: JSON.stringify({ decision }) });
-      setMessage(`Membership ${decision.toLowerCase()} successfully.`);
+      setMessage(decision === 'APPROVED' ? 'Request approved.' : decision === 'REJECTED' ? 'Request rejected.' : 'Access revoked.');
       await load();
     } catch (err: any) {
       setError(err.message);
@@ -366,7 +367,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           setSelectedEmployees={setSelectedEmployees}
           toggleEmployee={toggleEmployee}
           busy={busy}
-          onExport={() => download('/employees/export', 'employees.csv')}
+          onExport={() => downloadOrReport('/employees/export', 'employees.csv', setError)}
           onImport={() => setCsvOpen(true)}
           onAdd={() => { setEmployeeError(''); setEmployeeEditor(null); }}
           onEdit={employee => { setEmployeeError(''); setEmployeeEditor(employee); }}
@@ -394,7 +395,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           setView={setOrdersSubView}
           onCreateRequest={createRequest}
           onOpenRequest={openRequest}
-          onDownload={download}
+          onDownload={(path: string, name: string) => downloadOrReport(path, name, setError)}
         />
       )}
 
@@ -402,18 +403,22 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
         <div className="space-y-6">
           <PageHeader
             title="Templates"
-            description="Choose the card design your company uses for new card requests, or create your own."
+            description="Upload your own card design, check it, then choose the one your company uses for new card requests."
           />
           <CardStudio
-            onSaved={async () => {
-              await load();
-            }}
             company={company}
             employees={employees}
             templates={templates}
             templateId={company.selected_template_id}
             onChoose={selectTemplate}
             busy={busy}
+          />
+          <DesignUploader
+            company={company}
+            employees={employees}
+            onSaved={async () => {
+              await load();
+            }}
           />
         </div>
       )}
@@ -451,7 +456,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           onClose={() => setCsvOpen(false)}
           onComplete={async count => {
             setCsvOpen(false);
-            setMessage(`${count} employees imported successfully.`);
+            setMessage(`${count} employees imported.`);
             await load();
           }}
         />
@@ -463,7 +468,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
           employees={employees}
           templates={templates}
           initialIds={selectedEmployees}
-          onClose={() => setWizardOpen(false)}
+          onClose={() => { setWizardOpen(false); load(); }}
           onComplete={async () => {
             setWizardOpen(false);
             setSelectedEmployees([]);
@@ -484,7 +489,7 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout }: Compan
       )}
 
       {requestViewer && (
-        <RequestDetails viewer={requestViewer} onClose={() => setRequestViewer(null)} onDownload={download} />
+        <RequestDetails viewer={requestViewer} onClose={() => setRequestViewer(null)} onDownload={(path: string, name: string) => downloadOrReport(path, name, setError)} />
       )}
     </CompanyAdminShell>
   );

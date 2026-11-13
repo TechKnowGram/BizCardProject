@@ -40,7 +40,10 @@ def select_template(
 
 @router.get('/admin/templates', response_model=list[TemplateResponse])
 def admin_list_templates(db: Session = Depends(get_db), _: User = Depends(require_system_admin)):
-    return db.scalars(select(CardTemplate).where(CardTemplate.company_id.is_(None)).order_by(CardTemplate.id)).all()
+    from app.bootstrap import DEMO_STYLE_KEYS, _is_gemini_design
+    retired = CardTemplate.style_key.in_(DEMO_STYLE_KEYS) & CardTemplate.is_active.is_(False)
+    templates = db.scalars(select(CardTemplate).where(CardTemplate.company_id.is_(None), ~retired).order_by(CardTemplate.id)).all()
+    return [t for t in templates if t.is_active or not _is_gemini_design(t)]
 
 
 @router.post('/admin/templates', response_model=TemplateResponse, status_code=201)

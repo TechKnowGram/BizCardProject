@@ -24,7 +24,7 @@ const options: Array<{ value: Sponsorship; title: string; text: string }> = [
 export default function SettingsTab({ company, username, sponsorship, onSponsorshipChange, setTab }: SettingsTabProps) {
   return (
     <div className="space-y-6">
-      <PageHeader title="Settings" description="Workspace details and who pays for employee card orders." />
+      <PageHeader title="Settings" description="Workspace details and how card payment works." />
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <SectionCard title="Workspace details">
@@ -37,38 +37,13 @@ export default function SettingsTab({ company, username, sponsorship, onSponsors
           <Button variant="secondary" className="mt-5" onClick={() => setTab('profile')}>Edit company profile</Button>
         </SectionCard>
 
-        <SectionCard title="Card sponsorship" info="The default shown to employees when they order cards.">
-          <p className="text-sm leading-relaxed text-slate-600">Choose who pays when an employee orders a company card.</p>
-          <fieldset className="mt-4 space-y-3">
-            <legend className="sr-only">Card sponsorship</legend>
-            {options.map((option) => {
-              const checked = sponsorship === option.value;
-              return (
-                <label
-                  key={option.value}
-                  className={cx(
-                    'flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 transition-colors',
-                    checked ? 'border-brand-600 bg-brand-50 ring-1 ring-brand-600' : 'border-slate-200 bg-white hover:border-slate-300',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="sponsorship"
-                    className="mt-0.5 size-4 accent-brand-600"
-                    checked={checked}
-                    onChange={() => onSponsorshipChange(option.value)}
-                  />
-                  <span>
-                    <span className="block text-sm font-semibold text-navy-900">
-                      {option.title}
-                      {option.value === 'COMPANY' && <span className="ml-2 text-xs font-normal text-slate-500">Default</span>}
-                    </span>
-                    <span className="mt-0.5 block text-sm leading-relaxed text-slate-600">{option.text}</span>
-                  </span>
-                </label>
-              );
-            })}
-          </fieldset>
+        <SectionCard title="Who pays for cards" info="How card payment is decided today.">
+          <ul className="space-y-3 text-sm leading-relaxed text-slate-600">
+            <li className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-600" aria-hidden="true" />Card requests you create for your staff are billed to the company.</li>
+            <li className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-600" aria-hidden="true" />When an employee orders company cards themselves, payment follows their membership: people added from your staff list are paid for by the company.</li>
+            <li className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-600" aria-hidden="true" />Personal cards are always paid by the employee.</li>
+          </ul>
+          <Button variant="secondary" className="mt-5" onClick={() => setTab('billing')}>View billing</Button>
         </SectionCard>
       </div>
     </div>

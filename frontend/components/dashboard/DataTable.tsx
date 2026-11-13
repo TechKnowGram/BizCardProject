@@ -136,7 +136,8 @@ export default function DataTable<T>({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      {/* relative: keeps absolutely positioned bits (screen-reader labels) inside the scroll box */}
+      <div className="relative overflow-x-auto">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="bg-navy-950 text-white">

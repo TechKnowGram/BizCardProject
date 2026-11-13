@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { download } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { downloadOrReport } from '@/lib/api';
 import type { User } from '@/lib/types';
 import StatusBadge from '@/components/StatusBadge';
 import DataTable from '@/components/dashboard/DataTable';
@@ -44,6 +44,8 @@ export interface CardOrderStudioProps {
   busy: boolean;
   onCheckout: (isCompany: boolean) => void;
   onGoToCompany: () => void;
+  /** Shows an error message on the page (e.g. a failed download). */
+  onError?: (message: string) => void;
 }
 
 const THEMES: ReadonlyArray<{ key: Theme; label: string; swatch: string }> = [
@@ -79,12 +81,20 @@ export default function CardOrderStudio(props: CardOrderStudioProps) {
           />
         }
       />
-      {cardSubView === 'order' ? <DesignAndOrder {...props} /> : <SavedCards cardRows={cardRows} onOrderMore={() => setCardSubView('order')} />}
+      {cardSubView === 'order' ? <DesignAndOrder {...props} /> : <SavedCards cardRows={cardRows} onError={props.onError} onOrderMore={() => setCardSubView('order')} />}
     </div>
   );
 }
 
 function QuantityField({ quantity, onChange }: { quantity: number; onChange: (quantity: number) => void }) {
+  // Keep what the person is typing (it may be empty for a moment); clamp only when they leave the box.
+  const [draft, setDraft] = useState(String(quantity));
+  useEffect(() => setDraft(String(quantity)), [quantity]);
+  const commit = () => {
+    const value = Math.max(1, Math.min(1000, Math.round(Number(draft)) || 1));
+    setDraft(String(value));
+    onChange(value);
+  };
   return (
     <div className="space-y-4">
       <div role="radiogroup" aria-label="Number of cards" className="flex flex-wrap gap-2">
@@ -116,8 +126,14 @@ function QuantityField({ quantity, onChange }: { quantity: number; onChange: (qu
           type="number"
           min="1"
           max="1000"
-          value={quantity}
-          onChange={(e) => onChange(Math.max(1, Math.min(1000, Number(e.target.value) || 1)))}
+          inputMode="numeric"
+          value={draft}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            const value = Number(e.target.value);
+            if (value >= 1 && value <= 1000) onChange(Math.round(value));
+          }}
+          onBlur={commit}
           className={cx(inputClass, 'w-28 py-2 tabular-nums')}
         />
         <span className="text-xs text-slate-500">Between 1 and 1,000 cards</span>
@@ -292,7 +308,7 @@ function DesignAndOrder({
                   <option value="">Choose a design</option>
                   {templates.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.name} ({t.style_key || 'Standard'})
+                      {t.name}
                     </option>
                   ))}
                 </select>
@@ -325,7 +341,7 @@ function DesignAndOrder({
         )}
       </div>
 
-      <div className="lg:sticky lg:top-24 lg:col-span-5">
+      <div className="order-first lg:sticky lg:top-24 lg:order-none lg:col-span-5">
         <SectionCard title="Preview">
           <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
             <LiveCardPreview
@@ -351,7 +367,7 @@ function DesignAndOrder({
   );
 }
 
-function SavedCards({ cardRows, onOrderMore }: { cardRows: Row[]; onOrderMore: () => void }) {
+function SavedCards({ cardRows, onOrderMore, onError }: { cardRows: Row[]; onOrderMore: () => void; onError?: (message: string) => void }) {
   const [search, setSearch] = useState('');
   const q = search.trim().toLowerCase();
   const rows = q ? cardRows.filter((c) => String(c.file_name || '').toLowerCase().includes(q)) : cardRows;
@@ -386,7 +402,7 @@ function SavedCards({ cardRows, onOrderMore }: { cardRows: Row[]; onOrderMore: (
               Verify
             </a>
           )}
-          <Button variant="secondary" className="px-3 py-1.5" onClick={() => download(cardDownloadPath(c), c.file_name)}>
+          <Button variant="secondary" className="px-3 py-1.5" onClick={() => downloadOrReport(cardDownloadPath(c), c.file_name, onError ?? (() => {}))}>
             Download PDF
           </Button>
         </div>

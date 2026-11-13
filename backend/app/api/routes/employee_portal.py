@@ -6,7 +6,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 from app.api.deps import require_roles
 from app.db.session import get_db
-from app.models import CardOrder, CardRequest, CardRequestItem, CardTemplate, GeneratedCard, Membership, PaymentRecord, PersonalCard, User
+from app.models import CardOrder, Company, CardRequest, CardRequestItem, CardTemplate, GeneratedCard, Membership, PaymentRecord, PersonalCard, User
 from app.models.constants import EMPLOYEE
 from app.schemas.domain import CardCheckout, CheckoutResponse, GeneratedCardResponse
 from app.services.activity import add_audit, add_notification
@@ -21,6 +21,9 @@ def approved_membership(db: Session, user: User, company_id: int) -> Membership:
                                                      Membership.status == 'APPROVED').options(selectinload(Membership.employee)))
     if membership is None or membership.employee is None or not membership.employee.is_active:
         raise HTTPException(403, 'Approved active membership is required')
+    company = db.get(Company, company_id)
+    if company is None or company.status != 'APPROVED':
+        raise HTTPException(403, 'This company is not active on BizCard right now')
     return membership
 
 
@@ -123,7 +126,10 @@ def checkout_personal_cards(body: CardCheckout, db: Session = Depends(get_db), u
 
 @router.get('/personal-cards')
 def my_personal_cards(db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
-    return db.scalars(select(PersonalCard).where(PersonalCard.user_id == user.id).order_by(PersonalCard.id.desc())).all()
+    cards = db.scalars(select(PersonalCard).where(PersonalCard.user_id == user.id).order_by(PersonalCard.id.desc())).all()
+    # Never send the server's file path to the browser.
+    columns = [c.name for c in PersonalCard.__table__.columns if c.name != 'file_path']
+    return [{name: getattr(card, name) for name in columns} for card in cards]
 
 
 @router.get('/orders')

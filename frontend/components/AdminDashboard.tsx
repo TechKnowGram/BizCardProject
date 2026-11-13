@@ -401,7 +401,7 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
             </Button>
           )}
           {c.status === 'APPROVED' && (
-            <Button variant="secondary" className={compact} disabled={busy} onClick={() => mutate(`/admin/companies/${c.id}/status`, { status: 'SUSPENDED' })}>
+            <Button variant="secondary" className={compact} disabled={busy} onClick={() => { if (window.confirm(`Suspend ${c.name}? Its admins and employees lose access until you reactivate it.`)) mutate(`/admin/companies/${c.id}/status`, { status: 'SUSPENDED' }); }}>
               Suspend
             </Button>
           )}
@@ -947,74 +947,71 @@ export default function AdminDashboard({ tab, setTab, user, onLogout }: AdminDas
               )}
 
               <div className="mt-6 border-t border-slate-200 pt-5">
-                {(review.status === 'PENDING' || review.kind === 'companies') && (
-                  <label className="mb-4 block">
-                    <span className="mb-1.5 block text-sm font-medium text-slate-700">Note to the company</span>
-                    <textarea
-                      className={cx(inputClass, 'min-h-20')}
-                      maxLength={500}
-                      value={reason}
-                      onChange={e => setReason(e.target.value)}
-                      placeholder="Required when rejecting. Say what needs to change before they send it again."
-                    />
-                  </label>
-                )}
-
-                <div className="flex flex-wrap items-center justify-end gap-2.5">
-                  <Button variant="quiet" disabled={busy} onClick={() => setReview(null)}>
-                    Cancel
-                  </Button>
-
-                  <Button
-                    variant="danger"
-                    disabled={busy || !reason.trim()}
-                    onClick={() =>
-                      mutate(
-                        review.kind === 'companies'
-                          ? `/admin/companies/${review.id}/status`
-                          : `/admin/card-requests/${review.id}/decision`,
-                        review.kind === 'companies'
-                          ? { status: 'REJECTED', reason: reason.trim() }
-                          : { decision: 'REJECTED', reason: reason.trim() }
-                      )
-                    }
-                  >
-                    Reject
-                  </Button>
-
-                  {review.kind === 'companies' && review.status === 'APPROVED' && (
-                    <Button
-                      variant="danger"
-                      disabled={busy}
-                      onClick={() =>
-                        mutate(`/admin/companies/${review.id}/status`, { status: 'SUSPENDED' })
-                      }
-                    >
-                      Suspend company
-                    </Button>
-                  )}
-
-                  <Button
-                    variant="primary"
-                    disabled={busy}
-                    onClick={() =>
-                      mutate(
-                        review.kind === 'companies'
-                          ? `/admin/companies/${review.id}/status`
-                          : `/admin/card-requests/${review.id}/decision`,
-                        review.kind === 'companies'
-                          ? { status: 'APPROVED' }
-                          : { decision: 'APPROVED' }
-                      )
-                    }
-                  >
-                    {busy
-                      ? 'Saving…'
-                      : review.kind === 'companies'
-                      ? 'Approve company'
-                      : 'Approve and generate cards'}
-                  </Button>
-                </div>
+                {(() => {
+                  const isCompany = review.kind === 'companies';
+                  const pending = review.status === 'PENDING';
+                  const canReject = pending;
+                  const companyPath = `/admin/companies/${review.id}/status`;
+                  const requestPath = `/admin/card-requests/${review.id}/decision`;
+                  return (
+                    <>
+                      {canReject && (
+                        <label className="mb-4 block">
+                          <span className="mb-1.5 block text-sm font-medium text-slate-700">Note to the company <span className="font-normal text-slate-400">(required to reject)</span></span>
+                          <textarea
+                            className={cx(inputClass, 'min-h-20')}
+                            maxLength={500}
+                            value={reason}
+                            onChange={e => setReason(e.target.value)}
+                            placeholder="Say what needs to change before they send it again."
+                          />
+                        </label>
+                      )}
+                      {!pending && !isCompany && (
+                        <p className="mb-4 text-sm text-slate-500">This request has already been decided. No further action is needed.</p>
+                      )}
+                      <div className="flex flex-wrap items-center justify-end gap-2.5">
+                        <Button variant="quiet" disabled={busy} onClick={() => setReview(null)}>
+                          {pending || isCompany ? 'Cancel' : 'Close'}
+                        </Button>
+                        {canReject && (
+                          <Button
+                            variant="danger"
+                            disabled={busy || !reason.trim()}
+                            onClick={() => {
+                              if (!window.confirm(isCompany ? 'Reject this company? They will see your note.' : 'Reject this card request? The company will see your note.')) return;
+                              mutate(isCompany ? companyPath : requestPath, isCompany ? { status: 'REJECTED', reason: reason.trim() } : { decision: 'REJECTED', reason: reason.trim() });
+                            }}
+                          >
+                            Reject
+                          </Button>
+                        )}
+                        {isCompany && review.status === 'APPROVED' && (
+                          <Button
+                            variant="danger"
+                            disabled={busy}
+                            onClick={() => {
+                              if (!window.confirm('Suspend this company? Its admins and employees lose access until you reactivate it.')) return;
+                              mutate(companyPath, { status: 'SUSPENDED' });
+                            }}
+                          >
+                            Suspend company
+                          </Button>
+                        )}
+                        {isCompany && review.status !== 'APPROVED' && (
+                          <Button variant="primary" disabled={busy} onClick={() => mutate(companyPath, { status: 'APPROVED' })}>
+                            {busy ? 'Saving…' : review.status === 'SUSPENDED' ? 'Reactivate company' : 'Approve company'}
+                          </Button>
+                        )}
+                        {!isCompany && pending && (
+                          <Button variant="primary" disabled={busy} onClick={() => mutate(requestPath, { decision: 'APPROVED' })}>
+                            {busy ? 'Saving…' : 'Approve and generate cards'}
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </ReviewDialog>
           )}
