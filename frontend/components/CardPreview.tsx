@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
-import type { CardDesign } from '../lib/types';
+import type { CardDesign, ImageTemplateDesign } from '../lib/types';
+import { isImageDesign } from '../lib/types';
+import ImageTemplateCard from './ImageTemplateCard';
 import { cx } from './ui';
 import ProtectedImage from './ProtectedImage';
 
@@ -11,7 +13,8 @@ export interface CardPreviewProps {
   email?: string;
   phone?: string;
   department?: string;
-  design?: CardDesign | null;
+  design?: CardDesign | ImageTemplateDesign | null;
+  address?: string | null;
   logoPath?: string | null;
   photoPath?: string | null;
   back?: boolean;
@@ -92,9 +95,19 @@ function StyleAccent({ style }: { style: string }) {
   return <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[6.25%] bg-[#17324D]" />;
 }
 
-export default function CardPreview({ style = 'classic', name = 'Alex Morgan', company = 'Your company', designation = 'Product Designer', email = 'hello@company.com', phone = '', department = '', design, logoPath, photoPath, back = false, website, variant = 'default', className }: CardPreviewProps) {
+export default function CardPreview({ style = 'classic', name = 'Alex Morgan', company = 'Your company', designation = 'Product Designer', email = 'hello@company.com', phone = '', department = '', design, logoPath, photoPath, back = false, website, address, variant = 'default', className }: CardPreviewProps) {
   const studio = variant === 'studio';
   const library = variant === 'library';
+  if (isImageDesign(design)) {
+    return (
+      <ImageTemplateCard
+        design={design}
+        className={cx(studio && 'h-full rounded-[inherit] shadow-none', className)}
+        side={back && design.back ? 'back' : 'front'}
+        values={{ name, title: designation, department, phone: phone || '+880 1700 000000', email, website, address, company, photoPath, logoPath }}
+      />
+    );
+  }
   if (design) {
     const base = cx(
       'relative aspect-[7/4] overflow-hidden text-left [container-type:inline-size]',

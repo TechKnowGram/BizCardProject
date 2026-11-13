@@ -79,7 +79,76 @@ export interface Template {
   style_key: StyleKey | (string & {});
   is_active: boolean;
   company_id?: number | null;
-  design?: CardDesign | null;
+  design?: CardDesign | ImageTemplateDesign | null;
+}
+
+export type TemplateFieldRole = 'name' | 'title' | 'department' | 'phone' | 'email' | 'website' | 'address' | 'company' | 'logo' | 'photo' | 'qr' | 'other';
+
+/** One place on an uploaded design; boxes are fractions (0..1) of the card. */
+export interface TemplateField {
+  role: TemplateFieldRole;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  text?: string;
+  size: number;
+  color: string;
+  align: 'left' | 'center' | 'right';
+  bold: boolean;
+  shape: 'rect' | 'circle';
+  lines: number;
+  confidence?: number;
+  ink?: [number, number, number, number] | null;
+}
+
+/** Template made from an uploaded card image (see backend image_templates). */
+export interface ImageTemplateDesign {
+  kind: 'image';
+  background: string;
+  source: string;
+  company_id: number | null;
+  width: number;
+  height: number;
+  fields: TemplateField[];
+  back?: ImageBackSide | null;
+}
+
+/** Back made from its own uploaded design (read by the same ML pipeline as the front). */
+export interface ImageSide {
+  style?: 'image';
+  source: string;
+  background: string;
+  width: number;
+  height: number;
+  fields: TemplateField[];
+}
+
+/** Back drawn automatically from the company profile: logo, name, website and QR on one colour. */
+export interface AutoBack {
+  style: 'auto';
+  color: string;
+  text_color: string;
+  show_qr: boolean;
+}
+
+export type ImageBackSide = ImageSide | AutoBack;
+
+export function isAutoBack(back: ImageBackSide | null | undefined): back is AutoBack {
+  return Boolean(back && back.style === 'auto');
+}
+
+export interface TemplateAnalysis {
+  source: string;
+  background: string;
+  width: number;
+  height: number;
+  fields: TemplateField[];
+  warnings: string[];
+}
+
+export function isImageDesign(design: unknown): design is ImageTemplateDesign {
+  return Boolean(design && typeof design === 'object' && (design as { kind?: string }).kind === 'image');
 }
 
 export interface CardItem {
