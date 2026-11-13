@@ -139,3 +139,39 @@ export interface AuditLog {
   details: string | null;
   created_at: string;
 }
+
+export interface AdminUserRecord {
+  id: string;
+  username: string;
+  email: string;
+  role: Role;
+  company_id: number | null;
+  company_name: string | null;
+}
+
+export interface AdminMembershipRecord {
+  id: number;
+  company_id: number;
+  company_name: string | null;
+  user_id: string | null;
+  username: string | null;
+  official_email: string;
+  employee_code: string;
+  payer: string;
+  status: string;
+  match_status: string | null;
+  requested_at: string | null;
+  decided_at: string | null;
+}
+
+export interface AdminPaymentRecord {
+  id: number;
+  company_id: number | null;
+  company_name: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  payer: string;
+  status: string;
+  created_at: string | null;
+}

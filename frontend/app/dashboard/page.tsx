@@ -68,17 +68,23 @@ export default function DashboardPage() {
     );
   }
 
+  if (!systemAdmin) {
+    return (
+      <CompanyDashboard
+        tab={tab}
+        setTab={setTab}
+        user={user}
+        onLogout={signOut}
+      />
+    );
+  }
+
   return (
-    <DashboardShell
+    <AdminDashboard
+      tab={tab}
+      setTab={setTab}
       user={user}
-      title={systemAdmin ? 'System Administration' : 'Company Dashboard'}
-      subtitle={systemAdmin ? 'Review companies, approve card requests and protect every workspace.' : 'Manage your people, brand and card delivery from one place.'}
-      navigation={systemAdmin ? adminNav : companyNav}
-      activeTab={tab}
-      onNavigate={setTab}
       onLogout={signOut}
-    >
-      {systemAdmin ? <AdminDashboard tab={tab} setTab={setTab} user={user} /> : <CompanyDashboard tab={tab} setTab={setTab} user={user} />}
-    </DashboardShell>
+    />
   );
 }
