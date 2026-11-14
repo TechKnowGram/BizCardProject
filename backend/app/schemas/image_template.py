@@ -48,6 +48,22 @@ class AutoBack(BaseModel):
 BackSide = ImageSide | AutoBack
 
 
+class AiSource(BaseModel):
+    """The Illustrator file a template was made from, kept so cards can also be produced as .ai files."""
+    model_config = ConfigDict(extra='forbid')
+    file: str = Field(pattern=r'^tpl_[0-9a-f]{32}\.ai$')
+    front: int = Field(ge=0)
+    back: int | None = Field(default=None, ge=0)
+
+
+class AiSourceCreate(BaseModel):
+    """Sent when saving: which uploaded .ai and which artboards were the front and the back."""
+    model_config = ConfigDict(extra='forbid')
+    upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
+    front: int = Field(ge=0)
+    back: int | None = Field(default=None, ge=0)
+
+
 class ImageTemplateDesign(BaseModel):
     """Design stored on CardTemplate.design for templates made from an uploaded image."""
     model_config = ConfigDict(extra='forbid')
@@ -57,8 +73,11 @@ class ImageTemplateDesign(BaseModel):
     company_id: int | None = None
     width: int = Field(gt=0)
     height: int = Field(gt=0)
+    width_pt: float | None = Field(default=None, gt=0, le=2000)
+    height_pt: float | None = Field(default=None, gt=0, le=2000)
     fields: list[TemplateField] = Field(max_length=30)
     back: BackSide | None = None
+    ai: AiSource | None = None
 
 
 class TemplateAnalysis(BaseModel):
@@ -67,6 +86,9 @@ class TemplateAnalysis(BaseModel):
     background: str
     width: int
     height: int
+    # Real size of the card in points, when the design came from an Illustrator artboard.
+    width_pt: float | None = None
+    height_pt: float | None = None
     fields: list[TemplateField]
     warnings: list[str] = []
 
@@ -79,8 +101,11 @@ class ImageTemplateCreate(BaseModel):
     background: str = Field(min_length=1, max_length=120)
     width: int = Field(gt=0)
     height: int = Field(gt=0)
+    width_pt: float | None = Field(default=None, gt=0, le=2000)
+    height_pt: float | None = Field(default=None, gt=0, le=2000)
     fields: list[TemplateField] = Field(min_length=1, max_length=30)
     back: BackSide | None = None
+    ai: AiSourceCreate | None = None
 
 
 class ImageTemplateUpdate(BaseModel):
@@ -90,3 +115,111 @@ class ImageTemplateUpdate(BaseModel):
     fields: list[TemplateField] | None = Field(default=None, min_length=1, max_length=30)
     back_fields: list[TemplateField] | None = Field(default=None, max_length=30)
     back: BackSide | None = None
+
+
+class ArtboardInfo(BaseModel):
+    """One artboard of an uploaded Illustrator file, with a preview image to choose from."""
+    index: int
+    name: str
+    width_mm: float
+    height_mm: float
+    card_like: bool
+    preview: str  # file name of the preview, served by /templates/image/assets/{company_id}/{preview}
+
+
+class ArtboardList(BaseModel):
+    upload_id: str
+    file_name: str
+    artboards: list[ArtboardInfo]
+
+
+class IllustratorAnalyzeRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
+    front: int = Field(ge=0)
+    back: int | None = Field(default=None, ge=0)
+
+
+class IllustratorAnalysis(BaseModel):
+    upload_id: str
+    front_artboard: int
+    back_artboard: int | None = None
+    front: TemplateAnalysis
+    back: TemplateAnalysis | None = None
+
+
+class LayerSummary(BaseModel):
+    name: str
+    text: int
+    image: int
+    shape: int
+
+
+class LayerObject(BaseModel):
+    """Where an object sits on the artboard: fractions (0..1) from the top-left."""
+    id: int
+    layer: str
+    x: float
+    y: float
+    w: float
+    h: float
+
+
+class LayerText(LayerObject):
+    text: str
+    size_pt: float
+    color: str
+    bold: bool
+
+
+class LayerImage(LayerObject):
+    width_px: int | None = None
+    height_px: int | None = None
+    thumbnail: str | None = None  # file name, served by /templates/image/assets/{company_id}/{thumbnail}
+
+
+class LayerShape(LayerObject):
+    kind: str  # rectangle, polygon, ellipse, curve, line, path, gradient
+    fill: str | None = None
+    stroke: str | None = None
+    stroke_width: float = 0
+
+
+class LayerNode(BaseModel):
+    """One row of the layers tree, like Illustrator's Layers panel. Boxes are fractions of the artboard."""
+    id: int
+    kind: str  # layer, group, clip, text, image, shape
+    name: str
+    x: float | None = None
+    y: float | None = None
+    w: float | None = None
+    h: float | None = None
+    count: int | None = None  # objects inside a layer
+    shape_kind: str | None = None
+    clip_shape: bool = False  # the clipping shape of a clip group
+    fill: str | None = None
+    stroke: str | None = None
+    stroke_width: float = 0
+    color: str | None = None
+    size_pt: float | None = None
+    bold: bool = False
+    width_px: int | None = None
+    height_px: int | None = None
+    thumbnail: str | None = None
+    children: list['LayerNode'] = []
+
+
+class ArtboardLayers(BaseModel):
+    artboard: dict
+    layers: list[LayerSummary]
+    tree: list[LayerNode] = []
+    images: list[LayerImage]
+    texts: list[LayerText]
+    shapes: list[LayerShape]
+    truncated: bool = False
+
+
+class IllustratorLayersRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
+    artboard: int = Field(ge=0)

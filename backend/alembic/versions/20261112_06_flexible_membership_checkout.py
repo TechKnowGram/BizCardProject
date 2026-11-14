@@ -25,13 +25,15 @@ def upgrade():
         batch.alter_column('user_id', existing_type=sa.Uuid(), nullable=True)
     bind.execute(sa.text("UPDATE memberships SET official_email = COALESCE(official_email, ''), employee_code = COALESCE(employee_code, '')"))
     constraints = {item['name'] for item in sa.inspect(bind).get_check_constraints('memberships')}
+    uniques = {item['name'] for item in sa.inspect(bind).get_unique_constraints('memberships')}
     with op.batch_alter_table('memberships') as batch:
         if 'check_membership_status' in constraints:
             batch.drop_constraint('check_membership_status', type_='check')
         batch.create_check_constraint('check_membership_status', "status IN ('PENDING','PRE_APPROVED','APPROVED','REJECTED','REVOKED')")
         if 'check_membership_payer' not in constraints:
             batch.create_check_constraint('check_membership_payer', "payer IN ('COMPANY','INDIVIDUAL')")
-        batch.create_unique_constraint('uq_membership_company_employee', ['company_id', 'employee_id'])
+        if 'uq_membership_company_employee' not in uniques:
+            batch.create_unique_constraint('uq_membership_company_employee', ['company_id', 'employee_id'])
         batch.alter_column('official_email', existing_type=sa.String(255), nullable=False)
         batch.alter_column('employee_code', existing_type=sa.String(50), nullable=False)
     tables = set(sa.inspect(bind).get_table_names())

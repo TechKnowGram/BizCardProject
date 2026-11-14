@@ -3,9 +3,11 @@
 import type { Employee } from '@/lib/types';
 import DataTable, { NameCell, type Column } from '@/components/dashboard/DataTable';
 import { PageHeader, ToolbarSelect } from '@/components/dashboard/Surface';
-import StatusBadge from '@/components/StatusBadge';
-import { Button, buttonClass } from '@/components/ui';
-import { cellNoteClass, checkboxClass, rowButtonClass } from '@/components/CompanyDashboardParts';
+import StatusBadge from '@/components/ui/StatusBadge';
+import { Button } from '@/components/ui';
+import Icon from '@/components/ui/Icon';
+import { ActionBtn, ActionFile } from '@/components/dashboard/RowActions';
+import { cellNoteClass, checkboxClass } from '@/components/company/CompanyDashboardParts';
 
 export type EmployeeStatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 
@@ -95,18 +97,19 @@ export default function EmployeesTab(props: EmployeesTabProps) {
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: 'Action',
       align: 'right',
       render: (employee) => (
         <div className="flex items-center justify-end gap-1.5">
-          <Button variant="secondary" className={rowButtonClass} onClick={() => onEdit(employee)}>Edit</Button>
-          <label className={buttonClass('secondary', `${rowButtonClass} cursor-pointer`)}>
-            {employee.has_photo ? 'Change photo' : 'Add photo'}
-            <input className="hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => onUploadPhoto(employee, event.target.files?.[0])} />
-          </label>
-          <Button variant={employee.is_active ? 'danger' : 'secondary'} className={rowButtonClass} disabled={busy} onClick={() => onChangeStatus(employee)}>
-            {employee.is_active ? 'Deactivate' : 'Activate'}
-          </Button>
+          <ActionBtn label={`Edit ${employee.name}`} tone="amber" onClick={() => onEdit(employee)}>
+            <Icon name="edit" size={14} />
+          </ActionBtn>
+          <ActionFile label={employee.has_photo ? 'Change photo' : 'Add photo'} tone="blue" accept="image/png,image/jpeg,image/webp" onFile={(file) => onUploadPhoto(employee, file)}>
+            <Icon name="camera" size={14} />
+          </ActionFile>
+          <ActionBtn label={employee.is_active ? 'Deactivate' : 'Activate'} tone={employee.is_active ? 'rose' : 'emerald'} disabled={busy} onClick={() => onChangeStatus(employee)}>
+            <Icon name={employee.is_active ? 'ban' : 'check'} size={14} />
+          </ActionBtn>
         </div>
       ),
     },
@@ -119,7 +122,7 @@ export default function EmployeesTab(props: EmployeesTabProps) {
         description="Keep your staff list up to date. Select active employees to order cards for them."
         actions={
           <>
-            <Button variant="secondary" onClick={onExport}>Export CSV</Button>
+            <Button variant="export" onClick={onExport}>Export CSV</Button>
             <Button variant="secondary" onClick={onImport}>Import CSV</Button>
             <Button onClick={onAdd}>Add employee</Button>
           </>

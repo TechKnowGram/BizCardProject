@@ -28,7 +28,20 @@ from reportlab.pdfgen.canvas import Canvas
 from app.core.config import settings
 from app.services.assets import upload_root
 
-CARD_WIDTH, CARD_HEIGHT = 252, 144  # 3.5 x 2 in, points
+CARD_WIDTH, CARD_HEIGHT = 252, 144  # 3.5 x 2 in, points: the default shape, and the layout the automatic back is drawn in
+LONG_SIDE_PT = 252.0               # when a design has no real size, its longer side is 3.5 in
+
+
+def card_size(design: dict) -> tuple[float, float]:
+    """Page size in points: the real artboard size when the design has one, otherwise 3.5 in on the longer
+    side at the picture's own shape. So a portrait ID card stays portrait and a 3.5 x 2 in card is unchanged."""
+    width_pt, height_pt = design.get('width_pt'), design.get('height_pt')
+    if width_pt and height_pt:
+        return float(width_pt), float(height_pt)
+    px_w, px_h = float(design.get('width') or 1400), float(design.get('height') or 800)
+    if px_w >= px_h:
+        return LONG_SIDE_PT, round(LONG_SIDE_PT * px_h / px_w, 2)
+    return round(LONG_SIDE_PT * px_w / px_h, 2), LONG_SIDE_PT
 
 
 def template_folder(company_id: int | None) -> Path:
@@ -74,12 +87,16 @@ def _wrap(text: str, font: str, size: float, width: float, max_lines: int) -> li
     return lines
 
 
-def _draw_text_field(canvas: Canvas, field: dict, text: str) -> None:
+def layout_text_field(field: dict, text: str, card_w: float, card_h: float) -> tuple[str, float, list[tuple[str, float, float]]]:
+    """Where a text field's lines go: (font, size in points, [(line, x of its left edge, baseline y)]).
+
+    Shared by the PDF renderer and the Illustrator (.ai) writer so both place text identically.
+    """
     font = 'Helvetica-Bold' if field.get('bold') else 'Helvetica'
-    box_x, box_w = field['x'] * CARD_WIDTH, field['w'] * CARD_WIDTH
-    box_top = CARD_HEIGHT - field['y'] * CARD_HEIGHT
-    box_h = field['h'] * CARD_HEIGHT
-    size = max(4.0, float(field.get('size') or 0.05) * CARD_HEIGHT)
+    box_x, box_w = field['x'] * card_w, field['w'] * card_w
+    box_top = card_h - field['y'] * card_h
+    box_h = field['h'] * card_h
+    size = max(4.0, float(field.get('size') or 0.05) * card_h)
     max_lines = max(1, int(field.get('lines') or 1))
     if field['role'] in ('address',):
         max_lines = max(max_lines, 2)
@@ -98,17 +115,26 @@ def _draw_text_field(canvas: Canvas, field: dict, text: str) -> None:
     # Vertically: keep the first baseline where the design had it, centred in the box when it was one line.
     baseline = box_top - (box_h - block_h) / 2 - size * 0.8 if max_lines == 1 else box_top - size * 0.82
 
+    align = field.get('align') or 'left'
+    placed = []
+    for i, line in enumerate(lines):
+        width = stringWidth(line, font, size)
+        if align == 'right':
+            x = box_x + box_w - width
+        elif align == 'center':
+            x = box_x + box_w / 2 - width / 2
+        else:
+            x = box_x
+        placed.append((line, x, baseline - i * leading))
+    return font, size, placed
+
+
+def _draw_text_field(canvas: Canvas, field: dict, text: str, card_w: float, card_h: float) -> None:
+    font, size, placed = layout_text_field(field, text, card_w, card_h)
     canvas.setFillColor(HexColor(field.get('color') or '#111111'))
     canvas.setFont(font, size)
-    align = field.get('align') or 'left'
-    for i, line in enumerate(lines):
-        y = baseline - i * leading
-        if align == 'right':
-            canvas.drawRightString(box_x + box_w, y, line)
-        elif align == 'center':
-            canvas.drawCentredString(box_x + box_w / 2, y, line)
-        else:
-            canvas.drawString(box_x, y, line)
+    for line, x, y in placed:
+        canvas.drawString(x, y, line)
 
 
 def _ellipsis(text: str, font: str, size: float, width: float) -> str:
@@ -155,10 +181,10 @@ def _photo_image(photo_path: str | None, name: str, box_w_px: int, box_h_px: int
     return photo
 
 
-def _draw_photo(canvas: Canvas, field: dict, employee) -> None:
-    x, w = field['x'] * CARD_WIDTH, field['w'] * CARD_WIDTH
-    h = field['h'] * CARD_HEIGHT
-    y = CARD_HEIGHT - field['y'] * CARD_HEIGHT - h
+def _draw_photo(canvas: Canvas, field: dict, employee, card_w: float, card_h: float) -> None:
+    x, w = field['x'] * card_w, field['w'] * card_w
+    h = field['h'] * card_h
+    y = card_h - field['y'] * card_h - h
     circle = field.get('shape') == 'circle'
     if circle:  # keep it round even if the box is not perfectly square
         d = min(w, h); x += (w - d) / 2; y += (h - d) / 2; w = h = d
@@ -168,48 +194,53 @@ def _draw_photo(canvas: Canvas, field: dict, employee) -> None:
     canvas.drawImage(ImageReader(buffer), x, y, w, h, mask='auto')
 
 
-def _draw_logo(canvas: Canvas, field: dict, company) -> None:
+def _draw_logo(canvas: Canvas, field: dict, company, card_w: float, card_h: float) -> None:
     logo = getattr(company, 'logo_path', None)
     if not logo or not Path(logo).is_file():
         return
-    x, w = field['x'] * CARD_WIDTH, field['w'] * CARD_WIDTH
-    h = field['h'] * CARD_HEIGHT
-    y = CARD_HEIGHT - field['y'] * CARD_HEIGHT - h
+    x, w = field['x'] * card_w, field['w'] * card_w
+    h = field['h'] * card_h
+    y = card_h - field['y'] * card_h - h
     try:
         canvas.drawImage(ImageReader(logo), x, y, w, h, preserveAspectRatio=True, anchor='c', mask='auto')
     except Exception:
         pass
 
 
-def _draw_side(canvas: Canvas, side: dict, company, employee, verification_token: str, company_id: int | None) -> None:
+def _draw_side(canvas: Canvas, side: dict, company, employee, verification_token: str, company_id: int | None,
+               card_w: float = CARD_WIDTH, card_h: float = CARD_HEIGHT) -> None:
     from app.services.card_generation import draw_qr  # avoid a circular import
 
     background = resolve_asset(company_id, side['background'])
-    canvas.drawImage(ImageReader(str(background)), 0, 0, CARD_WIDTH, CARD_HEIGHT)
+    canvas.drawImage(ImageReader(str(background)), 0, 0, card_w, card_h)
     for field in side.get('fields', []):
         role = field.get('role')
         if role == 'photo':
-            _draw_photo(canvas, field, employee)
+            _draw_photo(canvas, field, employee, card_w, card_h)
         elif role == 'logo':
-            _draw_logo(canvas, field, company)
+            _draw_logo(canvas, field, company, card_w, card_h)
         elif role == 'qr':
-            size = min(field['w'] * CARD_WIDTH, field['h'] * CARD_HEIGHT) - 6
-            x = field['x'] * CARD_WIDTH + 3
-            y = CARD_HEIGHT - field['y'] * CARD_HEIGHT - field['h'] * CARD_HEIGHT + 3
+            size = min(field['w'] * card_w, field['h'] * card_h) - 6
+            x = field['x'] * card_w + 3
+            y = card_h - field['y'] * card_h - field['h'] * card_h + 3
             draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{verification_token}", x, y, size)
         elif role and role != 'other':
             text = field_value(role, company, employee)
             if text:
-                _draw_text_field(canvas, field, text)
+                _draw_text_field(canvas, field, text, card_w, card_h)
     canvas.showPage()
 
 
-def _draw_auto_back(canvas: Canvas, back: dict, company, verification_token: str) -> None:
+def _draw_auto_back(canvas: Canvas, back: dict, company, verification_token: str, card_w: float = CARD_WIDTH, card_h: float = CARD_HEIGHT) -> None:
     """Logo, company name and website centred on a solid colour, with an optional QR."""
     from app.services.card_generation import draw_qr, fit_text
 
     canvas.setFillColor(HexColor(back.get('color') or '#101845'))
-    canvas.rect(0, 0, CARD_WIDTH, CARD_HEIGHT, fill=1, stroke=0)
+    canvas.rect(0, 0, card_w, card_h, fill=1, stroke=0)
+    scale = min(card_w / CARD_WIDTH, card_h / CARD_HEIGHT)
+    canvas.saveState()
+    canvas.translate((card_w - CARD_WIDTH * scale) / 2, (card_h - CARD_HEIGHT * scale) / 2)
+    canvas.scale(scale, scale)
     text_color = HexColor(back.get('text_color') or '#FFFFFF')
     show_qr = back.get('show_qr', True)
     centre_x = CARD_WIDTH / 2 if not show_qr else CARD_WIDTH * 0.40
@@ -233,16 +264,18 @@ def _draw_auto_back(canvas: Canvas, back: dict, company, verification_token: str
         draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{verification_token}", CARD_WIDTH - 70, CARD_HEIGHT / 2 - 25, 50)
         canvas.setFont('Helvetica', 5)
         canvas.drawCentredString(CARD_WIDTH - 45, CARD_HEIGHT / 2 - 34, 'SCAN TO VERIFY')
+    canvas.restoreState()
     canvas.showPage()
 
 
 def render_image_template(path: Path, company, employee, verification_token: str, design: dict, company_id: int | None) -> None:
-    """Page 1 is the front; page 2 is the back when the design has one."""
-    canvas = Canvas(str(path), pagesize=(CARD_WIDTH, CARD_HEIGHT), pageCompression=1)
-    _draw_side(canvas, design, company, employee, verification_token, company_id)
+    """Page 1 is the front; page 2 is the back when the design has one. Every page is the design's own size."""
+    card_w, card_h = card_size(design)
+    canvas = Canvas(str(path), pagesize=(card_w, card_h), pageCompression=1)
+    _draw_side(canvas, design, company, employee, verification_token, company_id, card_w, card_h)
     back = design.get('back')
     if back and back.get('style') == 'auto':
-        _draw_auto_back(canvas, back, company, verification_token)
+        _draw_auto_back(canvas, back, company, verification_token, card_w, card_h)
     elif back:
-        _draw_side(canvas, back, company, employee, verification_token, company_id)
+        _draw_side(canvas, back, company, employee, verification_token, company_id, card_w, card_h)
     canvas.save()

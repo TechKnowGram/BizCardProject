@@ -3,8 +3,8 @@
 import type { Company } from '@/lib/types';
 import DataTable from '@/components/dashboard/DataTable';
 import { PageHeader, SectionCard, StatTile } from '@/components/dashboard/Surface';
-import { formatTaka } from '@/components/CompanyDashboardParts';
-import { orderColumns } from './OrdersTab';
+import { formatTaka } from '@/components/company/CompanyDashboardParts';
+import { orderColumns } from '@/components/company/OrdersTab';
 
 export interface BillingTabProps {
   company: Company;

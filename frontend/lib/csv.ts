@@ -1,4 +1,4 @@
-import { isValidEmail, type EmployeeValues } from './validation';
+import { isValidEmail, type EmployeeValues } from '@/lib/validation';
 
 export const requiredHeaders = ['employee_id', 'name', 'email'] as const;
 export const optionalHeaders = ['department', 'designation', 'status', 'phone'] as const;

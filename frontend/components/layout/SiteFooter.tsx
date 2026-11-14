@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
-import Brand from '../Brand';
+import Brand from '@/components/ui/Brand';
 import { site } from '@/lib/site';
 
 const columns = [

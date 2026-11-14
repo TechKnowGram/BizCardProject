@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { cx } from '../ui';
+import { cx } from '@/components/ui';
 
 /**
  * Fades its content up 24px when it scrolls into view (same motion as techknowgram.com).

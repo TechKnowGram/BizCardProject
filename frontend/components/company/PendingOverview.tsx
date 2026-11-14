@@ -3,7 +3,7 @@
 import type { Company } from '@/lib/types';
 import { PageHeader, SectionCard } from '@/components/dashboard/Surface';
 import { Button } from '@/components/ui';
-import { CheckDot, NoticeCard, ProgressLine } from '@/components/CompanyDashboardParts';
+import { CheckDot, NoticeCard, ProgressLine } from '@/components/company/CompanyDashboardParts';
 
 export interface PendingOverviewProps {
   company: Company;

@@ -1,20 +1,38 @@
 # BizCard frontend
 
-Next.js App Router + Tailwind CSS, using plain JavaScript.
+Next.js App Router + Tailwind CSS + TypeScript. Imports use the `@/` alias (project root).
 
 ```text
-app/
-  layout.js          Shared page layout
-  globals.css        Tailwind and global styles
-  page.js            Public marketing homepage
-  login/page.js      Login form
-  dashboard/page.js  Role-aware company/admin workspace
-  verify/[token]/     Public QR card verification
+app/                         Routes only; no UI lives here
+  layout.tsx, globals.css    Root layout, Tailwind theme and global styles
+  page.tsx                   Public homepage
+  login/, register/          Sign-in and registration pages
+  employee/register/         Employee sign-up
+  verify/[token]/            Public QR card verification
+  (admin)/dashboard/         Signed-in workspace. (admin) is a route group, not part of the URL.
+                             layout.tsx mounts DashboardPanel, which loads the user and wraps the
+                             page in the admin, company or employee dashboard (shell + shared state).
+                             One folder per menu page (employees/, companies/, orders/ ...); each
+                             page.tsx renders that page's component. Pages shared by several roles
+                             (requests, templates, settings, profile) use RolePage to pick one.
 components/
-  Brand.js           Shared logo and visual identity
-lib/
-  api.js             Backend requests and token helpers
+  ui/                        Shared primitives: Button/Input (index.tsx), Icon, Brand,
+                             StatusBadge, Toast, ReviewDialog, ProtectedImage, PdfPreview
+  layout/                    Page chrome: WorkspaceShell + role shells, NotificationBell,
+                             SiteHeader, SiteFooter
+  dashboard/                 Shared dashboard blocks: Surface, DataTable, Charts, RowActions
+  auth/                      AuthScreen (login and registration forms)
+  cards/                     Card preview and design studio components
+  home/                      Public homepage sections
+  admin/                     Platform admin dashboard + pages/ (one component per menu page)
+  company/                   Company admin dashboard + pages/, tabs and dialogs
+  employee/                  Employee dashboard + pages/, card ordering
+lib/                         api.ts (backend calls), types.ts, validation.ts, csv.ts, site.ts
+tests/                       csv.test.ts
 ```
+
+Where things go: a component used by one role lives in that role's folder; used by
+several, in `ui/`, `dashboard/` or `cards/`. Page chrome goes in `layout/`.
 
 Start FastAPI from backend with `uvicorn app.main:app --reload`.
 In a second terminal:

@@ -7,7 +7,7 @@ import { CardLink, PageHeader, SectionCard, StatTile, ToolbarSelect } from '@/co
 import DataTable, { NameCell } from '@/components/dashboard/DataTable';
 import type { Column } from '@/components/dashboard/DataTable';
 import { AreaChart, StatusBreakdown, bucketByDate, rangeOptions, statusColor } from '@/components/dashboard/Charts';
-import { plural, relativeTime, sentenceCase, shortDate, waitingFor } from './format';
+import { plural, relativeTime, sentenceCase, shortDate, waitingFor } from '@/components/admin/format';
 
 type Range = (typeof rangeOptions)[number]['value'];
 

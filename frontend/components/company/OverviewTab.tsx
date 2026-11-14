@@ -3,9 +3,9 @@
 import type { CardRequest, Company, Employee, Template } from '@/lib/types';
 import { CardLink, PageHeader, SectionCard, StatTile } from '@/components/dashboard/Surface';
 import { NameCell } from '@/components/dashboard/DataTable';
-import StatusBadge from '@/components/StatusBadge';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { Button, cx } from '@/components/ui';
-import { CheckDot, MatchBadge, ProgressLine, formatDate, rowButtonClass } from '@/components/CompanyDashboardParts';
+import { CheckDot, MatchBadge, ProgressLine, formatDate, rowButtonClass } from '@/components/company/CompanyDashboardParts';
 
 export type SetupStep = [label: string, done: boolean, target: string];
 

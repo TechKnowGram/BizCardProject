@@ -52,6 +52,28 @@ class LoginRequest(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class ProfileUpdateRequest(BaseModel):
+    """Change your own name and/or sign-in email. Changing the email needs the current password."""
+    model_config = ConfigDict(extra='forbid')
+    username: str | None = Field(default=None, min_length=1, max_length=50)
+    email: EmailStr | None = Field(default=None, max_length=255)
+    current_password: str | None = Field(default=None, max_length=128)
+
+    @field_validator('username')
+    @classmethod
+    def clean_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not value.strip():
+            raise ValueError('Name cannot be blank')
+        return value.strip()
+
+    @field_validator('email')
+    @classmethod
+    def normalize_email(cls, value: EmailStr | None) -> str | None:
+        return None if value is None else str(value).strip().lower()
+
+
 class EmployeeRegisterRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     username: str = Field(min_length=1, max_length=50)
@@ -83,6 +105,9 @@ class UserResponse(BaseModel):
     email: str
     role: Role
     company_id: int | None
+    has_avatar: bool = False
+    # Changes whenever the picture does, so the browser fetches the new one instead of a cached copy.
+    avatar_version: int = 0
 
 
 class CompanySummary(BaseModel):

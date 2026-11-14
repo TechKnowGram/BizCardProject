@@ -1,5 +1,5 @@
-import { Icon } from './Iconify';
-import { cx } from '../ui';
+import { Icon } from '@/components/home/Iconify';
+import { cx } from '@/components/ui';
 
 type Look = 'classic' | 'modern' | 'minimal';
 

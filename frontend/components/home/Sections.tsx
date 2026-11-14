@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { Icon } from './Iconify';
-import CardMock from './CardMock';
-import Reveal from './Reveal';
-import { facts, faqs, features, reasons, roles, stats, steps, templates, testimonials } from './content';
-import { cx } from '../ui';
+import { Icon } from '@/components/home/Iconify';
+import CardMock from '@/components/home/CardMock';
+import Reveal from '@/components/home/Reveal';
+import { facts, faqs, features, reasons, roles, stats, steps, templates, testimonials } from '@/components/home/content';
+import { cx } from '@/components/ui';
 
 /* ---------- small shared pieces ---------- */
 

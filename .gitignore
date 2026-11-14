@@ -1,5 +1,7 @@
 .reference/
 .venv/
+venv/
+env/
 __pycache__/
 .pytest_cache/
 .test-*/
@@ -26,6 +28,4 @@ important-information.md
 docs/design-research/
 
 # Local secrets and scratch files
-.env
-**/.env
 *.local.md

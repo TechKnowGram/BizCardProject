@@ -3,9 +3,9 @@
 import type { CardRequest } from '@/lib/types';
 import DataTable, { type Column } from '@/components/dashboard/DataTable';
 import { PageHeader } from '@/components/dashboard/Surface';
-import StatusBadge from '@/components/StatusBadge';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui';
-import { Segmented, cellNoteClass, formatDate, formatTaka, rowButtonClass } from '@/components/CompanyDashboardParts';
+import { Segmented, cellNoteClass, formatDate, formatTaka, rowButtonClass } from '@/components/company/CompanyDashboardParts';
 
 /** Columns for employee card orders, shared with the Billing tab. */
 export const orderColumns: Column<any>[] = [

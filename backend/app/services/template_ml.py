@@ -76,9 +76,13 @@ class Analysis:
     height: int
     fields: list[Field] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # Real size of the card in points when it is known (an Illustrator artboard).
+    width_pt: float | None = None
+    height_pt: float | None = None
 
     def to_dict(self) -> dict:
-        return {'width': self.width, 'height': self.height, 'fields': [asdict(f) for f in self.fields], 'warnings': self.warnings}
+        return {'width': self.width, 'height': self.height, 'width_pt': self.width_pt, 'height_pt': self.height_pt,
+                'fields': [asdict(f) for f in self.fields], 'warnings': self.warnings}
 
 
 # ---------------------------------------------------------------------------
@@ -105,9 +109,10 @@ def load_image(path: Path) -> np.ndarray:
     if image is None:
         raise ValueError('The file is not a readable image')
     h, w = image.shape[:2]
-    if w < 300 or h < 150:
+    if max(w, h) < 300 or min(w, h) < 150:
         raise ValueError('The image is too small; export the card at least 1050 × 600 pixels')
-    scale = WORKING_WIDTH / w
+    # The longer side is brought to the working size, so a portrait card is not blown up to 1400 px wide.
+    scale = WORKING_WIDTH / max(w, h)
     return cv2.resize(image, (WORKING_WIDTH, round(h * scale)), interpolation=cv2.INTER_AREA if scale < 1 else cv2.INTER_CUBIC)
 
 
@@ -190,7 +195,9 @@ def _ocr_lines(image: np.ndarray) -> list[dict]:
 def _group_lines(lines: list[dict], image: np.ndarray) -> list[dict]:
     """Merge stacked lines of the same style (e.g. a name over two lines)."""
     for line in lines:
-        line['color'], line['bold'] = _text_style(image, line['box'], line['text'])
+        # Lines read from a vector file already know their exact colour and weight.
+        if 'color' not in line:
+            line['color'], line['bold'] = _text_style(image, line['box'], line['text'])
     groups: list[dict] = []
     for line in lines:
         x, y, w, h = line['box']
@@ -198,7 +205,12 @@ def _group_lines(lines: list[dict], image: np.ndarray) -> list[dict]:
         for g in groups:
             gx, gy, gw, gh = g['box']
             last = g['items'][-1]['box']
-            same_size = abs(last[3] - h) <= 0.18 * max(h, last[3])
+            if 'size_pt' in line and 'size_pt' in g['items'][-1]:
+                # A vector file knows the real font sizes, so they must match closely.
+                a, b = line['size_pt'], g['items'][-1]['size_pt']
+                same_size = abs(a - b) <= 0.04 * max(a, b)
+            else:
+                same_size = abs(last[3] - h) <= 0.18 * max(h, last[3])
             same_color = _color_distance(line['color'], g['color']) < 30
             close_below = 0 <= y - (last[1] + last[3]) <= 0.7 * h
             aligned = abs(x - last[0]) < 0.6 * h or abs((x + w) - (last[0] + last[2])) < 0.6 * h or abs((x + w / 2) - (last[0] + last[2] / 2)) < 0.6 * h
@@ -333,9 +345,6 @@ def clean_background(image: np.ndarray, fields: list[Field]) -> np.ndarray:
 def analyze(image: np.ndarray) -> Analysis:
     h, w = image.shape[:2]
     result = Analysis(width=w, height=h)
-    ratio = w / h
-    if abs(ratio - CARD_RATIO) > 0.25:
-        result.warnings.append(f'The image is {ratio:.2f}:1; a 3.5 × 2 in card is 1.75:1, so the design may be stretched.')
 
     lines = _ocr_lines(image)
     groups = _group_lines(lines, image)

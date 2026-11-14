@@ -8,9 +8,9 @@
 */
 
 @theme {
-  --font-sans: var(--font-poppins), var(--font-hind), "Poppins", "Hind Siliguri", "Segoe UI", Arial, sans-serif;
-  --font-display: var(--font-poppins), var(--font-hind), "Poppins", sans-serif;
-  --font-body: var(--font-poppins), var(--font-hind), "Poppins", sans-serif;
+  --font-sans: var(--font-montserrat), var(--font-hind), "Montserrat", "Hind Siliguri", "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font-montserrat), var(--font-hind), "Montserrat", sans-serif;
+  --font-body: var(--font-montserrat), var(--font-hind), "Montserrat", sans-serif;
 
   /* Core palette */
   --color-navy: #080d26;
@@ -79,6 +79,21 @@
   --animate-toast-in: toastIn .25s ease-out;
   --animate-marquee: marquee 40s linear infinite;
 }
+
+/* Signed-in workspace: re-points the brand scale at the dashboard blue, leaving the public site untouched. */
+.workspace-theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #dde5ff;
+  --color-brand-200: #bccbff;
+  --color-brand-300: #93abff;
+  --color-brand-400: #6a89ff;
+  --color-brand-500: #4f74ff;
+  --color-brand-600: #3d68ff;
+  --color-brand-700: #2f53d6;
+  --color-brand-800: #2743a8;
+  --color-brand-primary: #3d68ff;
+}
+.grid-fade { background-image: linear-gradient(to right, #3d68ff 1px, transparent 1px), linear-gradient(to bottom, #3d68ff 1px, transparent 1px); background-size: 12px 12px; }
 
 @layer base {
   html { scroll-behavior: smooth; }

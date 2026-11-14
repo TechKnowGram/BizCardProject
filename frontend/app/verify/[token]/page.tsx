@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Brand from '../../../components/Brand';
-import { cx } from '../../../components/ui';
-import type { Verification } from '../../../lib/types';
+import Brand from '@/components/ui/Brand';
+import { cx } from '@/components/ui';
+import type { Verification } from '@/lib/types';
 
 export const metadata: Metadata = {
   title: 'Card verification',

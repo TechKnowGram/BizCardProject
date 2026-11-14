@@ -1,12 +1,12 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { Hind_Siliguri, Poppins } from 'next/font/google';
+import { Hind_Siliguri, Montserrat } from 'next/font/google';
 
-// Headings and brand UI use Poppins & Hind Siliguri (TechKnowGram corporate typography)
-const poppins = Poppins({
+// Montserrat for the whole interface; Hind Siliguri covers Bengali text.
+const montserrat = Montserrat({
   subsets: ['latin'],
-  variable: '--font-poppins',
+  variable: '--font-montserrat',
   weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${poppins.variable} ${hindSiliguri.variable} min-h-screen bg-white text-slate-900 antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning className={`${montserrat.variable} ${hindSiliguri.variable}`}>
+      <body className={`min-h-screen bg-white text-slate-900 antialiased`}>
         {children}
       </body>
     </html>

@@ -10,7 +10,7 @@ look like one product made by one careful designer.
 
 ## Layout
 
-- The shell (`components/WorkspaceShell.tsx`) is shared. Sidebar: navigation on top,
+- The shell (`components/layout/WorkspaceShell.tsx`) is shared. Sidebar: navigation on top,
   an **Account** group at the bottom (profile, billing, settings, help), then the
   signed-in user and **Sign out**. Top bar: breadcrumbs + notifications only.
 - Page background is `slate-100`. Every page starts with `PageHeader`.
@@ -30,8 +30,8 @@ look like one product made by one careful designer.
 | `NameCell`, `Avatar` | First column of people/company rows |
 | `AreaChart`, `bucketByDate`, `rangeOptions` (`Charts.tsx`) | Counts over time (one series) |
 | `StatusBreakdown`, `statusColor` | "How many in each status" with a segmented bar and list |
-| `StatusBadge` (`components/StatusBadge.tsx`) | Status pills in tables |
-| `Button`, `buttonClass` (`components/ui.tsx`) | All buttons |
+| `StatusBadge` (`components/ui/StatusBadge.tsx`) | Status pills in tables |
+| `Button`, `buttonClass` (`components/ui/index.tsx`) | All buttons |
 
 ## Colour
 
@@ -55,7 +55,7 @@ look like one product made by one careful designer.
 - No jargon or hype: "console", "command center", "SLA", "prepress engine", "enterprise-grade",
   "seamless", "elevate", "immutable", "next great first impression", "in focus".
 - No invented facts or numbers. Only show what the data says.
-- No emoji, no decorative symbols (✦ ⚡ 🚀). Use `components/Icon.tsx` or `@iconify/react` (`lucide:*`) icons, sparingly.
+- No emoji, no decorative symbols (✦ ⚡ 🚀). Use `components/ui/Icon.tsx` or `@iconify/react` (`lucide:*`) icons, sparingly.
 
 ## Behaviour
 
