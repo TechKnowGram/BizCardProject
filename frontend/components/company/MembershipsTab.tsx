@@ -3,9 +3,19 @@
 import { useMemo, useState } from 'react';
 import DataTable, { NameCell, type Column } from '@/components/dashboard/DataTable';
 import { PageHeader, ToolbarSelect } from '@/components/dashboard/Surface';
-import StatusBadge from '@/components/StatusBadge';
-import { Button } from '@/components/ui';
-import { MatchBadge, cellNoteClass, formatDay, rowButtonClass } from '@/components/CompanyDashboardParts';
+import StatusBadge from '@/components/ui/StatusBadge';
+import Icon from '@/components/ui/Icon';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { ActionBtn } from '@/components/dashboard/RowActions';
+import { MatchBadge, cellNoteClass, formatDay } from '@/components/company/CompanyDashboardParts';
+
+type Decision = 'APPROVED' | 'REJECTED' | 'REVOKED';
+
+const CONFIRM: Record<Decision, { title: string; message: string; label: string; danger: boolean }> = {
+  APPROVED: { title: 'Approve this request?', message: 'The employee will join your company and can order company cards.', label: 'Approve', danger: false },
+  REJECTED: { title: 'Reject this request?', message: 'The employee will not be added to your company. They can ask to join again later.', label: 'Reject', danger: true },
+  REVOKED: { title: 'Revoke access?', message: 'The employee will no longer be able to order company cards.', label: 'Revoke access', danger: true },
+};
 
 export interface MembershipsTabProps {
   memberships: any[];
@@ -17,6 +27,7 @@ export interface MembershipsTabProps {
 
 export default function MembershipsTab({ memberships, membershipFilter, setMembershipFilter, busy, onDecide }: MembershipsTabProps) {
   const [search, setSearch] = useState('');
+  const [pending, setPending] = useState<{ id: number; decision: Decision } | null>(null);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -53,18 +64,26 @@ export default function MembershipsTab({ memberships, membershipFilter, setMembe
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: 'Action',
       align: 'right',
       render: (m) =>
         m.status === 'PENDING' ? (
           <div className="flex items-center justify-end gap-1.5">
-            <Button variant="secondary" className={rowButtonClass} disabled={busy} onClick={() => { if (window.confirm('Reject this request to join your company?')) onDecide(m.id, 'REJECTED'); }}>Reject</Button>
-            <Button className={rowButtonClass} disabled={busy} onClick={() => onDecide(m.id, 'APPROVED')}>Approve</Button>
+            <ActionBtn label="Approve request" tone="emerald" disabled={busy} onClick={() => setPending({ id: m.id, decision: 'APPROVED' })}>
+              <Icon name="check" size={14} />
+            </ActionBtn>
+            <ActionBtn label="Reject request" tone="rose" disabled={busy} onClick={() => setPending({ id: m.id, decision: 'REJECTED' })}>
+              <Icon name="close" size={14} />
+            </ActionBtn>
           </div>
         ) : m.status === 'APPROVED' ? (
-          <Button variant="danger" className={rowButtonClass} disabled={busy} onClick={() => { if (window.confirm('Revoke this employee’s access? They will no longer be able to order company cards.')) onDecide(m.id, 'REVOKED'); }}>Revoke access</Button>
+          <div className="flex items-center justify-end gap-1.5">
+            <ActionBtn label="Revoke access" tone="rose" disabled={busy} onClick={() => setPending({ id: m.id, decision: 'REVOKED' })}>
+              <Icon name="ban" size={14} />
+            </ActionBtn>
+          </div>
         ) : (
-          <span className="text-xs text-slate-500">No action needed</span>
+          <span className="text-xs text-slate-400">-</span>
         ),
     },
   ];
@@ -95,6 +114,19 @@ export default function MembershipsTab({ memberships, membershipFilter, setMembe
           />
         }
         emptyMessage={memberships.length ? 'No requests match these filters.' : 'When employees ask to join your company, their requests will appear here.'}
+      />
+      <ConfirmDialog
+        open={pending !== null}
+        title={pending ? CONFIRM[pending.decision].title : ''}
+        message={pending ? CONFIRM[pending.decision].message : ''}
+        confirmLabel={pending ? CONFIRM[pending.decision].label : 'Yes'}
+        danger={pending ? CONFIRM[pending.decision].danger : false}
+        busy={busy}
+        onCancel={() => setPending(null)}
+        onConfirm={() => {
+          if (pending) onDecide(pending.id, pending.decision);
+          setPending(null);
+        }}
       />
     </div>
   );

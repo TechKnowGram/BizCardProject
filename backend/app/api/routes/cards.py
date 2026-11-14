@@ -10,7 +10,8 @@ from app.api.deps import require_approved_company_admin, require_system_admin
 from app.db.session import get_db
 from app.models import CardRequest, CardRequestItem, CardTemplate, Employee, GeneratedCard, User
 from app.schemas.domain import CardDecision, CardRequestCreate, CardRequestResponse, GeneratedCardResponse
-from app.services.card_generation import generate_cards
+from app.services.card_generation import generate_cards, safe_file_stem
+from app.services.image_template_render import template_folder
 from app.services.activity import add_audit, add_notification, notify_system_admins
 
 router = APIRouter(tags=['Card Requests'])
@@ -208,3 +209,88 @@ def decide_card_request(
         db.commit()
         raise HTTPException(status_code=500, detail='Card generation failed') from None
     return db.scalar(request_query().where(CardRequest.id == request_id))
+
+
+# --- Cards as Illustrator (.ai) files -------------------------------------------------------------
+# For templates made from an uploaded .ai: the design is kept as vector art with the employee's
+# details placed on it, so a printer can open it in Illustrator. Available before approval too
+# (without the verification QR, which does not exist until the card is generated).
+
+AI_MEDIA_TYPE = 'application/illustrator'
+
+
+def _ai_card(request: CardRequest, item: CardRequestItem) -> tuple[str, bytes]:
+    from app.services import illustrator
+    from app.services.illustrator_card import render_ai_card
+
+    design = request.template.design if request.template else None
+    ai = (design or {}).get('ai') if isinstance(design, dict) else None
+    if not ai:
+        raise HTTPException(status_code=404, detail='This template was not made from an Illustrator file')
+    path = template_folder(design.get('company_id')) / Path(ai['file']).name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail='The Illustrator file for this template is missing')
+    token = item.generated_card.verification_token if item.generated_card else None
+    try:
+        data = render_ai_card(path.read_bytes(), ai, design, request.company, item.employee, token)
+    except illustrator.IllustratorError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
+    return f'{safe_file_stem(item.employee.employee_id)}_card.ai', data
+
+
+def _ai_response(name: str, data: bytes) -> StreamingResponse:
+    return StreamingResponse(io.BytesIO(data), media_type=AI_MEDIA_TYPE, headers={'Content-Disposition': f'attachment; filename="{name}"'})
+
+
+def _ai_zip_response(request: CardRequest) -> StreamingResponse:
+    archive = io.BytesIO()
+    used: set[str] = set()
+    with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as bundle:
+        for item in request.items:
+            name, data = _ai_card(request, item)
+            while name in used:
+                name = f'{item.id}_{name}'
+            used.add(name)
+            bundle.writestr(name, data)
+    archive.seek(0)
+    return StreamingResponse(archive, media_type='application/zip',
+                             headers={'Content-Disposition': f'attachment; filename="card-request-{request.id}-ai.zip"'})
+
+
+def _request_item(db: Session, request_id: int, item_id: int, company_id: int | None) -> tuple[CardRequest, CardRequestItem]:
+    query = request_query().where(CardRequest.id == request_id)
+    if company_id is not None:
+        query = query.where(CardRequest.company_id == company_id)
+    request = db.scalar(query)
+    item = next((i for i in request.items if i.id == item_id), None) if request else None
+    if request is None or item is None:
+        raise HTTPException(status_code=404, detail='Card request not found')
+    return request, item
+
+
+@router.get('/admin/card-requests/{request_id}/items/{item_id}/ai')
+def admin_download_ai(request_id: int, item_id: int, db: Session = Depends(get_db), _: User = Depends(require_system_admin)):
+    request, item = _request_item(db, request_id, item_id, None)
+    return _ai_response(*_ai_card(request, item))
+
+
+@router.get('/admin/card-requests/{request_id}/ai')
+def admin_download_all_ai(request_id: int, db: Session = Depends(get_db), _: User = Depends(require_system_admin)):
+    request = db.scalar(request_query().where(CardRequest.id == request_id))
+    if request is None:
+        raise HTTPException(status_code=404, detail='Card request not found')
+    return _ai_zip_response(request)
+
+
+@router.get('/card-requests/{request_id}/items/{item_id}/ai')
+def download_ai(request_id: int, item_id: int, db: Session = Depends(get_db), user: User = Depends(require_approved_company_admin)):
+    request, item = _request_item(db, request_id, item_id, user.company_id)
+    return _ai_response(*_ai_card(request, item))
+
+
+@router.get('/card-requests/{request_id}/ai')
+def download_all_ai(request_id: int, db: Session = Depends(get_db), user: User = Depends(require_approved_company_admin)):
+    request = db.scalar(request_query().where(CardRequest.id == request_id, CardRequest.company_id == user.company_id))
+    if request is None:
+        raise HTTPException(status_code=404, detail='Card request not found')
+    return _ai_zip_response(request)

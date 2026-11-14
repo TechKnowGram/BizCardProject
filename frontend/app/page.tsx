@@ -1,6 +1,6 @@
-import SiteHeader from '../components/layout/SiteHeader';
-import SiteFooter from '../components/layout/SiteFooter';
-import { ClosingCta, FactStrip, Faq, Features, Hero, HowItWorks, Roles, Templates, Testimonials, Verification, WhyBizCard } from '../components/home/Sections';
+import SiteHeader from '@/components/layout/SiteHeader';
+import SiteFooter from '@/components/layout/SiteFooter';
+import { ClosingCta, FactStrip, Faq, Features, Hero, HowItWorks, Roles, Templates, Testimonials, Verification, WhyBizCard } from '@/components/home/Sections';
 
 export default function HomePage() {
   return (

@@ -13,7 +13,21 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     company_id: Mapped[int | None] = mapped_column(ForeignKey('companies.id'), nullable=True, index=True)
+    avatar_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     company = relationship('Company', back_populates='admins')
+
+    @property
+    def has_avatar(self) -> bool:
+        return bool(self.avatar_path)
+
+    @property
+    def avatar_version(self) -> int:
+        from pathlib import Path
+
+        try:
+            return int(Path(self.avatar_path).stat().st_mtime) if self.avatar_path else 0
+        except OSError:
+            return 0
     memberships = relationship('Membership', back_populates='user', cascade='all, delete-orphan')
     __table_args__ = (
         CheckConstraint("role IN ('SYSTEM_ADMIN', 'COMPANY_ADMIN', 'EMPLOYEE')", name='check_user_role'),

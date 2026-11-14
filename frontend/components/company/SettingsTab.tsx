@@ -2,9 +2,9 @@
 
 import type { Company } from '@/lib/types';
 import { PageHeader, SectionCard } from '@/components/dashboard/Surface';
-import StatusBadge from '@/components/StatusBadge';
+import StatusBadge from '@/components/ui/StatusBadge';
 import { Button, cx } from '@/components/ui';
-import { DetailRow } from '@/components/CompanyDashboardParts';
+import { DetailRow } from '@/components/company/CompanyDashboardParts';
 
 export type Sponsorship = 'COMPANY' | 'INDIVIDUAL';
 

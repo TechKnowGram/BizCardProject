@@ -12,6 +12,9 @@ export interface User {
   email: string;
   role: Role;
   company_id: number | null;
+  /** Profile picture: when set, `avatar_version` changes with each new picture. */
+  has_avatar?: boolean;
+  avatar_version?: number;
 }
 
 export interface BrandKit {
@@ -110,8 +113,12 @@ export interface ImageTemplateDesign {
   company_id: number | null;
   width: number;
   height: number;
+  width_pt?: number | null;
+  height_pt?: number | null;
   fields: TemplateField[];
   back?: ImageBackSide | null;
+  /** Set when the template was made from an Illustrator file: cards can then also be downloaded as .ai. */
+  ai?: { file: string; front: number; back: number | null } | null;
 }
 
 /** Back made from its own uploaded design (read by the same ML pipeline as the front). */
@@ -143,6 +150,9 @@ export interface TemplateAnalysis {
   background: string;
   width: number;
   height: number;
+  /** Real size in points when the design came from an Illustrator artboard. */
+  width_pt?: number | null;
+  height_pt?: number | null;
   fields: TemplateField[];
   warnings: string[];
 }
@@ -243,4 +253,69 @@ export interface AdminPaymentRecord {
   payer: string;
   status: string;
   created_at: string | null;
+}
+
+/** One artboard of an uploaded Illustrator (.ai) file, with a preview to choose from. */
+export interface Artboard {
+  index: number;
+  name: string;
+  width_mm: number;
+  height_mm: number;
+  card_like: boolean;
+  /** File name of the preview image, served by /templates/image/assets/{company_id}/{preview}. */
+  preview: string;
+}
+
+export interface ArtboardList {
+  upload_id: string;
+  file_name: string;
+  artboards: Artboard[];
+}
+
+export interface IllustratorAnalysis {
+  upload_id: string;
+  front_artboard: number;
+  back_artboard: number | null;
+  front: TemplateAnalysis;
+  back: TemplateAnalysis | null;
+}
+
+/** One object on an Illustrator artboard. Positions are fractions (0..1) from the top-left. */
+export interface LayerObject { id: number; layer: string; x: number; y: number; w: number; h: number }
+export interface LayerText extends LayerObject { text: string; size_pt: number; color: string; bold: boolean }
+export interface LayerImage extends LayerObject { width_px: number | null; height_px: number | null; thumbnail: string | null }
+export interface LayerShape extends LayerObject { kind: string; fill: string | null; stroke: string | null; stroke_width: number }
+export interface LayerSummary { name: string; text: number; image: number; shape: number }
+/** One row of the layers tree, like Illustrator's Layers panel. Boxes are fractions of the artboard. */
+export interface LayerNode {
+  id: number;
+  kind: 'layer' | 'group' | 'clip' | 'text' | 'image' | 'shape';
+  name: string;
+  x: number | null;
+  y: number | null;
+  w: number | null;
+  h: number | null;
+  count?: number | null;
+  shape_kind?: string | null;
+  clip_shape?: boolean;
+  fill?: string | null;
+  stroke?: string | null;
+  stroke_width?: number;
+  color?: string | null;
+  size_pt?: number | null;
+  bold?: boolean;
+  width_px?: number | null;
+  height_px?: number | null;
+  thumbnail?: string | null;
+  children: LayerNode[];
+}
+
+export interface ArtboardLayers {
+  artboard: { index: number; width_mm: number; height_mm: number };
+  layers: LayerSummary[];
+  tree: LayerNode[];
+  images: LayerImage[];
+  texts: LayerText[];
+  shapes: LayerShape[];
+  truncated: boolean;
 }

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
-import Brand from '../Brand';
-import { cx } from '../ui';
+import Brand from '@/components/ui/Brand';
+import { cx } from '@/components/ui';
 
 const links = [
   { href: '/#features', label: 'Features' },

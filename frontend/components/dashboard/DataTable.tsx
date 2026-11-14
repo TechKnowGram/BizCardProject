@@ -52,15 +52,13 @@ export default function DataTable<T>({
   rows,
   columns,
   rowKey,
-  title,
-  description,
   search,
   toolbar,
   numbered = true,
   emptyMessage = 'Nothing to show yet.',
   emptyTitle,
   emptyAction,
-  pageSizeOptions = [10, 25, 50],
+  pageSizeOptions = [10, 20, 50, 100],
   initialPageSize = 10,
   onRowClick,
   className,
@@ -107,41 +105,51 @@ export default function DataTable<T>({
     return out;
   }, [pageCount, current]);
 
-  const hasToolbar = title || description || search || toolbar;
+  const pageSizeSelect = (
+    <label className="flex items-center gap-2 text-xs text-slate-500">
+      Row Per Page
+      <select
+        value={pageSize}
+        onChange={(e) => setPageSize(Number(e.target.value))}
+        aria-label="Rows per page"
+        className="h-9 w-20 rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-700 transition hover:border-slate-300 focus:border-brand-600 focus:ring-3 focus:ring-brand-50 focus:outline-none"
+      >
+        {pageSizeOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+      </select>
+      Entries
+    </label>
+  );
 
   return (
-    <section className={cx('overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs', className)}>
-      {hasToolbar && (
-        <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            {title && <h2 className="text-lg font-bold text-navy-900">{title}</h2>}
-            {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
+    <section className={cx('bg-white', className)}>
+      <div className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
+            {pageSizeSelect}
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            {toolbar}
             {search && (
               <label className="relative">
                 <span className="sr-only">{search.placeholder ?? 'Search'}</span>
-                <svg viewBox="0 0 20 20" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13.5 13.5 3 3" /></svg>
+                <svg viewBox="0 0 20 20" className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="9" cy="9" r="5.5" /><path d="m13.5 13.5 3 3" /></svg>
                 <input
                   type="search"
                   value={search.value}
                   onChange={(e) => search.onChange(e.target.value)}
                   placeholder={search.placeholder ?? 'Search'}
-                  className="h-9 w-full rounded-lg border border-slate-200 bg-white pr-3 pl-9 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-600 focus:ring-3 focus:ring-brand-50 focus:outline-none sm:w-56"
+                  className="h-9 w-full rounded-md border border-slate-200 bg-white pr-3 pl-9 text-xs text-slate-700 placeholder:text-slate-400 focus:border-brand-600 focus:ring-3 focus:ring-brand-50 focus:outline-none sm:w-80"
                 />
               </label>
             )}
-            {toolbar}
           </div>
         </div>
-      )}
 
       {/* relative: keeps absolutely positioned bits (screen-reader labels) inside the scroll box */}
-      <div className="relative overflow-x-auto">
+      <div className="relative overflow-x-auto rounded-xl border border-slate-200">
         <table className="w-full min-w-[640px] text-sm">
           <thead>
-            <tr className="bg-navy-950 text-white">
-              {numbered && <th scope="col" className="w-14 px-4 py-3 text-center text-xs font-semibold tracking-wide uppercase">No</th>}
+            <tr className="bg-slate-50 text-slate-500 shadow-[inset_0_-1px_0_0_rgb(226_232_240)]">
+              {numbered && <th scope="col" className="w-14 border-r border-slate-200 px-4 py-3 text-center text-xs font-semibold tracking-wide uppercase">No</th>}
               {columns.map((c) => {
                 const sortable = Boolean(c.sortValue);
                 const dir = sort?.key === c.key ? sort.dir : null;
@@ -150,10 +158,10 @@ export default function DataTable<T>({
                     key={c.key}
                     scope="col"
                     aria-sort={dir === 'asc' ? 'ascending' : dir === 'desc' ? 'descending' : undefined}
-                    className={cx('px-4 py-3 text-xs font-semibold tracking-wide whitespace-nowrap uppercase', alignClass[c.align ?? 'left'], c.hideOnMobile && 'max-md:hidden')}
+                    className={cx('border-r border-slate-200 px-4 py-3 text-xs font-semibold tracking-wide whitespace-nowrap uppercase last:border-r-0', alignClass[c.align ?? 'left'], c.hideOnMobile && 'max-md:hidden')}
                   >
                     {sortable ? (
-                      <button type="button" onClick={() => toggleSort(c.key)} className="inline-flex items-center gap-1 uppercase hover:text-brand-200">
+                      <button type="button" onClick={() => toggleSort(c.key)} className="inline-flex items-center gap-1 uppercase hover:text-brand-600">
                         {c.header}
                         <SortIcon dir={dir} />
                       </button>
@@ -181,9 +189,9 @@ export default function DataTable<T>({
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   className={cx('border-b border-slate-100 last:border-0', onRowClick ? 'cursor-pointer hover:bg-slate-50' : 'hover:bg-slate-50/60')}
                 >
-                  {numbered && <td className="px-4 py-3.5 text-center text-slate-500 tabular-nums">{start + i + 1}</td>}
+                  {numbered && <td className="px-4 py-4 text-center text-[13px] text-slate-500 tabular-nums">{start + i + 1}</td>}
                   {columns.map((c) => (
-                    <td key={c.key} className={cx('px-4 py-3.5 align-middle text-slate-700', alignClass[c.align ?? 'left'], c.hideOnMobile && 'max-md:hidden', c.className)}>
+                    <td key={c.key} className={cx('border-r border-slate-100 px-4 py-4 align-middle text-[13px] text-slate-700 last:border-r-0', alignClass[c.align ?? 'left'], c.hideOnMobile && 'max-md:hidden', c.className)}>
                       {c.render(row, start + i)}
                     </td>
                   ))}
@@ -195,10 +203,10 @@ export default function DataTable<T>({
       </div>
 
       {total > 0 && (
-        <div className="flex flex-col items-center gap-3 border-t border-slate-100 px-5 py-3.5 sm:flex-row sm:justify-between">
-          <p className="text-sm text-slate-500">Page {current} of {pageCount} • {total} total</p>
-          <nav aria-label="Pagination" className="flex items-center gap-1.5">
-            <PageButton label="Previous page" disabled={current === 1} onClick={() => setPage(current - 1)}><Chevron dir="left" /></PageButton>
+        <div className="mt-4 flex flex-col items-center justify-between gap-3 text-xs text-slate-500 sm:flex-row">
+          <p>Showing {visible.length} of {total} Entries</p>
+          <nav aria-label="Pagination" className="flex items-center gap-2">
+            <button type="button" disabled={current === 1} onClick={() => setPage(current - 1)} className="rounded-md border border-slate-200 px-2.5 py-1 text-slate-600 hover:border-slate-300 disabled:opacity-50">Pre</button>
             {pages.map((p, i) =>
               p === 'gap' ? (
                 <span key={`gap-${i}`} aria-hidden="true" className="px-1 text-slate-400">...</span>
@@ -206,14 +214,8 @@ export default function DataTable<T>({
                 <PageButton key={p} label={`Page ${p}`} active={p === current} onClick={() => setPage(p)}>{p}</PageButton>
               ),
             )}
-            <PageButton label="Next page" disabled={current === pageCount} onClick={() => setPage(current + 1)}><Chevron dir="right" /></PageButton>
+            <button type="button" disabled={current === pageCount} onClick={() => setPage(current + 1)} className="rounded-md border border-slate-200 px-2.5 py-1 text-slate-600 hover:border-slate-300 disabled:opacity-50">Next</button>
           </nav>
-          <label className="flex items-center gap-2 text-sm text-slate-500">
-            <span className="sr-only">Rows per page</span>
-            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700 focus:border-brand-600 focus:outline-none">
-              {pageSizeOptions.map((n) => <option key={n} value={n}>{n} per page</option>)}
-            </select>
-          </label>
         </div>
       )}
     </section>
@@ -223,7 +225,7 @@ export default function DataTable<T>({
 function SortIcon({ dir }: { dir: 'asc' | 'desc' | null }) {
   return (
     <svg viewBox="0 0 12 16" className="size-3 text-slate-400" aria-hidden="true" fill="currentColor">
-      <path d="M6 2 10 7H2z" opacity={dir === 'desc' ? 0.35 : 1} className={dir === 'asc' ? 'text-white' : undefined} />
+      <path d="M6 2 10 7H2z" opacity={dir === 'desc' ? 0.35 : 1} className={dir === 'asc' ? 'text-slate-700' : undefined} />
       <path d="M6 14 2 9h8z" opacity={dir === 'asc' ? 0.35 : 1} />
     </svg>
   );
@@ -246,8 +248,8 @@ function PageButton({ children, onClick, active, disabled, label }: { children: 
       disabled={disabled}
       onClick={onClick}
       className={cx(
-        'grid size-8 place-items-center rounded-full text-sm font-medium transition-colors disabled:opacity-40',
-        active ? 'bg-navy-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+        'grid h-8 min-w-8 place-items-center rounded-md px-2 text-xs font-medium tabular-nums transition-colors disabled:opacity-40',
+        active ? 'bg-brand-600 text-white shadow-sm' : 'border border-slate-200 text-slate-600 hover:border-brand-600/40 hover:text-brand-600',
       )}
     >
       {children}

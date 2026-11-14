@@ -1,4 +1,6 @@
+import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
+import Icon from '@/components/ui/Icon';
 import { cx } from '@/components/ui';
 
 /**
@@ -6,15 +8,41 @@ import { cx } from '@/components/ui';
  * so spacing, radius and type stay identical across roles.
  */
 
-/** White rounded block at the top of a page: title, short line under it, actions on the right. */
+const fadeLeft = { maskImage: 'radial-gradient(ellipse 90% 100% at 0% 0%, black 60%, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse 90% 100% at 0% 0%, black 60%, transparent 100%)' } as const;
+const fadeRight = { maskImage: 'radial-gradient(ellipse 90% 100% at 100% 0%, black 60%, transparent 100%)', WebkitMaskImage: 'radial-gradient(ellipse 90% 100% at 100% 0%, black 60%, transparent 100%)' } as const;
+
+/** True inside the one white card the workspace shell puts around every page. */
+export const PageCardContext = createContext<{ icon?: string } | null>(null);
+
+/** Card at the top of a page: title, short line under it, actions on the right, with a soft grid in the corners. */
 export function PageHeader({ title, description, actions, className }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; className?: string }) {
+  // Inside the page card it becomes the card's own top bar, running edge to edge.
+  const card = useContext(PageCardContext);
+  const inCard = card !== null;
   return (
-    <header className={cx('flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xs sm:flex-row sm:items-center sm:justify-between', className)}>
-      <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-navy-900">{title}</h1>
-        {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+    <header
+      className={cx(
+        'relative overflow-hidden bg-white px-4 py-3',
+        inCard ? 'first:-mx-4 first:-mt-4 rounded-t-xl border-b border-slate-200 sm:first:-mx-5 sm:first:-mt-5' : 'rounded-xl border border-slate-200',
+        className,
+      )}
+    >
+      <span aria-hidden className="grid-fade pointer-events-none absolute top-0 bottom-0 left-0 w-[28rem] opacity-[0.1]" style={fadeLeft} />
+      <span aria-hidden className="grid-fade pointer-events-none absolute top-0 right-0 bottom-0 w-[28rem] opacity-[0.1]" style={fadeRight} />
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {card?.icon && (
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-brand-600 shadow-sm">
+              <Icon name={card.icon} size={20} />
+            </span>
+          )}
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold text-slate-800">{title}</h1>
+            {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
+          </div>
+        </div>
+        {actions && <div className="flex max-w-full flex-wrap items-center gap-2 sm:flex-none">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
   );
 }
@@ -45,7 +73,7 @@ export function SectionCard({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cx('rounded-2xl border border-slate-200 bg-white shadow-xs', className)}>
+    <section className={cx('rounded-xl border border-slate-200 bg-white', className)}>
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 px-6 pt-5">
           {title && (
@@ -65,7 +93,7 @@ export function SectionCard({
 /** One number with a label. Neutral on purpose: no coloured strips or icons. */
 export function StatTile({ label, value, hint, className }: { label: string; value: ReactNode; hint?: ReactNode; className?: string }) {
   return (
-    <div className={cx('rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-xs', className)}>
+    <div className={cx('rounded-xl border border-slate-200 bg-white px-5 py-4', className)}>
       <p className="text-sm text-slate-500">{label}</p>
       <p className="mt-1 text-[1.75rem] leading-tight font-bold text-navy-900 tabular-nums">{value}</p>
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}

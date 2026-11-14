@@ -1,4 +1,4 @@
-import AuthScreen from '@/components/AuthScreen';
+import AuthScreen from '@/components/auth/AuthScreen';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = { title: 'Create an employee account', description: 'Create your BizCard account, join your company and order your card.' };

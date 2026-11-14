@@ -1,15 +1,17 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react';
-import ProtectedImage from '@/components/ProtectedImage';
-import { AutoBackFace, SideFields, assetPath } from '@/components/ImageTemplateCard';
-import type { CardValues } from '@/components/ImageTemplateCard';
+import ProtectedImage from '@/components/ui/ProtectedImage';
+import { AutoBackFace, FieldText, SideFields, assetPath } from '@/components/cards/ImageTemplateCard';
+import type { CardValues } from '@/components/cards/ImageTemplateCard';
 import { SectionCard } from '@/components/dashboard/Surface';
 import { Button, cx, inputClass } from '@/components/ui';
 import { api } from '@/lib/api';
 import type { ApiError } from '@/lib/api';
-import type { AutoBack, CompanySummary, Employee, Template, TemplateAnalysis, TemplateField, TemplateFieldRole } from '@/lib/types';
+import type { AutoBack, CompanySummary, Employee, IllustratorAnalysis, Template, TemplateAnalysis, TemplateField, TemplateFieldRole } from '@/lib/types';
+import Accordion from '@/components/ui/Accordion';
+import IllustratorUpload from '@/components/company/IllustratorUpload';
 
 const ROLE_LABELS: Record<TemplateFieldRole, string> = {
   name: 'Name', title: 'Job title', department: 'Department', phone: 'Phone', email: 'Email',
@@ -101,7 +103,7 @@ function BackChooser({ mode, onMode, file, onFile }: { mode: BackMode; onMode: (
   );
 }
 
-export default function DesignUploader({ company, employees, onSaved }: { company: CompanySummary; employees: Employee[]; onSaved: (template: Template) => void }) {
+function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingUsed }: { company: CompanySummary; employees: Employee[]; onSaved: (template: Template) => void; incoming?: { result: IllustratorAnalysis; fileName: string } | null; onIncomingUsed?: () => void }) {
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [blankFile, setBlankFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
@@ -121,6 +123,8 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
   const [busy, setBusy] = useState<'analyze' | 'back' | 'save' | null>(null);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
+  // Set when the design came from an Illustrator file, so the template keeps it and cards can be made as .ai too.
+  const [aiSource, setAiSource] = useState<{ upload_id: string; front: number; back: number | null } | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
 
@@ -140,6 +144,9 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
 
   // The editor works on one side at a time.
   const analysis = side === 'back' ? back : front;
+  // The card has the shape of the uploaded design: a 3.5 x 2 in card, a portrait ID card, anything.
+  const shape = analysis || front;
+  const aspect = shape ? shape.height / shape.width : 4 / 7;
   const fields = side === 'back' ? backFields : frontFields;
   const setFields = side === 'back' ? setBackFields : setFrontFields;
   const design = { company_id: company.id };
@@ -166,6 +173,7 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
       const backResult = backMode === 'upload' && backFile ? await analyseFile(backFile, 'back') : null;
       setFront(frontResult); setFrontFields(frontResult.fields);
       setBack(backResult); setBackFields(backResult?.fields || []);
+      setAiSource(null);
       setSide('front'); setSelected(null); setView('edit');
       if (!name) setName(frontFile.name.replace(/\.[^.]+$/, '').slice(0, 60));
     } catch (e) {
@@ -174,6 +182,26 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
       setBusy(null);
     }
   }
+
+  /** Take what the server read from an Illustrator file's front (and back) artboards into the editor. */
+  function applyIllustrator(result: IllustratorAnalysis, fileName: string) {
+    setError(''); setSaved('');
+    setFront(result.front); setFrontFields(result.front.fields);
+    setBack(result.back); setBackFields(result.back?.fields || []);
+    setBackMode(result.back ? 'upload' : 'none');
+    setAiSource({ upload_id: result.upload_id, front: result.front_artboard, back: result.back_artboard });
+    setSide('front'); setSelected(null); setView('edit');
+    if (!name) setName(fileName.replace(/\.[^.]+$/, '').slice(0, 60));
+  }
+
+  // The page header can also start an Illustrator upload; its result arrives here.
+  useEffect(() => {
+    if (!incoming) return;
+    applyIllustrator(incoming.result, incoming.fileName);
+    onIncomingUsed?.();
+    document.getElementById('design-uploader')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incoming]);
 
   async function analyseBackLater() {
     if (!backFile) return;
@@ -200,7 +228,7 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
     try {
       const template = await api<Template>('/templates/image', {
         method: 'POST',
-        body: JSON.stringify({ name: name.trim(), description: description.trim(), source: front.source, background: front.background, width: front.width, height: front.height, fields: frontFields, back: backPayload() }),
+        body: JSON.stringify({ name: name.trim(), description: description.trim(), source: front.source, background: front.background, width: front.width, height: front.height, fields: frontFields, back: backPayload(), ...(front.width_pt && front.height_pt ? { width_pt: front.width_pt, height_pt: front.height_pt } : {}), ...(aiSource ? { ai: aiSource } : {}) }),
       });
       setSaved(`“${template.name}” is saved and can now be used for card requests.`);
       reset();
@@ -215,7 +243,7 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
   function reset() {
     setFront(null); setBack(null); setFrontFields([]); setBackFields([]);
     setFrontFile(null); setBlankFile(null); setBackFile(null); setBackMode('none');
-    setName(''); setDescription(''); setSide('front'); setSelected(null);
+    setName(''); setDescription(''); setSide('front'); setSelected(null); setAiSource(null);
   }
 
   function update(index: number, patch: Partial<TemplateField>) {
@@ -262,11 +290,17 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
             <div className="space-y-3">
               <StepTitle number={1} title="Front of the card" hint="Keep the sample text on it: a name, job title, phone and email. Machine learning uses them to find the right spots." />
               <DropZone file={frontFile} label="Choose the front design" onFile={pickFile(setFrontFile)} />
-              <details className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm">
-                <summary className="cursor-pointer font-medium text-navy-900">Optional: the same front with the sample text hidden</summary>
-                <p className="mt-2 leading-relaxed text-slate-600">If you have it, upload the design with its text layers hidden. Cards will be printed on this clean background instead of one cleaned by machine learning.</p>
+              <Accordion title="Optional: the same front with the sample text hidden">
+                <p className="leading-relaxed text-slate-600">If you have it, upload the design with its text layers hidden. Cards will be printed on this clean background instead of one cleaned by machine learning.</p>
                 <input type="file" accept="image/png,image/jpeg,image/webp" className="mt-3 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-navy-900 hover:file:bg-slate-200" onChange={(e) => setBlankFile(e.target.files?.[0] || null)} />
-              </details>
+              </Accordion>
+              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
+                <div className="min-w-0 flex-1 text-sm">
+                  <p className="font-medium text-navy-900">Have an Illustrator file?</p>
+                  <p className="text-xs text-slate-500">Upload the .ai file. We find its artboards and you choose the front and back.</p>
+                </div>
+                <IllustratorUpload companyId={company.id} onAnalysed={applyIllustrator} onError={setError} />
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -314,7 +348,11 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
   } else if (analysis) {
     canvasContent = <>
       <ProtectedImage path={assetPath(design, view === 'edit' && showOriginal ? analysis.source : analysis.background)} alt="Your design" className="pointer-events-none absolute inset-0 size-full object-fill" />
-      {view === 'preview' && <SideFields fields={fields} values={values} />}
+      {view === 'preview' && <SideFields fields={fields} values={values} aspect={aspect} />}
+      {/* The text from the design is drawn back in as HTML, same size, colour and weight, so the editor looks like the original card. */}
+      {view === 'edit' && !showOriginal && fields.map((f, i) => (
+        !['photo', 'qr', 'logo', 'other'].includes(f.role) && f.text ? <div key={`text-${i}`} className="pointer-events-none absolute inset-0"><FieldText field={f} text={f.text} aspect={aspect} /></div> : null
+      ))}
       {view === 'edit' && fields.map((f, i) => (
         <div
           key={i}
@@ -403,8 +441,8 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
             onPointerMove={onMove}
             onPointerUp={() => { drag.current = null; }}
             onPointerDown={() => setSelected(null)}
-            className="relative w-full touch-none overflow-hidden rounded-lg bg-slate-100 shadow-md select-none [container-type:inline-size]"
-            style={{ aspectRatio: '7 / 4' }}
+            className={cx('relative w-full touch-none overflow-hidden rounded-lg bg-slate-100 shadow-md select-none [container-type:inline-size]', aspect > 1 && 'mx-auto max-w-md')}
+            style={{ aspectRatio: shape ? `${shape.width} / ${shape.height}` : '7 / 4' }}
           >
             {canvasContent}
           </div>
@@ -525,5 +563,16 @@ export default function DesignUploader({ company, employees, onSaved }: { compan
         </div>
       </div>
     </SectionCard>
+  );
+}
+
+export type DesignUploaderProps = Parameters<typeof DesignUploaderForm>[0];
+
+/** The upload form. The wrapper gives the page header's "Upload .ai file" something to scroll to. */
+export default function DesignUploader(props: DesignUploaderProps) {
+  return (
+    <div id="design-uploader" className="scroll-mt-24">
+      <DesignUploaderForm {...props} />
+    </div>
   );
 }

@@ -1,9 +1,9 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import ReviewDialog from '@/components/ReviewDialog';
+import ReviewDialog from '@/components/ui/ReviewDialog';
 import { Button, FieldLabel, cx, inputClass, inputErrorClass } from '@/components/ui';
-import type { Row } from './shared';
+import type { Row } from '@/components/employee/shared';
 
 export interface JoinForm {
   official_email: string;

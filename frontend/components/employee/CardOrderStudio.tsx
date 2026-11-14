@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react';
 import { downloadOrReport } from '@/lib/api';
 import type { User } from '@/lib/types';
-import StatusBadge from '@/components/StatusBadge';
+import StatusBadge from '@/components/ui/StatusBadge';
 import DataTable from '@/components/dashboard/DataTable';
 import type { Column } from '@/components/dashboard/DataTable';
 import { PageHeader, SectionCard } from '@/components/dashboard/Surface';
 import { Button, FieldLabel, buttonClass, cx, inputClass } from '@/components/ui';
-import Icon from '@/components/Icon';
-import LiveCardPreview from './LiveCardPreview';
-import { DetailList, EmptyNote, PRICE, QUANTITY_PRESETS, RadioCard, Segmented, cardDownloadPath, formatDate, formatSize } from './shared';
-import type { Row } from './shared';
+import Icon from '@/components/ui/Icon';
+import LiveCardPreview from '@/components/employee/LiveCardPreview';
+import ImageTemplateCard from '@/components/cards/ImageTemplateCard';
+import type { CardValues } from '@/components/cards/ImageTemplateCard';
+import type { ImageTemplateDesign } from '@/lib/types';
+import { DetailList, EmptyNote, PRICE, QUANTITY_PRESETS, RadioCard, Segmented, cardDownloadPath, formatDate, formatSize } from '@/components/employee/shared';
+import type { Row } from '@/components/employee/shared';
 
 type Theme = 'navy' | 'clean' | 'royal';
 type OrderType = 'PERSONAL' | 'COMPANY';
@@ -184,6 +187,22 @@ function DesignAndOrder({
   const total = isCompanySponsored ? 0 : quantity * PRICE;
   const selectedTemplate = templates.find((t) => String(t.id) === String(order.template_id));
   const companyName = activeMembership?.company?.name || 'your company';
+  const [previewSide, setPreviewSide] = useState<'front' | 'back'>('front');
+  // A company design made from an uploaded card: show the real card, filled with the employee's details.
+  const imageDesign: ImageTemplateDesign | null = isCompany && selectedTemplate?.design?.kind === 'image' ? (selectedTemplate.design as ImageTemplateDesign) : null;
+  const hasBack = Boolean(imageDesign?.back);
+  const cardValues: CardValues = {
+    name: order.name || user?.username || '',
+    title: order.designation,
+    department: order.department,
+    phone: order.phone,
+    email: activeMembership?.official_email || user?.email || '',
+    website: activeMembership?.company?.website,
+    address: activeMembership?.company?.address,
+    company: activeMembership?.company?.name,
+    photoPath: null,
+    logoPath: null,
+  };
 
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -343,22 +362,44 @@ function DesignAndOrder({
 
       <div className="order-first lg:sticky lg:top-24 lg:order-none lg:col-span-5">
         <SectionCard title="Preview">
-          <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
-            <LiveCardPreview
-              theme={cardTheme}
-              name={order.name || user?.username || ''}
-              designation={order.designation}
-              department={order.department}
-              phone={order.phone}
-              email={isCompany ? activeMembership?.official_email || user?.email || '' : user?.email || 'contact@bizcard.me'}
-              companyName={activeMembership?.company?.name}
-              isCompany={isCompany}
-              templateName={selectedTemplate?.name}
-            />
-          </div>
+          {imageDesign ? (
+            <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
+              {hasBack && (
+                <div className="mx-auto mb-3 flex w-fit rounded-lg border border-slate-200 bg-white p-0.5" role="tablist" aria-label="Side of the card">
+                  {(['front', 'back'] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="tab"
+                      aria-selected={previewSide === value}
+                      onClick={() => setPreviewSide(value)}
+                      className={cx('rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors', previewSide === value ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50')}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <ImageTemplateCard design={imageDesign} values={cardValues} side={hasBack ? previewSide : 'front'} className="mx-auto max-w-md" />
+            </div>
+          ) : (
+            <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
+              <LiveCardPreview
+                theme={cardTheme}
+                name={order.name || user?.username || ''}
+                designation={order.designation}
+                department={order.department}
+                phone={order.phone}
+                email={isCompany ? activeMembership?.official_email || user?.email || '' : user?.email || 'contact@bizcard.me'}
+                companyName={activeMembership?.company?.name}
+                isCompany={isCompany}
+                templateName={selectedTemplate?.name}
+              />
+            </div>
+          )}
           <p className="mt-4 text-sm text-slate-500">
             {isCompany
-              ? 'This shows your details. The PDF uses the company design you choose.'
+              ? 'This is your card on the company design, with your details. The PDF uses the same positions, colours and sizes.'
               : 'The preview updates as you type. Your PDF is 3.5 × 2 in and ready to print.'}
           </p>
         </SectionCard>

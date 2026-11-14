@@ -121,7 +121,11 @@ def _remove_unsaved_uploads(company_id: int) -> None:
 
     folder = template_folder(company_id)
     cutoff = time.time() - UNSAVED_MAX_AGE_SECONDS
-    old = [p for p in folder.glob('*.png') if p.stat().st_mtime < cutoff]
+    # Uploaded Illustrator files are only needed until the artboards are chosen.
+    for ai_file in folder.glob('ai_*.ai'):
+        if ai_file.stat().st_mtime < cutoff:
+            ai_file.unlink(missing_ok=True)
+    old = [p for p in [*folder.glob('*.png'), *folder.glob('*.jpg')] if p.stat().st_mtime < cutoff]
     if not old:
         return
     with SessionLocal() as db:
@@ -158,6 +162,18 @@ def _check_assets(company_id: int, *names: str) -> None:
             raise HTTPException(422, 'The uploaded design was not found; upload it again')
 
 
+def _keep_illustrator_file(company_id: int, ai) -> dict:
+    """Make the uploaded .ai permanent (the temporary copy is removed after a day) so cards can be made from it."""
+    folder = template_folder(company_id)
+    temporary = folder / f'ai_{ai.upload_id}.ai'
+    if not temporary.is_file():
+        raise HTTPException(422, 'The Illustrator upload expired; upload the file again')
+    name = f'tpl_{uuid4().hex}.ai'
+    # A copy, not a move: the same upload may be saved as more than one template.
+    (folder / name).write_bytes(temporary.read_bytes())
+    return {'file': name, 'front': ai.front, 'back': ai.back}
+
+
 @router.post('/templates/image', response_model=TemplateResponse, status_code=201)
 def create_image_template(body: ImageTemplateCreate, db: Session = Depends(get_db),
                           user: User = Depends(require_approved_company_admin)):
@@ -174,6 +190,10 @@ def create_image_template(body: ImageTemplateCreate, db: Session = Depends(get_d
         'fields': [f.model_dump() for f in body.fields],
         'back': body.back.model_dump() if body.back else None,
     }
+    if body.width_pt and body.height_pt:
+        design['width_pt'], design['height_pt'] = body.width_pt, body.height_pt
+    if body.ai is not None:
+        design['ai'] = _keep_illustrator_file(user.company_id, body.ai)
     template = CardTemplate(company_id=user.company_id, name=body.name, description=body.description,
                             style_key=f'img_{uuid4().hex[:12]}', design=design, is_active=True)
     db.add(template)
@@ -229,4 +249,5 @@ def template_asset(company_id: int, file_name: str, db: Session = Depends(get_db
         raise HTTPException(404, 'Not found') from None
     if not path.is_file():
         raise HTTPException(404, 'Not found')
-    return FileResponse(path, media_type='image/png', headers={'Cache-Control': 'private, max-age=3600'})
+    media_type = 'image/jpeg' if path.suffix.lower() in ('.jpg', '.jpeg') else 'image/png'
+    return FileResponse(path, media_type=media_type, headers={'Cache-Control': 'private, max-age=3600'})
