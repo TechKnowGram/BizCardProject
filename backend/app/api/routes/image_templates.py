@@ -12,6 +12,7 @@ Cards are then generated through the normal request/approval flow.
 from __future__ import annotations
 
 import os
+import shutil
 
 # Refuse absurd pixel counts before OpenCV decodes anything (decompression bombs).
 os.environ.setdefault('CV_IO_MAX_IMAGE_PIXELS', str(40_000_000))
@@ -28,15 +29,16 @@ import time
 import anyio
 from sqlalchemy.exc import IntegrityError
 
-from app.api.deps import get_current_user, require_approved_company_admin
+from app.api.deps import get_current_user, require_system_admin, require_template_author
 from app.db.session import get_db
 from app.models import CardTemplate, User
 from app.models.constants import COMPANY_ADMIN, EMPLOYEE, SYSTEM_ADMIN
 from app.models.domain import Membership
 from app.schemas.domain import TemplateResponse
 from app.schemas.image_template import ImageTemplateCreate, ImageTemplateUpdate, TemplateAnalysis
+from app.services import illustrator
 from app.services.assets import check_pixels
-from app.services.image_template_render import resolve_asset, template_folder
+from app.services.image_template_render import project_folder, resolve_asset, template_folder
 
 router = APIRouter(tags=['Image templates'])
 
@@ -115,14 +117,17 @@ def _analyze_files(company_id: int, design: bytes, blank: bytes | None, side: st
     return {'source': source_name, 'background': background_name, **data}
 
 
-def _remove_unsaved_uploads(company_id: int) -> None:
+def _remove_unsaved_uploads(company_id: int | None) -> None:
     """Delete analysed designs older than a day that no saved template uses."""
     from app.db.session import SessionLocal
 
     folder = template_folder(company_id)
     cutoff = time.time() - UNSAVED_MAX_AGE_SECONDS
     # Uploaded Illustrator files are only needed until the artboards are chosen.
-    for ai_file in folder.glob('ai_*.ai'):
+    for project in (folder / 'projects').glob('*'):
+        if project.is_dir() and project.stat().st_mtime < cutoff:
+            shutil.rmtree(project, ignore_errors=True)
+    for ai_file in folder.glob('ai_*.ai'):  # from before projects had their own folders
         if ai_file.stat().st_mtime < cutoff:
             ai_file.unlink(missing_ok=True)
     old = [p for p in [*folder.glob('*.png'), *folder.glob('*.jpg')] if p.stat().st_mtime < cutoff]
@@ -130,9 +135,13 @@ def _remove_unsaved_uploads(company_id: int) -> None:
         return
     with SessionLocal() as db:
         used: set[str] = set()
-        for design in db.scalars(select(CardTemplate.design).where(CardTemplate.company_id == company_id)):
+        for design in db.scalars(select(CardTemplate.design).where(CardTemplate.company_id.is_(None) if company_id is None else CardTemplate.company_id == company_id)):
             if design and design.get('kind') == 'image':
                 used.update({design.get('source', ''), design.get('background', '')})
+                used.update(f.get('image', '') for f in design.get('fields', []))
+                used.update(o.get('file', '') for o in design.get('overlays', []))
+                used.update(o.get('file', '') for o in (design.get('back') or {}).get('overlays', []))
+                used.update(f.get('image', '') for f in (design.get('back') or {}).get('fields', []))
                 if (design.get('back') or {}).get('source'):
                     used.update({design['back'].get('source', ''), design['back'].get('background', '')})
     for path in old:
@@ -145,11 +154,45 @@ async def analyze_design(
     design: UploadFile = File(..., description='The finished card design with sample text'),
     background: UploadFile | None = File(None, description='Optional: the same design with the sample text hidden'),
     side: str = Form('front', pattern='^(front|back)$'),
-    user: User = Depends(require_approved_company_admin),
+    user: User = Depends(require_template_author),
 ):
     design_bytes = await _read_design(design)
     blank_bytes = await _read_design(background) if background is not None and background.filename else None
     return await anyio.to_thread.run_sync(_analyze_files, user.company_id, design_bytes, blank_bytes, side, limiter=ANALYSIS_LIMITER)
+
+
+@router.post('/templates/image/layer')
+async def upload_layer_image(image: UploadFile = File(..., description='A picture to add as a layer'),
+                             user: User = Depends(require_template_author)):
+    """Store a picture the author wants to place on the card (a logo, a badge, a flourish). PNG keeps transparency."""
+    content = await _read_design(image)
+
+    def store() -> dict:
+        import io
+
+        from PIL import Image
+
+        folder = template_folder(user.company_id)
+        folder.mkdir(parents=True, exist_ok=True)
+        with Image.open(io.BytesIO(content)) as picture:
+            picture.load()
+            width, height = picture.size
+            picture = picture.convert('RGBA')
+            name = f'{uuid4().hex}_layer.png'
+            picture.save(folder / name, 'PNG', optimize=True)
+        return {'file': name, 'width': width, 'height': height}
+
+    return await anyio.to_thread.run_sync(store)
+
+
+def _check_layer_images(company_id: int | None, fields) -> None:
+    for f in fields:
+        if f.role == 'static_image':
+            if not f.image:
+                raise HTTPException(422, 'An added picture has no file; add it again')
+            _check_assets(company_id, f.image)
+        elif f.role == 'static_text' and not f.text.strip():
+            raise HTTPException(422, 'An added text layer is empty; type something or delete it')
 
 
 def _check_assets(company_id: int, *names: str) -> None:
@@ -165,29 +208,51 @@ def _check_assets(company_id: int, *names: str) -> None:
 def _keep_illustrator_file(company_id: int, ai) -> dict:
     """Make the uploaded .ai permanent (the temporary copy is removed after a day) so cards can be made from it."""
     folder = template_folder(company_id)
-    temporary = folder / f'ai_{ai.upload_id}.ai'
+    temporary = project_folder(company_id, ai.upload_id) / 'design.ai'
     if not temporary.is_file():
         raise HTTPException(422, 'The Illustrator upload expired; upload the file again')
     name = f'tpl_{uuid4().hex}.ai'
     # A copy, not a move: the same upload may be saved as more than one template.
-    (folder / name).write_bytes(temporary.read_bytes())
+    (folder / name).write_bytes(_without_removed(temporary.read_bytes(), ai.front, ai.back, ai.remove_front, ai.remove_back))
     return {'file': name, 'front': ai.front, 'back': ai.back}
+
+
+def _without_removed(content: bytes, front: int, back: int | None, remove_front: list[int], remove_back: list[int]) -> bytes:
+    """The .ai as it is saved: layers that were hidden or deleted in the workspace are taken out of it."""
+    removals: dict[int, set[int]] = {}
+    if remove_front:
+        removals[front] = set(remove_front)
+    if remove_back and back is not None:
+        removals.setdefault(back, set()).update(remove_back)
+    if not removals:
+        return content
+    try:
+        with illustrator.PDFIUM_LOCK:
+            return illustrator.remove_objects(content, removals)
+    except illustrator.IllustratorError as exc:
+        raise HTTPException(422, str(exc)) from None
 
 
 @router.post('/templates/image', response_model=TemplateResponse, status_code=201)
 def create_image_template(body: ImageTemplateCreate, db: Session = Depends(get_db),
-                          user: User = Depends(require_approved_company_admin)):
+                          user: User = Depends(require_template_author)):
     _check_assets(user.company_id, body.source, body.background)
     if body.back and body.back.style == 'image':
         _check_assets(user.company_id, body.back.source, body.back.background)
     if not any(f.role == 'name' for f in body.fields):
         raise HTTPException(422, 'Mark where the employee name goes before saving')
+    _check_layer_images(user.company_id, body.fields)
+    _check_assets(user.company_id, *[o.file for o in body.overlays if o.file])
+    if body.back and body.back.style == 'image':
+        _check_layer_images(user.company_id, body.back.fields)
+        _check_assets(user.company_id, *[o.file for o in body.back.overlays if o.file])
     if db.scalar(select(CardTemplate).where(CardTemplate.name == body.name)):
         raise HTTPException(409, 'A template with this name already exists')
     design = {
         'kind': 'image', 'source': body.source, 'background': body.background,
-        'company_id': user.company_id, 'width': body.width, 'height': body.height,
+        'company_id': user.company_id or 0, 'width': body.width, 'height': body.height,
         'fields': [f.model_dump() for f in body.fields],
+        'overlays': [o.model_dump() for o in body.overlays],
         'back': body.back.model_dump() if body.back else None,
     }
     if body.width_pt and body.height_pt:
@@ -208,7 +273,7 @@ def create_image_template(body: ImageTemplateCreate, db: Session = Depends(get_d
 
 @router.patch('/templates/image/{template_id}', response_model=TemplateResponse)
 def update_image_template(template_id: int, body: ImageTemplateUpdate, db: Session = Depends(get_db),
-                          user: User = Depends(require_approved_company_admin)):
+                          user: User = Depends(require_template_author)):
     template = db.scalar(select(CardTemplate).where(CardTemplate.id == template_id, CardTemplate.company_id == user.company_id))
     if template is None or not template.design or template.design.get('kind') != 'image':
         raise HTTPException(404, 'Template not found')
@@ -221,10 +286,34 @@ def update_image_template(template_id: int, body: ImageTemplateUpdate, db: Sessi
     if body.fields is not None:
         if not any(f.role == 'name' for f in body.fields):
             raise HTTPException(422, 'Mark where the employee name goes before saving')
+        _check_layer_images(user.company_id, body.fields)
         template.design = {**template.design, 'fields': [f.model_dump() for f in body.fields]}
+    if body.background is not None:
+        if not (body.width and body.height):
+            raise HTTPException(422, 'Send the size of the new background with it')
+        _check_assets(user.company_id, body.background)
+        template.design = {**template.design, 'background': body.background, 'width': body.width, 'height': body.height}
+    if body.overlays is not None:
+        _check_assets(user.company_id, *[o.file for o in body.overlays if o.file])
+        template.design = {**template.design, 'overlays': [o.model_dump() for o in body.overlays]}
+    if body.ai_edit is not None:
+        ai = template.design.get('ai')
+        if not ai:
+            raise HTTPException(422, 'This template has no Illustrator file')
+        working = project_folder(user.company_id, body.ai_edit.upload_id) / 'design.ai'
+        if not working.is_file():
+            raise HTTPException(422, 'The Illustrator copy expired; open the template again')
+        if body.ai_edit.remove_front or body.ai_edit.remove_back:
+            folder = template_folder(user.company_id)
+            name = f'tpl_{uuid4().hex}.ai'
+            (folder / name).write_bytes(_without_removed(working.read_bytes(), ai['front'], ai.get('back'), body.ai_edit.remove_front, body.ai_edit.remove_back))
+            (folder / ai['file']).unlink(missing_ok=True)
+            template.design = {**template.design, 'ai': {**ai, 'file': name}}
     if body.back is not None:
         if body.back.style == 'image':
             _check_assets(user.company_id, body.back.source, body.back.background)
+            _check_layer_images(user.company_id, body.back.fields)
+            _check_assets(user.company_id, *[o.file for o in body.back.overlays if o.file])
         template.design = {**template.design, 'back': body.back.model_dump()}
     if body.back_fields is not None and (template.design.get('back') or {}).get('style', 'image') == 'image' and template.design.get('back'):
         template.design = {**template.design, 'back': {**template.design['back'], 'fields': [f.model_dump() for f in body.back_fields]}}
@@ -237,7 +326,8 @@ def update_image_template(template_id: int, body: ImageTemplateUpdate, db: Sessi
 def template_asset(company_id: int, file_name: str, db: Session = Depends(get_db),
                    user: User = Depends(get_current_user)):
     """Background/source images, visible to the company, its approved members and platform admins."""
-    allowed = user.role == SYSTEM_ADMIN or (user.role == COMPANY_ADMIN and user.company_id == company_id)
+    # company 0 is the platform's shared folder: its designs are open to every signed-in user.
+    allowed = company_id == 0 or user.role == SYSTEM_ADMIN or (user.role == COMPANY_ADMIN and user.company_id == company_id)
     if not allowed and user.role == EMPLOYEE:
         allowed = db.scalar(select(Membership.id).where(Membership.user_id == user.id, Membership.company_id == company_id,
                                                         Membership.status == 'APPROVED')) is not None
@@ -251,3 +341,43 @@ def template_asset(company_id: int, file_name: str, db: Session = Depends(get_db
         raise HTTPException(404, 'Not found')
     media_type = 'image/jpeg' if path.suffix.lower() in ('.jpg', '.jpeg') else 'image/png'
     return FileResponse(path, media_type=media_type, headers={'Cache-Control': 'private, max-age=3600'})
+
+
+@router.post('/admin/templates/{template_id}/workspace')
+def open_in_workspace(template_id: int, db: Session = Depends(get_db), _: User = Depends(require_system_admin)):
+    """What the workspace needs to edit a shared template: its sides, and (for an Illustrator template) a working copy of its file."""
+    import shutil
+
+    template = db.get(CardTemplate, template_id)
+    design = template.design if template else None
+    if template is None or template.company_id is not None or not design or design.get('kind') != 'image':
+        raise HTTPException(404, 'Template not found')
+    if (design.get('company_id') or 0) != 0:
+        raise HTTPException(409, "This design belongs to a company's files; ask the company to edit it")
+
+    upload_id = ''
+    ai = design.get('ai')
+    if ai:
+        stored = template_folder(None) / ai['file']
+        if stored.is_file():
+            upload_id = uuid4().hex
+            project = project_folder(None, upload_id)
+            project.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(stored, project / 'design.ai')
+
+    def side(data: dict) -> dict:
+        return {'source': data.get('source', ''), 'background': data['background'], 'width': data['width'], 'height': data['height'],
+                'width_pt': data.get('width_pt'), 'height_pt': data.get('height_pt'), 'fields': data.get('fields', []),
+                'overlays': data.get('overlays', []), 'warnings': []}
+
+    back = design.get('back')
+    image_back = back if back and back.get('style', 'image') == 'image' else None
+    return {
+        'template_id': template.id, 'name': template.name, 'description': template.description,
+        'result': {
+            'upload_id': upload_id, 'front_artboard': (ai or {}).get('front', 0) if upload_id else 0,
+            'back_artboard': (ai or {}).get('back') if upload_id else None,
+            'front': side({**design}), 'back': side({**image_back, 'width_pt': design.get('width_pt'), 'height_pt': design.get('height_pt')}) if image_back else None,
+        },
+        'auto_back': back if back and back.get('style') == 'auto' else None,
+    }
