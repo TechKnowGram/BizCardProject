@@ -1,14 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { getToken } from '@/lib/api';
 
 export interface ProtectedImageProps {
   path: string;
   alt: string;
   className?: string;
+  style?: CSSProperties;
 }
 
-export default function ProtectedImage({ path, alt, className = '' }: ProtectedImageProps) {
+export default function ProtectedImage({ path, alt, className = '', style }: ProtectedImageProps) {
   const [source, setSource] = useState<string | null>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -21,5 +23,5 @@ export default function ProtectedImage({ path, alt, className = '' }: ProtectedI
     return () => { controller.abort(); if (objectUrl) URL.revokeObjectURL(objectUrl); };
   }, [path]);
   // eslint-disable-next-line @next/next/no-img-element
-  return source ? <img src={source} alt={alt} className={className} /> : null;
+  return source ? <img src={source} alt={alt} className={className} style={style} /> : null;
 }

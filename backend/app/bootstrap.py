@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from sqlalchemy import select, text, update
 from app.core.config import settings
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.db.base import Base
 from app.db.session import SessionLocal
 from app.models import CardTemplate, Company, User
@@ -31,6 +31,20 @@ def create_system_admin(db, credentials: SystemAdminCredentials):
     )
     db.add(admin)
     db.flush()
+    return admin
+
+
+def sync_system_admin(db, credentials: SystemAdminCredentials):
+    """Make the existing system admin match the .env credentials (create if missing)."""
+    admin = create_system_admin(db, credentials)
+    email = str(credentials.email).lower()
+    if admin.email != email:
+        if db.scalar(select(User).where(User.email == email, User.id != admin.id)):
+            raise RuntimeError('SYSTEM_ADMIN_EMAIL already belongs to another user')
+        admin.email = email
+    admin.username = credentials.username.strip()
+    if not verify_password(credentials.password, admin.password_hash):
+        admin.password_hash = hash_password(credentials.password)
     return admin
 
 
@@ -109,7 +123,7 @@ def initialize_application():
             db.execute(text('SELECT pg_advisory_xact_lock(7241901)'))
         # Alembic is authoritative in deployment; this keeps first local startup beginner-friendly.
         Base.metadata.create_all(db.connection())
-        create_system_admin(db, credentials)
+        sync_system_admin(db, credentials)
         retire_demo_templates(db)
         retire_gemini_templates(db)
         db.commit()

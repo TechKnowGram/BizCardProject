@@ -85,7 +85,7 @@ export interface Template {
   design?: CardDesign | ImageTemplateDesign | null;
 }
 
-export type TemplateFieldRole = 'name' | 'title' | 'department' | 'phone' | 'email' | 'website' | 'address' | 'company' | 'logo' | 'photo' | 'qr' | 'other';
+export type TemplateFieldRole = 'name' | 'title' | 'department' | 'phone' | 'email' | 'website' | 'address' | 'company' | 'logo' | 'photo' | 'qr' | 'other' | 'static_text' | 'static_image';
 
 /** One place on an uploaded design; boxes are fractions (0..1) of the card. */
 export interface TemplateField {
@@ -95,6 +95,12 @@ export interface TemplateField {
   w: number;
   h: number;
   text?: string;
+  /** Editor-only id of a layer (the server ignores it). */
+  uid?: string;
+  /** Sits above the artwork's objects numbered below z; unset means above all of them. */
+  z?: number | null;
+  /** static_image only: file name of the picture added as a layer. */
+  image?: string;
   size: number;
   color: string;
   align: 'left' | 'center' | 'right';
@@ -116,6 +122,8 @@ export interface ImageTemplateDesign {
   width_pt?: number | null;
   height_pt?: number | null;
   fields: TemplateField[];
+  /** Artwork drawn above the fields whose z is lower than the band's z. */
+  overlays?: BandOverlay[];
   back?: ImageBackSide | null;
   /** Set when the template was made from an Illustrator file: cards can then also be downloaded as .ai. */
   ai?: { file: string; front: number; back: number | null } | null;
@@ -129,6 +137,7 @@ export interface ImageSide {
   width: number;
   height: number;
   fields: TemplateField[];
+  overlays?: BandOverlay[];
 }
 
 /** Back drawn automatically from the company profile: logo, name, website and QR on one colour. */
@@ -155,6 +164,8 @@ export interface TemplateAnalysis {
   height_pt?: number | null;
   fields: TemplateField[];
   warnings: string[];
+  /** Set when an existing template is reopened: the bands of artwork it already has. */
+  overlays?: BandOverlay[];
 }
 
 export function isImageDesign(design: unknown): design is ImageTemplateDesign {
@@ -317,5 +328,33 @@ export interface ArtboardLayers {
   images: LayerImage[];
   texts: LayerText[];
   shapes: LayerShape[];
+  truncated: boolean;
+}
+
+/** One top-level object of an Illustrator artboard, drawn on its own (a transparent picture trimmed to it). */
+export interface LayerPiece {
+  index: number;
+  kind: 'text' | 'image' | 'path' | 'group';
+  /** svg: a vector shape; png: a picture; text: real text (no file). Files are served by /templates/image/projects/{upload id}/{file}. */
+  format: 'svg' | 'png' | 'text';
+  font?: string | null;
+  name: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  file: string | null;
+  text?: string | null;
+  size_pt?: number | null;
+  color?: string | null;
+  bold?: boolean;
+}
+
+export interface BandOverlay { file: string; z: number }
+export interface ComposeResult { background: string; width: number; height: number; overlays: BandOverlay[] }
+
+export interface ArtboardPieces {
+  artboard: { index: number; width_mm: number; height_mm: number };
+  pieces: LayerPiece[];
   truncated: boolean;
 }

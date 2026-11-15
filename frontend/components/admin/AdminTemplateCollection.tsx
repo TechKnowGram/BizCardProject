@@ -1,9 +1,11 @@
 ﻿'use client';
 import CardPreview from '@/components/cards/CardPreview';
 import StatusBadge from '@/components/ui/StatusBadge';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { Button } from '@/components/ui';
+import { Button, buttonClass } from '@/components/ui';
 import { SectionCard } from '@/components/dashboard/Surface';
+import { isImageDesign } from '@/lib/types';
 import type { CompanySummary, Template } from '@/lib/types';
 
 export interface AdminTemplateData {
@@ -17,6 +19,12 @@ export interface AdminTemplateCollectionProps {
   busy: boolean;
   onToggle: (template: Template) => void;
   onSave: (id: number) => void;
+}
+
+/** Where a shared template is edited: uploaded designs in the workspace, designs made from colours on the Create page. */
+function editHref(template: Template): string | null {
+  if (isImageDesign(template.design)) return (template.design.company_id || 0) === 0 ? '/dashboard/templates/upload/workspace?edit=' + template.id : null;
+  return template.design && template.style_key.startsWith('shared_new_') ? '/dashboard/templates/create?edit=' + template.id : null;
 }
 
 const gridClass = 'grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3';
@@ -65,9 +73,12 @@ export default function AdminTemplateCollection({ data, busy, onToggle, onSave }
                 label="Shared"
                 status={template.is_active ? 'ACTIVE' : 'INACTIVE'}
                 action={
-                  <Button variant="secondary" className="px-3 py-1.5" disabled={busy} onClick={() => onToggle(template)}>
-                    {template.is_active ? 'Deactivate' : 'Activate'}
-                  </Button>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {editHref(template) && <Link href={editHref(template)!} className={buttonClass('secondary', 'px-3 py-1.5')}>Edit</Link>}
+                    <Button variant="secondary" className="px-3 py-1.5" disabled={busy} onClick={() => onToggle(template)}>
+                      {template.is_active ? 'Deactivate' : 'Activate'}
+                    </Button>
+                  </span>
                 }
               />
             ))}

@@ -15,7 +15,7 @@ import IllustratorUpload from '@/components/company/IllustratorUpload';
 
 const ROLE_LABELS: Record<TemplateFieldRole, string> = {
   name: 'Name', title: 'Job title', department: 'Department', phone: 'Phone', email: 'Email',
-  website: 'Website', address: 'Address', company: 'Company name', logo: 'Company logo', photo: 'Photo', qr: 'QR code', other: 'Keep as design',
+  website: 'Website', address: 'Address', company: 'Company name', logo: 'Company logo', photo: 'Photo', qr: 'QR code', other: 'Keep as design', static_text: 'Added text', static_image: 'Added picture',
 };
 const ROLE_ORDER: TemplateFieldRole[] = ['name', 'title', 'department', 'phone', 'email', 'website', 'address', 'company', 'logo', 'photo', 'qr', 'other'];
 const IMAGE_ROLES: TemplateFieldRole[] = ['photo', 'logo', 'qr'];
@@ -103,7 +103,7 @@ function BackChooser({ mode, onMode, file, onFile }: { mode: BackMode; onMode: (
   );
 }
 
-function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingUsed }: { company: CompanySummary; employees: Employee[]; onSaved: (template: Template) => void; incoming?: { result: IllustratorAnalysis; fileName: string } | null; onIncomingUsed?: () => void }) {
+function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingUsed, onIllustrator }: { company: CompanySummary; employees: Employee[]; onSaved: (template: Template) => void; incoming?: { result: IllustratorAnalysis; fileName: string } | null; onIncomingUsed?: () => void; onIllustrator?: (result: IllustratorAnalysis, fileName: string) => void }) {
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [blankFile, setBlankFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
@@ -299,7 +299,7 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
                   <p className="font-medium text-navy-900">Have an Illustrator file?</p>
                   <p className="text-xs text-slate-500">Upload the .ai file. We find its artboards and you choose the front and back.</p>
                 </div>
-                <IllustratorUpload companyId={company.id} onAnalysed={applyIllustrator} onError={setError} />
+                <IllustratorUpload companyId={company.id} onAnalysed={onIllustrator ?? applyIllustrator} onError={setError} />
               </div>
             </div>
 

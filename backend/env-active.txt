@@ -1,0 +1,5 @@
+cd C:\Users\lelin\Documents\GitHub\BizCardProject\backend
+.\.venv\Scripts\Activate.ps1
+
+
+ uvicorn app.main:app --reload
