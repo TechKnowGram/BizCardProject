@@ -2,7 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-FieldRole = Literal['name', 'title', 'department', 'phone', 'email', 'website', 'address', 'company', 'logo', 'photo', 'qr', 'other']
+FieldRole = Literal['name', 'title', 'department', 'phone', 'email', 'website', 'address', 'company', 'logo', 'photo', 'qr', 'other',
+                   'static_text', 'static_image']
 
 
 class TemplateField(BaseModel):
@@ -14,14 +15,25 @@ class TemplateField(BaseModel):
     w: float = Field(gt=0, le=1)
     h: float = Field(gt=0, le=1)
     text: str = Field(default='', max_length=200)
+    # static_image: file name of a picture the admin added as a layer (stored beside the template's other files)
+    image: str = Field(default='', max_length=120, pattern=r'^[A-Za-z0-9_.-]*$')
     size: float = Field(default=0.05, ge=0, le=0.5)
     color: str = Field(default='#111111', pattern=r'^#[0-9a-fA-F]{6}$')
     align: Literal['left', 'center', 'right'] = 'left'
     bold: bool = False
     shape: Literal['rect', 'circle'] = 'rect'
     lines: int = Field(default=1, ge=1, le=4)
+    # Where the field sits among the artwork's objects: it is drawn above objects numbered below z. None = above all.
+    z: int | None = Field(default=None, ge=0, le=5000)
     confidence: float = Field(default=0, ge=0, le=1)
     ink: tuple[float, float, float, float] | None = None
+
+
+class Overlay(BaseModel):
+    """Artwork drawn above the fields whose z is lower than this one's (a transparent picture; '' when empty)."""
+    model_config = ConfigDict(extra='forbid')
+    file: str = Field(default='', max_length=120, pattern=r'^[A-Za-z0-9_.-]*$')
+    z: int = Field(ge=0, le=5000)
 
 
 class ImageSide(BaseModel):
@@ -33,6 +45,7 @@ class ImageSide(BaseModel):
     width: int = Field(gt=0)
     height: int = Field(gt=0)
     fields: list[TemplateField] = Field(default_factory=list, max_length=30)
+    overlays: list[Overlay] = Field(default_factory=list, max_length=30)
 
 
 class AutoBack(BaseModel):
@@ -62,6 +75,17 @@ class AiSourceCreate(BaseModel):
     upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
     front: int = Field(ge=0)
     back: int | None = Field(default=None, ge=0)
+    # Layers of the file that were hidden or deleted in the workspace: left out of the saved .ai too.
+    remove_front: list[int] = Field(default_factory=list, max_length=2000)
+    remove_back: list[int] = Field(default_factory=list, max_length=2000)
+
+
+class AiEdit(BaseModel):
+    """Sent when an existing template is saved after layers of its Illustrator file were hidden or deleted."""
+    model_config = ConfigDict(extra='forbid')
+    upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
+    remove_front: list[int] = Field(default_factory=list, max_length=2000)
+    remove_back: list[int] = Field(default_factory=list, max_length=2000)
 
 
 class ImageTemplateDesign(BaseModel):
@@ -76,6 +100,7 @@ class ImageTemplateDesign(BaseModel):
     width_pt: float | None = Field(default=None, gt=0, le=2000)
     height_pt: float | None = Field(default=None, gt=0, le=2000)
     fields: list[TemplateField] = Field(max_length=30)
+    overlays: list[Overlay] = Field(default_factory=list, max_length=30)
     back: BackSide | None = None
     ai: AiSource | None = None
 
@@ -104,6 +129,7 @@ class ImageTemplateCreate(BaseModel):
     width_pt: float | None = Field(default=None, gt=0, le=2000)
     height_pt: float | None = Field(default=None, gt=0, le=2000)
     fields: list[TemplateField] = Field(min_length=1, max_length=30)
+    overlays: list[Overlay] = Field(default_factory=list, max_length=30)
     back: BackSide | None = None
     ai: AiSourceCreate | None = None
 
@@ -113,6 +139,12 @@ class ImageTemplateUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=60)
     description: str | None = Field(default=None, max_length=255)
     fields: list[TemplateField] | None = Field(default=None, min_length=1, max_length=30)
+    # A re-drawn background (and its size) and the bands of artwork stacked with the fields; sent together.
+    background: str | None = Field(default=None, min_length=1, max_length=120)
+    width: int | None = Field(default=None, gt=0)
+    height: int | None = Field(default=None, gt=0)
+    overlays: list[Overlay] | None = Field(default=None, max_length=30)
+    ai_edit: AiEdit | None = None
     back_fields: list[TemplateField] | None = Field(default=None, max_length=30)
     back: BackSide | None = None
 
@@ -223,3 +255,45 @@ class IllustratorLayersRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
     artboard: int = Field(ge=0)
+
+
+class LayerPiece(BaseModel):
+    """One top-level object of an artboard, drawn on its own. Boxes are fractions of the artboard."""
+    index: int
+    kind: str  # text, image, path, group
+    name: str
+    x: float
+    y: float
+    w: float
+    h: float
+    # svg: a vector shape; png: a picture; text: real text with no file. `file` is served by /templates/image/projects/{upload id}/{file}
+    format: Literal['svg', 'png', 'text'] = 'png'
+    file: str | None = None
+    font: str | None = None
+    text: str | None = None
+    size_pt: float | None = None
+    color: str | None = None
+    bold: bool = False
+
+
+class ArtboardPieces(BaseModel):
+    artboard: dict
+    pieces: list[LayerPiece]
+    truncated: bool = False
+
+
+class ComposeRequest(BaseModel):
+    """Draw an artboard again as stacked bands of artwork, leaving out the objects that change per employee."""
+    model_config = ConfigDict(extra='forbid')
+    upload_id: str = Field(pattern=r'^[0-9a-f]{32}$')
+    artboard: int = Field(ge=0)
+    hide: list[int] = Field(default_factory=list, max_length=2000)
+    cuts: list[int] = Field(default_factory=list, max_length=30)
+    long_side: int = Field(default=1400, ge=400, le=3000)
+
+
+class ComposeResult(BaseModel):
+    background: str
+    width: int
+    height: int
+    overlays: list[Overlay]

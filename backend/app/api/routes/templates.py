@@ -63,6 +63,34 @@ def create_template(
     return template
 
 
+@router.post('/admin/templates/design', response_model=TemplateResponse, status_code=201)
+def create_shared_design(body: CardDesign, db: Session = Depends(get_db),
+                         _: User = Depends(require_system_admin)):
+    """A shared template built from scratch (colours, layout, decoration) rather than from an uploaded design."""
+    suffix = uuid4().hex[:12]
+    template = CardTemplate(company_id=None, name=f'{body.name} - {suffix}', description=body.description,
+                            style_key=f'shared_new_{suffix}', design=body.model_dump(), is_active=True)
+    db.add(template)
+    db.commit()
+    db.refresh(template)
+    return template
+
+
+@router.patch('/admin/templates/{template_id}/design', response_model=TemplateResponse)
+def update_shared_design(template_id: int, body: CardDesign, db: Session = Depends(get_db),
+                         _: User = Depends(require_system_admin)):
+    template = db.get(CardTemplate, template_id)
+    if template is None or template.company_id is not None or not template.style_key.startswith('shared_new_'):
+        raise HTTPException(404, 'Template not found')
+    suffix = template.style_key.removeprefix('shared_new_')
+    template.name = f'{body.name} - {suffix}'
+    template.description = body.description
+    template.design = body.model_dump()
+    db.commit()
+    db.refresh(template)
+    return template
+
+
 @router.patch('/admin/templates/{template_id}', response_model=TemplateResponse)
 def update_template(
     template_id: int,

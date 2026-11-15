@@ -11,6 +11,7 @@ such copy; it is refused with a message that says how to re-save it.
 
 from __future__ import annotations
 
+import threading
 import io
 from dataclasses import dataclass
 
@@ -22,6 +23,10 @@ MAX_PIXELS = 40_000_000
 # A business card is 3.5 x 2 in. Anything within this much of that ratio is offered as a card.
 CARD_RATIO = 3.5 / 2.0
 RATIO_TOLERANCE = 0.18
+
+
+# pdfium is not safe to use from two threads at once; everything that reads an .ai file takes this lock.
+PDFIUM_LOCK = threading.Lock()
 
 
 class IllustratorError(ValueError):
@@ -132,6 +137,32 @@ def render_artboard(content: bytes, index: int, long_side: int, fmt: str = 'PNG'
             image.save(buffer, 'JPEG', quality=88, optimize=True)
         else:
             image.save(buffer, 'PNG')
+        return buffer.getvalue()
+    finally:
+        document.close()
+
+
+def remove_objects(content: bytes, removals: dict[int, set[int]]) -> bytes:
+    """The file again, without the listed top-level objects (numbered as in the editor's Layers panel) of each artboard.
+
+    Used when layers were hidden or deleted in the workspace, so the saved .ai matches the saved template.
+    """
+    import io
+
+    document = _open(content)
+    try:
+        for index, numbers in removals.items():
+            if not numbers:
+                continue
+            if not 0 <= index < len(document):
+                raise IllustratorError('That artboard does not exist')
+            page = document[index]
+            for number, obj in enumerate(list(page.get_objects(max_depth=0))):
+                if number in numbers:
+                    page.remove_obj(obj)
+            page.gen_content()
+        buffer = io.BytesIO()
+        document.save(buffer)
         return buffer.getvalue()
     finally:
         document.close()

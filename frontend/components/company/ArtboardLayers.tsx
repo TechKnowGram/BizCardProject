@@ -86,7 +86,7 @@ export default function ArtboardLayers({ uploadId, companyId, artboard, onClose 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div>
             <div className="relative mx-auto max-h-[26rem] overflow-hidden rounded-lg border border-slate-200 bg-white" style={{ aspectRatio: `${artboard.width_mm} / ${artboard.height_mm}` }}>
-              <ProtectedImage path={`/templates/image/assets/${companyId}/${uploadId}_ab${artboard.index}.jpg`} alt={`${artboard.name} preview`} className="absolute inset-0 size-full object-contain" />
+              <ProtectedImage path={`/templates/image/projects/${uploadId}/previews/artboard-${artboard.index}.jpg`} alt={`${artboard.name} preview`} className="absolute inset-0 size-full object-contain" />
               {highlight && (
                 <span
                   className="pointer-events-none absolute rounded-[2px] border-2 border-brand-600 bg-brand-600/15 shadow-[0_0_0_9999px_rgba(15,23,42,0.18)]"
@@ -133,7 +133,7 @@ export default function ArtboardLayers({ uploadId, companyId, artboard, onClose 
             {view === 'layers' ? (
               <>
                 <div className="max-h-[28rem] overflow-y-auto rounded-lg border border-slate-200 p-1.5">
-                  <LayerTree nodes={data.tree} companyId={companyId} open={open} onToggle={toggle} selected={node} onSelect={setNode} />
+                  <LayerTree nodes={data.tree} uploadId={uploadId} open={open} onToggle={toggle} selected={node} onSelect={setNode} />
                 </div>
                 <p className="mt-2 text-xs text-slate-500">Topmost first, as in Illustrator. The file keeps layers, groups made from placed art and clip groups. Guides and names typed into Illustrator are not saved in it.</p>
               </>
@@ -175,7 +175,7 @@ export default function ArtboardLayers({ uploadId, companyId, artboard, onClose 
                 <li key={item.id}>
                   <button type="button" onClick={() => pick('images', item.id)} className={rowClass(selected?.kind === 'images' && selected.id === item.id)}>
                     <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-md border border-slate-200 bg-slate-50">
-                      {item.thumbnail && <ProtectedImage path={`/templates/image/assets/${companyId}/${item.thumbnail}`} alt="" className="max-h-full max-w-full object-contain" />}
+                      {item.thumbnail && <ProtectedImage path={`/templates/image/projects/${uploadId}/${item.thumbnail}`} alt="" className="max-h-full max-w-full object-contain" />}
                     </span>
                     <span className="min-w-0">
                       <span className="block font-medium text-navy-900">Image</span>

@@ -23,7 +23,7 @@ Required settings:
 ```env
 DATABASE_URL=postgresql+psycopg://postgres:password@localhost:5432/bizcard_db
 SECRET_KEY=replace-with-a-random-secret-at-least-32-characters
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
 SYSTEM_ADMIN_USERNAME=Rubel
 SYSTEM_ADMIN_EMAIL=rubel@gmail.com
 SYSTEM_ADMIN_PASSWORD=choose-at-least-8-characters

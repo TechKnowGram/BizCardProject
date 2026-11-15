@@ -17,6 +17,7 @@ background image so it stays sharp in print.
 from __future__ import annotations
 
 import io
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageOps
@@ -46,6 +47,20 @@ def card_size(design: dict) -> tuple[float, float]:
 
 def template_folder(company_id: int | None) -> Path:
     return upload_root() / 'templates' / (f'company_{company_id}' if company_id else 'shared')
+
+
+def project_folder(company_id: int | None, upload_id: str) -> Path:
+    """The temporary folder of one uploaded Illustrator file: the working copy, its previews and every layer drawn from it.
+
+        <uploads>/templates/<owner>/projects/<upload id>/
+            design.ai            the working copy of the uploaded file
+            previews/            one picture per artboard, for choosing the front and back
+            artboard-0/          that artboard's layers: SVG shapes, picture layers, thumbnails
+    The whole folder is deleted when the work is finished. Files a saved template needs live in the owner folder instead.
+    """
+    if not re.fullmatch(r'[0-9a-f]{32}', upload_id or ''):
+        raise ValueError('Invalid project id')
+    return template_folder(company_id) / 'projects' / upload_id
 
 
 def resolve_asset(company_id: int | None, file_name: str) -> Path:
@@ -207,13 +222,30 @@ def _draw_logo(canvas: Canvas, field: dict, company, card_w: float, card_h: floa
         pass
 
 
+def _draw_static_image(canvas: Canvas, field: dict, company_id: int | None, card_w: float, card_h: float) -> None:
+    """A picture the template's author added as a layer: the same on every card."""
+    try:
+        path = resolve_asset(company_id, field.get('image') or '')
+        if not path.is_file():
+            return
+        x = field['x'] * card_w
+        w, h = field['w'] * card_w, field['h'] * card_h
+        y = card_h - field['y'] * card_h - h
+        canvas.drawImage(ImageReader(str(path)), x, y, w, h, preserveAspectRatio=True, anchor='c', mask='auto')
+    except Exception:
+        pass
+
+
 def _draw_side(canvas: Canvas, side: dict, company, employee, verification_token: str, company_id: int | None,
                card_w: float = CARD_WIDTH, card_h: float = CARD_HEIGHT) -> None:
     from app.services.card_generation import draw_qr  # avoid a circular import
 
     background = resolve_asset(company_id, side['background'])
     canvas.drawImage(ImageReader(str(background)), 0, 0, card_w, card_h)
-    for field in side.get('fields', []):
+    fields = side.get('fields', [])
+    drawn: set[int] = set()
+
+    def draw_field(field: dict) -> None:
         role = field.get('role')
         if role == 'photo':
             _draw_photo(canvas, field, employee, card_w, card_h)
@@ -224,10 +256,31 @@ def _draw_side(canvas: Canvas, side: dict, company, employee, verification_token
             x = field['x'] * card_w + 3
             y = card_h - field['y'] * card_h - field['h'] * card_h + 3
             draw_qr(canvas, f"{settings.public_app_url.rstrip('/')}/verify/{verification_token}", x, y, size)
+        elif role == 'static_text':
+            if (field.get('text') or '').strip():
+                _draw_text_field(canvas, field, field['text'].strip(), card_w, card_h)
+        elif role == 'static_image':
+            _draw_static_image(canvas, field, company_id, card_w, card_h)
         elif role and role != 'other':
             text = field_value(role, company, employee)
             if text:
                 _draw_text_field(canvas, field, text, card_w, card_h)
+
+    # Artwork is stacked in bands: fields placed between two bands are drawn after the lower one.
+    for overlay in sorted(side.get('overlays') or [], key=lambda o: o['z']):
+        for number, field in enumerate(fields):
+            if number not in drawn and field.get('z') == overlay['z']:
+                draw_field(field)
+                drawn.add(number)
+        if overlay.get('file'):
+            try:
+                path = resolve_asset(company_id, overlay['file'])
+                canvas.drawImage(ImageReader(str(path)), 0, 0, card_w, card_h, mask='auto')
+            except Exception:
+                pass
+    for number, field in enumerate(fields):
+        if number not in drawn:
+            draw_field(field)
     canvas.showPage()
 
 

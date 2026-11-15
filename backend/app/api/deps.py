@@ -46,3 +46,10 @@ def require_approved_company_admin(current_user: User = Depends(require_roles([C
     if current_user.company is None or current_user.company.status != 'APPROVED':
         raise HTTPException(status_code=403, detail='Company approval is required')
     return current_user
+
+
+def require_template_author(current_user: User = Depends(require_roles([COMPANY_ADMIN, SYSTEM_ADMIN]))):
+    """Who may upload card designs: approved company admins (their own) and system admins (shared)."""
+    if current_user.role == COMPANY_ADMIN and (current_user.company is None or current_user.company.status != 'APPROVED'):
+        raise HTTPException(status_code=403, detail='Company approval is required')
+    return current_user

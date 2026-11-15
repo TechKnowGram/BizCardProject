@@ -53,13 +53,13 @@ function Swatch({ fill, stroke }: { fill?: string | null; stroke?: string | null
   );
 }
 
-function Thumb({ node, companyId }: { node: LayerNode; companyId: number }): ReactNode {
+function Thumb({ node, uploadId }: { node: LayerNode; uploadId: string }): ReactNode {
   if (node.kind === 'layer') return <span className="grid size-6 shrink-0 place-items-center rounded bg-brand-600 text-white"><Icon name="layers" size={14} /></span>;
   if (node.kind === 'group' || node.kind === 'clip') return <span className="grid size-6 shrink-0 place-items-center rounded border border-slate-300 bg-slate-50 text-slate-500"><Icon name="folder" size={14} /></span>;
   if (node.kind === 'image') {
     return (
       <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded border border-slate-300 bg-slate-50">
-        {node.thumbnail && <ProtectedImage path={`/templates/image/assets/${companyId}/${node.thumbnail}`} alt="" className="max-h-full max-w-full object-contain" />}
+        {node.thumbnail && <ProtectedImage path={`/templates/image/projects/${uploadId}/${node.thumbnail}`} alt="" className="max-h-full max-w-full object-contain" />}
       </span>
     );
   }
@@ -78,7 +78,7 @@ function detail(node: LayerNode): string {
 
 export interface LayerTreeProps {
   nodes: LayerNode[];
-  companyId: number;
+  uploadId: string;
   open: Set<string>;
   onToggle: (id: string) => void;
   selected: LayerNode | null;
@@ -86,8 +86,8 @@ export interface LayerTreeProps {
 }
 
 /** Illustrator's Layers panel: layers open into groups, clip groups and objects, topmost first. */
-export default function LayerTree({ nodes, companyId, open, onToggle, selected, onSelect }: LayerTreeProps) {
-  return <ul role="tree" aria-label="Layers" className="space-y-0.5">{nodes.map((node) => <Row key={node.id} node={node} depth={0} {...{ companyId, open, onToggle, selected, onSelect }} />)}</ul>;
+export default function LayerTree({ nodes, uploadId, open, onToggle, selected, onSelect }: LayerTreeProps) {
+  return <ul role="tree" aria-label="Layers" className="space-y-0.5">{nodes.map((node) => <Row key={node.id} node={node} depth={0} {...{ uploadId, open, onToggle, selected, onSelect }} />)}</ul>;
 }
 
 type RowProps = Omit<LayerTreeProps, 'nodes'> & { node: LayerNode; depth: number };
@@ -96,7 +96,7 @@ function Chevron({ open, hidden }: { open: boolean; hidden?: boolean }) {
   return <Icon name="chevronRight" size={14} className={cx('shrink-0 text-slate-400 transition-transform', open && 'rotate-90', hidden && 'invisible')} />;
 }
 
-function Row({ node, depth, companyId, open, onToggle, selected, onSelect }: RowProps) {
+function Row({ node, depth, uploadId, open, onToggle, selected, onSelect }: RowProps) {
   const expandable = node.children.length > 0;
   const expanded = open.has(String(node.id));
   const active = selected?.id === node.id && selected.kind === node.kind;
@@ -111,14 +111,14 @@ function Row({ node, depth, companyId, open, onToggle, selected, onSelect }: Row
           <Chevron open={expanded} hidden={!expandable} />
         </button>
         <button type="button" onClick={() => onSelect(active ? null : node)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-          <Thumb node={node} companyId={companyId} />
+          <Thumb node={node} uploadId={uploadId} />
           <span className="min-w-0 flex-1">
             <span className={cx('block truncate text-navy-900', node.clip_shape && 'underline decoration-slate-400 underline-offset-2')}>{node.name || '(empty)'}</span>
           </span>
           {info && <span className="shrink-0 text-xs text-slate-500 tabular-nums">{info}</span>}
         </button>
       </div>
-      {expandable && expanded && <Children nodes={node.children} depth={depth + 1} {...{ companyId, open, onToggle, selected, onSelect }} />}
+      {expandable && expanded && <Children nodes={node.children} depth={depth + 1} {...{ uploadId, open, onToggle, selected, onSelect }} />}
     </li>
   );
 }
@@ -128,14 +128,14 @@ function countLeaves(node: LayerNode): number {
   return node.children.reduce((sum, child) => sum + countLeaves(child), 0);
 }
 
-function Children({ nodes, depth, companyId, open, onToggle, selected, onSelect }: Omit<RowProps, 'node'> & { nodes: LayerNode[] }) {
+function Children({ nodes, depth, uploadId, open, onToggle, selected, onSelect }: Omit<RowProps, 'node'> & { nodes: LayerNode[] }) {
   const [limit, setLimit] = useState(PAGE);
   const items = toItems(nodes);
   return (
     <ul role="group" className="space-y-0.5">
       {items.slice(0, limit).map((item) => item.type === 'node'
-        ? <Row key={item.node.id} node={item.node} depth={depth} {...{ companyId, open, onToggle, selected, onSelect }} />
-        : <RunRow key={item.id} item={item} depth={depth} {...{ companyId, open, onToggle, selected, onSelect }} />)}
+        ? <Row key={item.node.id} node={item.node} depth={depth} {...{ uploadId, open, onToggle, selected, onSelect }} />
+        : <RunRow key={item.id} item={item} depth={depth} {...{ uploadId, open, onToggle, selected, onSelect }} />)}
       {items.length > limit && (
         <li>
           <button type="button" onClick={() => setLimit((value) => value + PAGE)} className="ml-6 rounded-md px-3 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50" style={{ marginLeft: 6 + depth * 16 + 20 }}>
@@ -147,7 +147,7 @@ function Children({ nodes, depth, companyId, open, onToggle, selected, onSelect 
   );
 }
 
-function RunRow({ item, depth, companyId, open, onToggle, selected, onSelect }: Omit<RowProps, 'node'> & { item: Extract<Item, { type: 'run' }> }) {
+function RunRow({ item, depth, uploadId, open, onToggle, selected, onSelect }: Omit<RowProps, 'node'> & { item: Extract<Item, { type: 'run' }> }) {
   const expanded = open.has(item.id);
   return (
     <li>
@@ -164,7 +164,7 @@ function RunRow({ item, depth, companyId, open, onToggle, selected, onSelect }: 
       </button>
       {expanded && (
         <ul role="group" className="space-y-0.5">
-          {item.nodes.map((node) => <Row key={node.id} node={node} depth={depth + 1} {...{ companyId, open, onToggle, selected, onSelect }} />)}
+          {item.nodes.map((node) => <Row key={node.id} node={node} depth={depth + 1} {...{ uploadId, open, onToggle, selected, onSelect }} />)}
         </ul>
       )}
     </li>

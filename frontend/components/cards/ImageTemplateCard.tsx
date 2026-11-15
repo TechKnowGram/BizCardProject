@@ -4,7 +4,8 @@ import ProtectedImage from '@/components/ui/ProtectedImage';
 import { QrCode } from '@/components/home/CardMock';
 import { cx } from '@/components/ui';
 import { isAutoBack } from '@/lib/types';
-import type { AutoBack, ImageTemplateDesign, TemplateField } from '@/lib/types';
+import type { ReactNode } from 'react';
+import type { AutoBack, BandOverlay, ImageTemplateDesign, TemplateField } from '@/lib/types';
 
 export interface CardValues {
   name?: string;
@@ -86,18 +87,37 @@ export function FieldLogo({ field, logoPath }: { field: TemplateField; logoPath?
   return <span className="absolute" style={box}><ProtectedImage path={logoPath} alt="Company logo" className="size-full object-contain" /></span>;
 }
 
+/** A picture added to the design as a layer: the same on every card. */
+export function FieldPicture({ field, owner }: { field: TemplateField; owner: number | null }) {
+  if (!field.image) return null;
+  return (
+    <span className="absolute" style={{ left: `${field.x * 100}%`, top: `${field.y * 100}%`, width: `${field.w * 100}%`, height: `${field.h * 100}%` }}>
+      <ProtectedImage path={assetPath({ company_id: owner }, field.image)} alt="" className="size-full object-contain" />
+    </span>
+  );
+}
+
 /** The fields of one side drawn over its background, in the same places the PDF uses. */
-export function SideFields({ fields, values, aspect = DEFAULT_ASPECT }: { fields: TemplateField[]; values: CardValues; aspect?: number }) {
-  return <>
-    {fields.map((field, i) => {
-      if (field.role === 'photo') return <FieldPhoto key={i} field={field} name={values.name || ''} photoPath={values.photoPath} />;
-      if (field.role === 'qr') return <FieldQr key={i} field={field} />;
-      if (field.role === 'logo') return <FieldLogo key={i} field={field} logoPath={values.logoPath} />;
-      if (field.role === 'other') return null;
-      const text = valueFor(field, values);
-      return text ? <FieldText key={i} field={field} text={text} aspect={aspect} /> : null;
-    })}
-  </>;
+export function SideFields({ fields, values, aspect = DEFAULT_ASPECT, owner = 0, overlays }: { fields: TemplateField[]; values: CardValues; aspect?: number; owner?: number | null; overlays?: BandOverlay[] }) {
+  const one = (field: TemplateField, i: number) => {
+    if (field.role === 'photo') return <FieldPhoto key={i} field={field} name={values.name || ''} photoPath={values.photoPath} />;
+    if (field.role === 'qr') return <FieldQr key={i} field={field} />;
+    if (field.role === 'logo') return <FieldLogo key={i} field={field} logoPath={values.logoPath} />;
+    if (field.role === 'other') return null;
+    if (field.role === 'static_text') return field.text ? <FieldText key={i} field={field} text={field.text} aspect={aspect} /> : null;
+    if (field.role === 'static_image') return <FieldPicture key={i} field={field} owner={owner} />;
+    const text = valueFor(field, values);
+    return text ? <FieldText key={i} field={field} text={text} aspect={aspect} /> : null;
+  };
+  // Artwork is stacked in bands: a field placed between two bands is drawn after the lower one.
+  const done = new Set<number>();
+  const out: ReactNode[] = [];
+  [...(overlays || [])].sort((a, b) => a.z - b.z).forEach((band, b) => {
+    fields.forEach((field, i) => { if (!done.has(i) && field.z === band.z) { done.add(i); out.push(one(field, i)); } });
+    if (band.file) out.push(<ProtectedImage key={'band' + b} path={assetPath({ company_id: owner }, band.file)} alt="" className="pointer-events-none absolute inset-0 size-full object-fill" />);
+  });
+  fields.forEach((field, i) => { if (!done.has(i)) out.push(one(field, i)); });
+  return <>{out}</>;
 }
 
 /** The automatic back: logo, company name and website on one colour, QR on the right. Mirrors the PDF layout. */
@@ -135,7 +155,7 @@ export default function ImageTemplateCard({ design, values, side = 'front', clas
     >
       {isAutoBack(back) ? <AutoBackFace back={back} values={values} /> : <>
         <ProtectedImage path={assetPath(design, back ? back.background : design.background)} alt="" className="absolute inset-0 size-full object-fill" />
-        <SideFields fields={back ? back.fields : design.fields} values={values} aspect={aspect} />
+        <SideFields fields={back ? back.fields : design.fields} values={values} aspect={aspect} owner={design.company_id} overlays={back ? (back as { overlays?: BandOverlay[] }).overlays : design.overlays} />
       </>}
     </div>
   );

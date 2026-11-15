@@ -53,7 +53,7 @@ export default function ArtboardPicker({ upload, companyId, busy, error, onClose
           return (
             <li key={board.index} className={cx('rounded-xl border bg-white p-3 transition-colors', role === 'front' ? 'border-brand-600 ring-1 ring-brand-600' : role === 'back' ? 'border-emerald-600 ring-1 ring-emerald-600' : 'border-slate-200')}>
               <div className="mx-auto grid max-h-72 w-full place-items-center overflow-hidden rounded-lg border border-slate-100 bg-slate-50" style={{ aspectRatio: `${board.width_mm} / ${board.height_mm}` }}>
-                <ProtectedImage path={`/templates/image/assets/${companyId}/${board.preview}`} alt={`${board.name} preview`} className="max-h-full max-w-full object-contain" />
+                <ProtectedImage path={`/templates/image/projects/${upload.upload_id}/${board.preview}`} alt={`${board.name} preview`} className="max-h-full max-w-full object-contain" />
               </div>
               <div className="mt-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">

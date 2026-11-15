@@ -5,6 +5,7 @@ import ReviewDialog from '@/components/ui/ReviewDialog';
 import CardPreview from '@/components/cards/CardPreview';
 import Icon from '@/components/ui/Icon';
 import { api } from '@/lib/api';
+import { isImageDesign } from '@/lib/types';
 import type { CardRequest, CompanySummary, Employee, Template } from '@/lib/types';
 import { Button, Input, Notice, cx } from '@/components/ui';
 import { StepIndicator, checkboxClass } from '@/components/company/CompanyDashboardParts';
@@ -75,7 +76,21 @@ export default function RequestWizard({ company, employees, templates, initialId
         <p className={stepParagraph}>Choosing a different template also makes it your company&apos;s selected template.</p>
         {!templates.length && <p className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Your company has no card design yet. Close this and open Templates to upload your design or create one with the AI designer.</p>}
         <div className="mb-5 flex flex-wrap gap-2">{templates.map(item => <button type="button" className={cx('rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors', item.id === templateId ? 'border-brand-600 bg-brand-50 text-brand-700 ring-1 ring-brand-600' : 'border-slate-200 text-slate-700 hover:border-slate-300')} aria-pressed={item.id === templateId} onClick={() => setTemplateId(item.id)} key={item.id}>{item.name}</button>)}</div>
-        {template && <div className="rounded-xl border border-slate-200 bg-slate-50 p-6"><CardPreview className={template.design ? undefined : 'm-auto max-w-105 min-h-56.25!'} design={template.design} style={template.style_key} company={company.name} name={selected[0]?.name} designation={selected[0]?.designation} email={selected[0]?.email} phone={selected[0]?.phone} logoPath={company.has_logo ? '/company/logo' : null} photoPath={selected[0]?.has_photo ? `/employees/${selected[0].id}/photo` : null} /></div>}
+        {template && (() => {
+          const design = template.design;
+          // A card with a back is shown front and back, side by side.
+          const hasBack = Boolean(design && (isImageDesign(design) ? design.back : design.two_sided));
+          const person = selected[0];
+          const card = (back: boolean) => <CardPreview back={back} className={template.design ? undefined : 'm-auto max-w-105 min-h-56.25!'} design={template.design} style={template.style_key} company={company.name} name={person?.name} designation={person?.designation} email={person?.email} phone={person?.phone} logoPath={company.has_logo ? '/company/logo' : null} photoPath={person?.has_photo ? `/employees/${person.id}/photo` : null} />;
+          return <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+            {hasBack
+              ? <div className="grid items-start gap-6 sm:grid-cols-2">
+                  <figure className="min-w-0"><figcaption className="mb-2 text-center text-xs font-medium text-slate-500">Front</figcaption>{card(false)}</figure>
+                  <figure className="min-w-0"><figcaption className="mb-2 text-center text-xs font-medium text-slate-500">Back</figcaption>{card(true)}</figure>
+                </div>
+              : card(false)}
+          </div>;
+        })()}
       </div>}
 
       {step === 3 && <div className="pt-6">

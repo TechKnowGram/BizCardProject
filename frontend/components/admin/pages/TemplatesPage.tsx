@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import AdminTemplateCollection from '@/components/admin/AdminTemplateCollection';
+import { buttonClass } from '@/components/ui';
 import { PageHeader } from '@/components/dashboard/Surface';
 import { useAdmin } from '@/components/admin/AdminDashboard';
 
@@ -11,6 +13,12 @@ export default function AdminTemplatesPage() {
       <PageHeader
         title="Templates"
         description="Shared card designs, and designs companies have made for themselves."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Link href="/dashboard/templates/create" className={buttonClass('secondary')}>Create template</Link>
+            <Link href="/dashboard/templates/upload" className={buttonClass('primary')}>Upload template</Link>
+          </div>
+        }
       />
       <AdminTemplateCollection
         data={data}
