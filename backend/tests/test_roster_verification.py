@@ -242,6 +242,7 @@ def test_card_ordering_by_membership_status(context):
     })
     assert alice_order.status_code == 201
     assert alice_order.json()['quantity'] == 2
-    # Alice's membership defaults to company-paid, so her cards are free.
-    assert alice_order.json()['payer'] == 'COMPANY'
-    assert alice_order.json()['total_amount'] == 0
+    # Employee self-service card checkout charges individual price and awaits payment.
+    assert alice_order.json()['payer'] == 'INDIVIDUAL'
+    assert alice_order.json()['total_amount'] == 100
+    assert alice_order.json()['payment_status'] == 'PENDING_PAYMENT'

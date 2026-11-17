@@ -4,6 +4,8 @@ const tones: Record<string, [string, string]> = {
   ACTIVE: ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'bg-emerald-500'],
   COMPLETED: ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'bg-emerald-500'],
   PAID: ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'bg-emerald-500'],
+  PENDING_PAYMENT: ['bg-amber-50 text-amber-800 ring-amber-200', 'bg-amber-500'],
+  UNPAID: ['bg-rose-50 text-rose-700 ring-rose-200', 'bg-rose-500'],
   PENDING: ['bg-amber-50 text-amber-800 ring-amber-200', 'bg-amber-500'],
   PROCESSING: ['bg-brand-50 text-brand-700 ring-brand-100', 'bg-brand-600'],
   PRE_APPROVED: ['bg-brand-50 text-brand-700 ring-brand-100', 'bg-brand-600'],

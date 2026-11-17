@@ -49,6 +49,7 @@ def create_my_card(company_id: int, template_id: int, db: Session = Depends(get_
     request = CardRequest(company_id=company_id, template_id=template.id, created_by_id=user.id, status='PROCESSING',
                           items=[CardRequestItem(employee_id=membership.employee_id)])
     db.add(request); db.flush()
+    order.request_id = request.id
     request = db.scalar(select(CardRequest).where(CardRequest.id == request.id).options(
         selectinload(CardRequest.company), selectinload(CardRequest.template),
         selectinload(CardRequest.items).selectinload(CardRequestItem.employee),
@@ -74,25 +75,35 @@ def checkout_company_cards(company_id: int, body: CardCheckout, db: Session = De
                          or_(CardTemplate.company_id.is_(None), CardTemplate.company_id == company_id)))
     if template is None:
         raise HTTPException(404, 'Active template not found')
-    # Who pays is decided by the approved membership, never by the request body:
-    # company-sponsored members get cards free, self-paid members pay the normal price.
-    payer = membership.payer
-    unit_price = 0 if payer == 'COMPANY' else INDIVIDUAL_CARD_PRICE
+
+    unit_price = INDIVIDUAL_CARD_PRICE
+    total_amount = unit_price * body.quantity
+    status = 'PENDING_PAYMENT'
+
     order = CardOrder(company_id=company_id, user_id=user.id, membership_id=membership.id, quantity=body.quantity,
-                      unit_price=unit_price, total_amount=unit_price * body.quantity, payer=payer, status='PAID')
-    db.add(order); db.flush(); db.add(PaymentRecord(order_id=order.id, amount=order.total_amount))
+                      unit_price=unit_price, total_amount=total_amount, payer='INDIVIDUAL', status=status)
+    db.add(order)
+    db.flush()
+
     card_ids = []
     try:
-        for _ in range(body.quantity):
-            request = CardRequest(company_id=company_id, template_id=template.id, created_by_id=user.id, status='PROCESSING',
-                items=[CardRequestItem(employee_id=membership.employee_id)])
-            db.add(request); db.flush()
-            request = db.scalar(select(CardRequest).where(CardRequest.id == request.id).options(selectinload(CardRequest.company), selectinload(CardRequest.template), selectinload(CardRequest.items).selectinload(CardRequestItem.employee), selectinload(CardRequest.items).selectinload(CardRequestItem.generated_card)))
-            card = generate_cards(db, request)[0]; request.status = 'COMPLETED'; card_ids.append(card.id)
-        add_audit(db, 'EMPLOYEE_CARD_ORDER', 'card_order', order.id, user.id, company_id, f'{body.quantity} cards; {payer}')
+        request = CardRequest(company_id=company_id, template_id=template.id, created_by_id=user.id, status='PROCESSING',
+            items=[CardRequestItem(employee_id=membership.employee_id)])
+        db.add(request)
+        db.flush()
+        order.request_id = request.id
+        request = db.scalar(select(CardRequest).where(CardRequest.id == request.id).options(
+            selectinload(CardRequest.company), selectinload(CardRequest.template),
+            selectinload(CardRequest.items).selectinload(CardRequestItem.employee),
+            selectinload(CardRequest.items).selectinload(CardRequestItem.generated_card)
+        ))
+        card = generate_cards(db, request)[0]
+        request.status = 'COMPLETED'
+        card_ids.append(card.id)
+        add_audit(db, 'EMPLOYEE_CARD_ORDER', 'card_order', order.id, user.id, company_id, f'{body.quantity} cards; INDIVIDUAL')
         db.commit()
         return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': unit_price,
-                'total_amount': order.total_amount, 'payer': order.payer, 'payment_status': 'PAID', 'card_ids': card_ids}
+                'total_amount': order.total_amount, 'payer': order.payer, 'payment_status': status, 'card_ids': card_ids}
     except Exception:
         db.rollback()
         raise HTTPException(500, 'Card generation failed') from None
@@ -101,9 +112,11 @@ def checkout_company_cards(company_id: int, body: CardCheckout, db: Session = De
 @router.post('/checkout/personal', response_model=CheckoutResponse, status_code=201)
 def checkout_personal_cards(body: CardCheckout, db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
     unit_price = INDIVIDUAL_CARD_PRICE
+    total_amount = unit_price * body.quantity
     order = CardOrder(company_id=None, user_id=user.id, membership_id=None, quantity=body.quantity,
-                      unit_price=unit_price, total_amount=unit_price * body.quantity, payer='INDIVIDUAL', status='PAID')
-    db.add(order); db.flush(); db.add(PaymentRecord(order_id=order.id, amount=order.total_amount))
+                      unit_price=unit_price, total_amount=total_amount, payer='INDIVIDUAL', status='PENDING_PAYMENT')
+    db.add(order)
+    db.flush()
     company = SimpleNamespace(name='Personal Card', logo_path=None, website=None)
     employee = SimpleNamespace(name=body.name or user.username, designation=body.designation or 'Professional',
         department=body.department or 'Independent', email=user.email, phone=body.phone or 'Not provided', photo_path=None)
@@ -118,7 +131,7 @@ def checkout_personal_cards(body: CardCheckout, db: Session = Depends(get_db), u
         add_audit(db, 'PERSONAL_CARD_ORDER', 'card_order', order.id, user.id, None, f'{body.quantity} cards')
         db.commit()
         return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': unit_price,
-                'total_amount': order.total_amount, 'payer': 'INDIVIDUAL', 'payment_status': 'PAID', 'card_ids': cards}
+                'total_amount': order.total_amount, 'payer': 'INDIVIDUAL', 'payment_status': 'PENDING_PAYMENT', 'card_ids': cards}
     except Exception:
         db.rollback()
         raise HTTPException(500, 'Personal card generation failed') from None
@@ -127,9 +140,23 @@ def checkout_personal_cards(body: CardCheckout, db: Session = Depends(get_db), u
 @router.get('/personal-cards')
 def my_personal_cards(db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
     cards = db.scalars(select(PersonalCard).where(PersonalCard.user_id == user.id).order_by(PersonalCard.id.desc())).all()
-    # Never send the server's file path to the browser.
-    columns = [c.name for c in PersonalCard.__table__.columns if c.name != 'file_path']
-    return [{name: getattr(card, name) for name in columns} for card in cards]
+    results = []
+    for card in cards:
+        order = db.get(CardOrder, card.order_id)
+        card_path = Path(card.file_path) if card.file_path else None
+        file_size = card_path.stat().st_size if (card_path and card_path.is_file()) else 0
+        order_status = order.status if order else 'PAID'
+        results.append({
+            'id': card.id,
+            'user_id': str(card.user_id),
+            'order_id': card.order_id,
+            'file_name': card.file_name,
+            'file_size': file_size,
+            'status': 'ACTIVE' if order_status == 'PAID' else 'PENDING_PAYMENT',
+            'payment_status': order_status,
+            'created_at': card.created_at,
+        })
+    return results
 
 
 @router.get('/orders')
@@ -145,22 +172,52 @@ def download_personal_card(card_id: int, db: Session = Depends(get_db), user: Us
     card = db.scalar(select(PersonalCard).where(PersonalCard.id == card_id, PersonalCard.user_id == user.id))
     if card is None or not Path(card.file_path).is_file():
         raise HTTPException(404, 'Card not found')
+    order = db.get(CardOrder, card.order_id)
+    if order and order.status != 'PAID':
+        raise HTTPException(status_code=402, detail=f'Payment required: Order #{order.id} is unpaid. Please complete payment to download.')
     return FileResponse(card.file_path, media_type='application/pdf', filename=card.file_name)
 
 
 @router.get('/cards', response_model=list[GeneratedCardResponse])
 def my_cards(db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
-    return db.scalars(select(GeneratedCard).join(CardRequestItem).join(CardRequest).join(Membership,
-        Membership.employee_id == GeneratedCard.employee_id).where(Membership.user_id == user.id,
-        Membership.status == 'APPROVED').order_by(GeneratedCard.id.desc())).all()
+    cards = db.scalars(
+        select(GeneratedCard)
+        .join(CardRequestItem)
+        .join(CardRequest)
+        .join(Membership, Membership.employee_id == GeneratedCard.employee_id)
+        .where(Membership.user_id == user.id, Membership.status == 'APPROVED')
+        .options(selectinload(GeneratedCard.item))
+        .order_by(GeneratedCard.id.desc())
+    ).all()
+    results = []
+    for card in cards:
+        order = None
+        if card.item and card.item.request_id:
+            order = db.scalar(select(CardOrder).where(CardOrder.request_id == card.item.request_id).order_by(CardOrder.id.desc()))
+        resp = GeneratedCardResponse.model_validate(card)
+        order_status = order.status if order else 'PAID'
+        resp.payment_status = order_status
+        resp.order_id = order.id if order else None
+        if order_status != 'PAID':
+            resp.status = 'PENDING_PAYMENT'
+        results.append(resp)
+    return results
 
 
 @router.get('/cards/{card_id}/download')
 def download_my_card(card_id: int, db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
-    card = db.scalar(select(GeneratedCard).join(Membership, Membership.employee_id == GeneratedCard.employee_id).where(
-        GeneratedCard.id == card_id, Membership.user_id == user.id, Membership.status == 'APPROVED'))
+    card = db.scalar(
+        select(GeneratedCard)
+        .join(Membership, Membership.employee_id == GeneratedCard.employee_id)
+        .where(GeneratedCard.id == card_id, Membership.user_id == user.id, Membership.status == 'APPROVED')
+        .options(selectinload(GeneratedCard.item))
+    )
     if card is None:
         raise HTTPException(404, 'Card not found')
+    if card.item and card.item.request_id:
+        order = db.scalar(select(CardOrder).where(CardOrder.request_id == card.item.request_id).order_by(CardOrder.id.desc()))
+        if order and order.status != 'PAID':
+            raise HTTPException(status_code=402, detail=f'Payment required: Order #{order.id} is awaiting payment. Please pay before downloading.')
     path = Path(card.file_path)
     if not path.is_file():
         raise HTTPException(404, 'Generated PDF is missing')

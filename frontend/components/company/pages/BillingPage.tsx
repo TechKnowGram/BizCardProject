@@ -4,7 +4,7 @@ import BillingTab from '@/components/company/BillingTab';
 import { useCompany } from '@/components/company/CompanyDashboard';
 
 export default function CompanyBillingPage() {
-  const { company, orders, totalSpend, companySponsoredOrders, companySponsoredTotal, selfPaidOrders, selfPaidTotal } = useCompany();
+  const { company, orders, totalSpend, companySponsoredOrders, companySponsoredTotal, selfPaidOrders, selfPaidTotal, setPaymentModalOrder } = useCompany();
   return (
     <BillingTab
       company={company}
@@ -14,6 +14,7 @@ export default function CompanyBillingPage() {
       companySponsoredCount={companySponsoredOrders.length}
       selfPaidTotal={selfPaidTotal}
       selfPaidCount={selfPaidOrders.length}
+      onPay={setPaymentModalOrder}
     />
   );
 }

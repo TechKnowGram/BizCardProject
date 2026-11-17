@@ -82,6 +82,7 @@ class CardRequest(Base):
     created_by = relationship('User', foreign_keys=[created_by_id])
     decided_by = relationship('User', foreign_keys=[decided_by_id])
     items = relationship('CardRequestItem', back_populates='request', cascade='all, delete-orphan')
+    order = relationship('CardOrder', back_populates='request', uselist=False)
     __table_args__ = (
         CheckConstraint(
             "status IN ('PENDING','APPROVED','REJECTED','PROCESSING','COMPLETED','FAILED')",
@@ -172,6 +173,7 @@ class CardOrder(Base):
     company_id: Mapped[int | None] = mapped_column(ForeignKey('companies.id', ondelete='CASCADE'), nullable=True, index=True)
     user_id: Mapped[PythonUUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     membership_id: Mapped[int | None] = mapped_column(ForeignKey('memberships.id', ondelete='SET NULL'), nullable=True)
+    request_id: Mapped[int | None] = mapped_column(ForeignKey('card_requests.id', ondelete='SET NULL'), nullable=True, index=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[int] = mapped_column(Integer, nullable=False)
     total_amount: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -180,6 +182,7 @@ class CardOrder(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     # Read-only link used by the admin payments list; the foreign key above already exists.
     company = relationship('Company')
+    request = relationship('CardRequest', back_populates='order')
     __table_args__ = (CheckConstraint('quantity > 0', name='check_order_quantity'),
                       CheckConstraint("payer IN ('COMPANY','INDIVIDUAL')", name='check_order_payer'),)
 

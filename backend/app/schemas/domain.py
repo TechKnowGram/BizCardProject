@@ -136,6 +136,16 @@ class CardItemResponse(BaseModel):
     employee: EmployeeResponse
 
 
+class OrderSummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    quantity: int
+    unit_price: int
+    total_amount: int
+    payer: str
+    status: str
+
+
 class CardRequestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -149,6 +159,7 @@ class CardRequestResponse(BaseModel):
     company: CompanySummary
     template: TemplateResponse
     created_by: UserResponse
+    order: OrderSummaryResponse | None = None
 
 
 class CardDecision(BaseModel):
@@ -164,6 +175,8 @@ class GeneratedCardResponse(BaseModel):
     file_size: int
     verification_token: str
     status: str
+    payment_status: str | None = None
+    order_id: int | None = None
     created_at: datetime
 
 
@@ -246,6 +259,18 @@ class CheckoutResponse(BaseModel):
     payer: str
     payment_status: str
     card_ids: list[int]
+
+
+class PayOrderRequest(BaseModel):
+    method: str = Field(default='GATEWAY_SANDBOX', max_length=50)
+
+
+class PayOrderResponse(BaseModel):
+    order_id: int
+    status: str
+    total_amount: int
+    method: str
+    message: str
 
 
 class AuditLogResponse(BaseModel):

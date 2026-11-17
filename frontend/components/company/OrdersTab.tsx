@@ -8,39 +8,54 @@ import { Button } from '@/components/ui';
 import { Segmented, cellNoteClass, formatDate, formatTaka, rowButtonClass } from '@/components/company/CompanyDashboardParts';
 
 /** Columns for employee card orders, shared with the Billing tab. */
-export const orderColumns: Column<any>[] = [
-  {
-    key: 'id',
-    header: 'Order',
-    sortValue: (o) => Number(o.id),
-    render: (o) => (
-      <>
-        <span className="block font-medium text-navy-900">#{o.id}</span>
-        <span className={cellNoteClass}>{formatDate(o.created_at)}</span>
-      </>
-    ),
-  },
-  {
-    key: 'quantity',
-    header: 'Quantity',
-    sortValue: (o) => Number(o.quantity) || 0,
-    render: (o) => `${o.quantity} ${o.quantity === 1 ? 'card' : 'cards'}`,
-  },
-  {
-    key: 'payer',
-    header: 'Paid by',
-    sortValue: (o) => o.payer,
-    render: (o) => (o.payer === 'COMPANY' ? 'Company' : 'Employee'),
-  },
-  {
-    key: 'amount',
-    header: 'Amount',
-    align: 'right',
-    sortValue: (o) => Number(o.total_amount) || 0,
-    render: (o) => <span className="font-medium text-navy-900 tabular-nums">{formatTaka(o.total_amount)}</span>,
-  },
-  { key: 'status', header: 'Status', sortValue: (o) => o.status, render: (o) => <StatusBadge value={o.status} /> },
-];
+export function getOrderColumns(onPay?: (order: any) => void): Column<any>[] {
+  return [
+    {
+      key: 'id',
+      header: 'Order',
+      sortValue: (o) => Number(o.id),
+      render: (o) => (
+        <>
+          <span className="block font-medium text-navy-900">#{o.id}</span>
+          <span className={cellNoteClass}>{formatDate(o.created_at)}</span>
+        </>
+      ),
+    },
+    {
+      key: 'quantity',
+      header: 'Quantity',
+      sortValue: (o) => Number(o.quantity) || 0,
+      render: (o) => `${o.quantity} ${o.quantity === 1 ? 'card' : 'cards'}`,
+    },
+    {
+      key: 'payer',
+      header: 'Paid by',
+      sortValue: (o) => o.payer,
+      render: (o) => (o.payer === 'COMPANY' ? 'Company' : 'Employee'),
+    },
+    {
+      key: 'amount',
+      header: 'Amount',
+      align: 'right',
+      sortValue: (o) => Number(o.total_amount) || 0,
+      render: (o) => <span className="font-medium text-navy-900 tabular-nums">{formatTaka(o.total_amount)}</span>,
+    },
+    { key: 'status', header: 'Status', sortValue: (o) => o.status, render: (o) => <StatusBadge value={o.status} /> },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'right',
+      render: (o) =>
+        o.status === 'PENDING_PAYMENT' && onPay ? (
+          <Button className={rowButtonClass} onClick={() => onPay(o)}>
+            Pay now
+          </Button>
+        ) : null,
+    },
+  ];
+}
+
+export const orderColumns: Column<any>[] = getOrderColumns();
 
 export interface OrdersTabProps {
   requests: CardRequest[];
@@ -50,9 +65,10 @@ export interface OrdersTabProps {
   onCreateRequest: () => void;
   onOpenRequest: (request: CardRequest) => void;
   onDownload: (path: string, filename: string) => void;
+  onPay?: (order: any) => void;
 }
 
-export default function OrdersTab({ requests, orders, view, setView, onCreateRequest, onOpenRequest, onDownload }: OrdersTabProps) {
+export default function OrdersTab({ requests, orders, view, setView, onCreateRequest, onOpenRequest, onDownload, onPay }: OrdersTabProps) {
   const requestColumns: Column<CardRequest>[] = [
     {
       key: 'id',
@@ -77,7 +93,17 @@ export default function OrdersTab({ requests, orders, view, setView, onCreateReq
       hideOnMobile: true,
       render: (r) => r.template?.name || `Template #${r.template_id}`,
     },
-    { key: 'status', header: 'Status', sortValue: (r) => r.status, render: (r) => <StatusBadge value={r.status} /> },
+    {
+      key: 'status',
+      header: 'Status',
+      sortValue: (r) => (r.status === 'COMPLETED' && r.order?.status === 'PENDING_PAYMENT' ? 'PENDING_PAYMENT' : r.status),
+      render: (r) => {
+        if (r.status === 'COMPLETED' && r.order?.status === 'PENDING_PAYMENT') {
+          return <StatusBadge value="PENDING_PAYMENT" />;
+        }
+        return <StatusBadge value={r.status} />;
+      },
+    },
     {
       key: 'actions',
       header: 'Actions',
@@ -85,7 +111,12 @@ export default function OrdersTab({ requests, orders, view, setView, onCreateReq
       render: (r) => (
         <div className="flex items-center justify-end gap-1.5">
           <Button variant="secondary" className={rowButtonClass} onClick={() => onOpenRequest(r)}>View details</Button>
-          {r.status === 'COMPLETED' && (
+          {r.status === 'COMPLETED' && r.order?.status === 'PENDING_PAYMENT' && onPay && (
+            <Button className={rowButtonClass} onClick={() => onPay(r.order)}>
+              Pay now
+            </Button>
+          )}
+          {r.status === 'COMPLETED' && (!r.order || r.order.status === 'PAID') && (
             <Button className={rowButtonClass} onClick={() => onDownload(`/card-requests/${r.id}/cards/download`, `card-request-${r.id}.zip`)}>
               Download ZIP
             </Button>
@@ -130,7 +161,7 @@ export default function OrdersTab({ requests, orders, view, setView, onCreateReq
         <DataTable
           key="checkouts"
           rows={orders}
-          columns={orderColumns}
+          columns={getOrderColumns(onPay)}
           rowKey={(o) => o.id}
           title="Employee orders"
           description="Orders placed by your employees, paid by the company or by themselves."

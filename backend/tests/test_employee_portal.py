@@ -81,10 +81,11 @@ def test_imported_existing_employee_is_linked_and_mock_checkout(context):
     checkout = client.post(f"/employee/checkout/company/{company['company']['id']}", headers=employee,
         json={'quantity': 3, 'template_id': templates[0]['id'], 'payer': 'INDIVIDUAL'})
     assert checkout.status_code == 201, checkout.text
-    # Imported staff are company-sponsored, so the body's 'INDIVIDUAL' is ignored and cards are free.
-    assert checkout.json()['payer'] == 'COMPANY'
-    assert checkout.json()['total_amount'] == 0
-    assert len(checkout.json()['card_ids']) == 3
+    # Employee self-service company checkout charges individual price and awaits payment
+    assert checkout.json()['payer'] == 'INDIVIDUAL'
+    assert checkout.json()['total_amount'] == 150
+    assert checkout.json()['payment_status'] == 'PENDING_PAYMENT'
+    assert len(checkout.json()['card_ids']) == 1
     personal = client.post('/employee/checkout/personal', headers=employee,
         json={'quantity': 2, 'name': 'Existing', 'designation': 'Engineer'})
     assert personal.status_code == 201, personal.text

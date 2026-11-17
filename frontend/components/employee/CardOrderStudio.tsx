@@ -49,6 +49,8 @@ export interface CardOrderStudioProps {
   onGoToCompany: () => void;
   /** Shows an error message on the page (e.g. a failed download). */
   onError?: (message: string) => void;
+  /** Opens payment modal for an unpaid order. */
+  onPayOrder?: (orderId: number) => void;
 }
 
 const THEMES: ReadonlyArray<{ key: Theme; label: string; swatch: string }> = [
@@ -84,7 +86,11 @@ export default function CardOrderStudio(props: CardOrderStudioProps) {
           />
         }
       />
-      {cardSubView === 'order' ? <DesignAndOrder {...props} /> : <SavedCards cardRows={cardRows} onError={props.onError} onOrderMore={() => setCardSubView('order')} />}
+      {cardSubView === 'order' ? (
+        <DesignAndOrder {...props} />
+      ) : (
+        <SavedCards cardRows={cardRows} onError={props.onError} onPayOrder={props.onPayOrder} onOrderMore={() => setCardSubView('order')} />
+      )}
     </div>
   );
 }
@@ -182,9 +188,7 @@ function DesignAndOrder({
 }: CardOrderStudioProps) {
   const quantity = Number(order.quantity || 1);
   const isCompany = cardOrderType === 'COMPANY';
-  // The server decides who pays from the membership; mirror that here so the price shown is the price charged.
-  const isCompanySponsored = isCompany && activeMembership?.payer === 'COMPANY';
-  const total = isCompanySponsored ? 0 : quantity * PRICE;
+  const total = quantity * PRICE;
   const selectedTemplate = templates.find((t) => String(t.id) === String(order.template_id));
   const companyName = activeMembership?.company?.name || 'your company';
   const [previewSide, setPreviewSide] = useState<'front' | 'back'>('front');
@@ -217,7 +221,7 @@ function DesignAndOrder({
               disabled={!isMember}
               onSelect={() => setCardOrderType('COMPANY')}
               title="Company card"
-              meta={isMember ? (activeMembership?.payer === 'COMPANY' ? 'Paid by company' : `৳${PRICE} per card`) : 'Company members only'}
+              meta={isMember ? `৳${PRICE} per card` : 'Company members only'}
             >
               {isMember ? `Uses a design approved by ${companyName}.` : 'Join your company first to use its card designs.'}
             </RadioCard>
@@ -345,12 +349,12 @@ function DesignAndOrder({
               <SummaryList
                 rows={[
                   { label: 'Company', value: activeMembership?.company?.name || '—' },
-                  { label: 'Card payment on your membership', value: activeMembership?.payer === 'COMPANY' ? 'Paid by company' : 'Paid by you' },
+                  { label: 'Price per card', value: `৳${PRICE}` },
                   { label: 'Cards', value: String(quantity) },
                   { label: 'PDF download', value: 'Included' },
                 ]}
                 total={`৳${total}`}
-                totalNote={isCompanySponsored ? `Paid by ${companyName}` : `${quantity} × ৳${PRICE}`}
+                totalNote={`${quantity} × ৳${PRICE}`}
               />
               <Button className="mt-6 w-full py-3" disabled={busy || !order.template_id} onClick={() => onCheckout(true)}>
                 {busy ? 'Placing order…' : order.template_id ? `Order company cards · ৳${total}` : 'Choose a design to continue'}
@@ -408,7 +412,7 @@ function DesignAndOrder({
   );
 }
 
-function SavedCards({ cardRows, onOrderMore, onError }: { cardRows: Row[]; onOrderMore: () => void; onError?: (message: string) => void }) {
+function SavedCards({ cardRows, onOrderMore, onError, onPayOrder }: { cardRows: Row[]; onOrderMore: () => void; onError?: (message: string) => void; onPayOrder?: (orderId: number) => void }) {
   const [search, setSearch] = useState('');
   const q = search.trim().toLowerCase();
   const rows = q ? cardRows.filter((c) => String(c.file_name || '').toLowerCase().includes(q)) : cardRows;
@@ -429,25 +433,38 @@ function SavedCards({ cardRows, onOrderMore, onError }: { cardRows: Row[]; onOrd
       className: 'max-w-72',
     },
     { key: 'type', header: 'Type', sortValue: (c) => c.kind, render: (c) => (c.kind === 'personal' ? 'Personal' : 'Company') },
-    { key: 'status', header: 'Status', render: (c) => <StatusBadge value={c.status} /> },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (c) => <StatusBadge value={c.payment_status === 'PENDING_PAYMENT' ? 'PENDING_PAYMENT' : (c.status || 'ACTIVE')} />,
+    },
     { key: 'size', header: 'Size', hideOnMobile: true, sortValue: (c) => c.file_size || 0, render: (c) => <span className="tabular-nums">{formatSize(c.file_size)}</span> },
     { key: 'created', header: 'Created', sortValue: (c) => new Date(c.created_at).getTime(), render: (c) => <span className="whitespace-nowrap">{formatDate(c.created_at)}</span> },
     {
       key: 'actions',
       header: 'Actions',
       align: 'right',
-      render: (c) => (
-        <div className="flex items-center justify-end gap-2">
-          {c.kind !== 'personal' && c.verification_token && (
-            <a href={`/verify/${c.verification_token}`} target="_blank" rel="noopener noreferrer" className={buttonClass('quiet', 'px-3 py-1.5')}>
-              Verify
-            </a>
-          )}
-          <Button variant="secondary" className="px-3 py-1.5" onClick={() => downloadOrReport(cardDownloadPath(c), c.file_name, onError ?? (() => {}))}>
-            Download PDF
-          </Button>
-        </div>
-      ),
+      render: (c) => {
+        const isUnpaid = c.payment_status === 'PENDING_PAYMENT';
+        return (
+          <div className="flex items-center justify-end gap-2">
+            {c.kind !== 'personal' && c.verification_token && (
+              <a href={`/verify/${c.verification_token}`} target="_blank" rel="noopener noreferrer" className={buttonClass('quiet', 'px-3 py-1.5')}>
+                Verify
+              </a>
+            )}
+            {isUnpaid && c.order_id ? (
+              <Button className="px-3 py-1.5" onClick={() => onPayOrder?.(Number(c.order_id))}>
+                Pay now
+              </Button>
+            ) : (
+              <Button variant="secondary" className="px-3 py-1.5" onClick={() => downloadOrReport(cardDownloadPath(c), c.file_name, onError ?? (() => {}))}>
+                Download PDF
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 

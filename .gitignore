@@ -29,3 +29,6 @@ docs/design-research/
 
 # Local secrets and scratch files
 *.local.md
+scratch/
+.claude/
+

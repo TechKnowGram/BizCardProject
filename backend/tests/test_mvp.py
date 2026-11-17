@@ -251,6 +251,8 @@ def test_single_bulk_decisions_pdf_generation_and_idempotency(context):
     )
     assert approved.status_code == 200
     assert approved.json()['status'] == 'COMPLETED'
+    order_id = approved.json()['order']['id']
+    assert client.post(f'/orders/{order_id}/pay', headers=headers).status_code == 200
     cards = client.get(f'/card-requests/{request_id}/cards', headers=headers).json()
     assert len(cards) == 2
     for card in cards:
