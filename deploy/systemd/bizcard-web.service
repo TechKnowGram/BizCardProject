@@ -1,0 +1,15 @@
+[Unit]
+Description=BizCard Web (Next.js)
+After=network.target bizcard-api.service
+
+[Service]
+User=bizcard
+Group=bizcard
+WorkingDirectory=/opt/bizcard/app/frontend
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start -- --port 3001 --hostname 127.0.0.1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
