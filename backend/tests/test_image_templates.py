@@ -401,3 +401,37 @@ def test_layers_removed_in_the_workspace_are_removed_from_the_saved_ai_file(comp
     assert not (template_folder(None) / first).exists()
     # A changed .ai file can still make a card.
     assert client.patch(f"/templates/image/{template['id']}", headers=admin, json={'ai_edit': {'upload_id': 'ab' * 16}}).status_code == 422
+
+
+@pytest.mark.parametrize('shape', ['circle', 'rect'])
+def test_photo_field_matches_the_real_frame_around_a_face(shape, tmp_path):
+    """With the face model installed, the photo field is the design's own frame, not just the face.
+    Otherwise the new photo would be too small and the sample photo would show around it."""
+    from pathlib import Path
+    from PIL import Image, ImageDraw
+    from app.services.template_ml import _face_model_path, analyze, load_image
+    headshot = Path(__file__).resolve().parents[2] / 'img' / 'Professional South Asian LinkedIn Headshot.png'
+    if not _face_model_path().exists() or not headshot.exists():
+        pytest.skip('face model or sample photo not available')
+    from card_fixtures import _font
+    card = Image.new('RGB', (1050, 600), (236, 242, 250))
+    draw = ImageDraw.Draw(card)
+    draw.rectangle((0, 0, 380, 600), fill=(16, 24, 69))
+    cx, cy, r = 190, 300, 140
+    photo = Image.open(headshot).convert('RGB').resize((2 * r, 2 * r))
+    if shape == 'circle':
+        mask = Image.new('L', (2 * r, 2 * r), 0)
+        ImageDraw.Draw(mask).ellipse((0, 0, 2 * r - 1, 2 * r - 1), fill=255)
+        draw.ellipse((cx - r - 8, cy - r - 8, cx + r + 8, cy + r + 8), fill=(255, 255, 255))
+        card.paste(photo, (cx - r, cy - r), mask)
+    else:
+        draw.rectangle((cx - r - 8, cy - r - 8, cx + r + 8, cy + r + 8), fill=(201, 162, 39))
+        card.paste(photo, (cx - r, cy - r))
+    draw.text((440, 150), 'Ayesha Rahman', font=_font(60, True), fill=(16, 24, 69))
+    draw.text((442, 225), 'Senior Software Engineer', font=_font(30), fill=(50, 103, 176))
+    draw.text((442, 320), '+880 1711 204 518', font=_font(28), fill=(30, 30, 30))
+    card.save(tmp_path / 'card.png')
+    photo_field = next(f for f in analyze(load_image(tmp_path / 'card.png')).fields if f.role == 'photo')
+    assert photo_field.shape == shape
+    for got, want in ((photo_field.x * 1050, cx - r), (photo_field.y * 600, cy - r), (photo_field.w * 1050, 2 * r), (photo_field.h * 600, 2 * r)):
+        assert abs(got - want) <= 6, (got, want)
