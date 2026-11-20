@@ -9,7 +9,6 @@ import type { Column } from '@/components/dashboard/DataTable';
 import { PageHeader, SectionCard } from '@/components/dashboard/Surface';
 import { Button, FieldLabel, buttonClass, cx, inputClass } from '@/components/ui';
 import Icon from '@/components/ui/Icon';
-import LiveCardPreview from '@/components/employee/LiveCardPreview';
 import { FlipCard } from '@/components/cards/ImageTemplateCard';
 import DesignUploader from '@/components/company/DesignUploader';
 import type { CardValues } from '@/components/cards/ImageTemplateCard';
@@ -66,12 +65,6 @@ export interface CardOrderStudioProps {
   /** Opens payment modal for an unpaid order. */
   onPayOrder?: (orderId: number) => void;
 }
-
-const THEMES: ReadonlyArray<{ key: Theme; label: string; swatch: string }> = [
-  { key: 'navy', label: 'Navy', swatch: 'bg-navy-950' },
-  { key: 'clean', label: 'White', swatch: 'bg-white ring-1 ring-inset ring-slate-300' },
-  { key: 'royal', label: 'Navy and gold', swatch: 'bg-navy-900 ring-2 ring-inset ring-amber-400' },
-];
 
 export default function CardOrderStudio(props: CardOrderStudioProps) {
   const { cardSubView, setCardSubView, cardRows } = props;
@@ -191,8 +184,6 @@ function DesignAndOrder({
   setOrder,
   cardOrderType,
   setCardOrderType,
-  cardTheme,
-  setCardTheme,
   isMember,
   activeMembership,
   templates,
@@ -303,33 +294,10 @@ function DesignAndOrder({
               </div>
             </SectionCard>
 
-            <SectionCard title="Design" info="Pick a standard style, or upload your own card design. Machine learning reads it and puts your details in the right places.">
-              <p className="mb-2 text-xs font-medium text-slate-500">Standard styles</p>
-              <div role="radiogroup" aria-label="Card style" className="grid gap-3 sm:grid-cols-3">
-                {THEMES.map((t) => {
-                  const active = !personalDesign && cardTheme === t.key;
-                  return (
-                    <button
-                      key={t.key}
-                      type="button"
-                      role="radio"
-                      aria-checked={active}
-                      onClick={() => { setCardTheme(t.key); setOrder({ ...order, personal_template_id: '' }); }}
-                      className={cx(
-                        'flex items-center gap-3 rounded-lg border px-3.5 py-3 text-left text-sm font-medium transition-colors',
-                        active ? 'border-brand-600 bg-brand-50/60 text-brand-700 ring-1 ring-brand-600' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300',
-                      )}
-                    >
-                      <span className={cx('size-5 shrink-0 rounded-full', t.swatch)} />
-                      {t.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6 flex items-center justify-between gap-3">
-                <p className="text-xs font-medium text-slate-500">Your designs</p>
-                {!uploading && <Button variant="secondary" className="px-3 py-1.5" onClick={() => setUploading(true)}>Upload your design</Button>}
+            <SectionCard title="Your card design" info="Upload a card designed in Photoshop or Canva (PNG, JPG or WebP). Machine learning reads it and puts your name, title, phone and photo in the right places.">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-slate-500">{designs.length ? 'Choose the design to print on.' : 'Start by uploading your card design.'}</p>
+                {!uploading && <Button variant={designs.length ? 'secondary' : 'primary'} className="px-3 py-1.5" onClick={() => setUploading(true)}>Upload a design</Button>}
               </div>
               {designs.length > 0 ? (
                 <div role="radiogroup" aria-label="Your designs" className="mt-2 grid gap-3 sm:grid-cols-2">
@@ -354,7 +322,7 @@ function DesignAndOrder({
                   })}
                 </div>
               ) : !uploading ? (
-                <p className="mt-2 text-sm text-slate-500">No designs yet. Upload a card made in Photoshop or Canva to use it for your own cards.</p>
+                <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">No designs yet. Upload a card made in Photoshop or Canva; you check where everything goes before saving.</p>
               ) : null}
             </SectionCard>
 
@@ -374,17 +342,20 @@ function DesignAndOrder({
             <SectionCard title="Order summary">
               <SummaryList
                 rows={[
+                  { label: 'Design', value: personalDesign?.name || 'Not chosen' },
                   { label: 'Price per card', value: `৳${PRICE}` },
                   { label: 'Cards', value: String(quantity) },
-                  { label: 'PDF download', value: 'Included' },
+                  { label: 'PDF download', value: 'After approval and payment' },
                 ]}
                 total={`৳${total}`}
                 totalNote={`${quantity} × ৳${PRICE}`}
               />
-              <Button className="mt-6 w-full py-3" disabled={busy || !order.name.trim()} onClick={() => onCheckout(false)}>
-                {busy ? 'Placing order…' : `Order personal cards · ৳${total}`}
+              <ApprovalSteps />
+              <Button className="mt-5 w-full py-3" disabled={busy || !order.name.trim() || !personalDesign} onClick={() => onCheckout(false)}>
+                {busy ? 'Sending…' : `Send for approval · ৳${total}`}
               </Button>
-              {!order.name.trim() && <p className="mt-2 text-center text-xs text-slate-500">Enter your full name to continue.</p>}
+              {!personalDesign ? <p className="mt-2 text-center text-xs text-slate-500">Upload or choose your card design to continue.</p>
+                : !order.name.trim() && <p className="mt-2 text-center text-xs text-slate-500">Enter your full name to continue.</p>}
             </SectionCard>
           </>
         ) : !isMember ? (
@@ -432,13 +403,14 @@ function DesignAndOrder({
                   { label: 'Company', value: activeMembership?.company?.name || '—' },
                   { label: 'Price per card', value: `৳${PRICE}` },
                   { label: 'Cards', value: String(quantity) },
-                  { label: 'PDF download', value: 'Included' },
+                  { label: 'PDF download', value: 'After approval and payment' },
                 ]}
                 total={`৳${total}`}
                 totalNote={`${quantity} × ৳${PRICE}`}
               />
-              <Button className="mt-6 w-full py-3" disabled={busy || !order.template_id} onClick={() => onCheckout(true)}>
-                {busy ? 'Placing order…' : order.template_id ? `Order company cards · ৳${total}` : 'Choose a design to continue'}
+              <ApprovalSteps />
+              <Button className="mt-5 w-full py-3" disabled={busy || !order.template_id} onClick={() => onCheckout(true)}>
+                {busy ? 'Sending…' : order.template_id ? `Send for approval · ৳${total}` : 'Choose a design to continue'}
               </Button>
             </SectionCard>
           </>
@@ -452,28 +424,36 @@ function DesignAndOrder({
               <FlipCard key={isCompany ? `t${order.template_id}` : `p${order.personal_template_id}`} design={imageDesign} values={cardValues} className="mx-auto max-w-md" />
             </div>
           ) : (
-            <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
-              <LiveCardPreview
-                theme={cardTheme}
-                name={order.name || user?.username || ''}
-                designation={order.designation}
-                department={order.department}
-                phone={order.phone}
-                email={isCompany ? activeMembership?.official_email || user?.email || '' : user?.email || 'contact@bizcard.me'}
-                companyName={activeMembership?.company?.name}
-                isCompany={isCompany}
-                templateName={selectedTemplate?.name}
-              />
+            <div className="grid min-h-48 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center">
+              <div>
+                <p className="text-sm font-medium text-navy-900">{isCompany ? 'Choose a company design' : 'Upload or choose your design'}</p>
+                <p className="mt-1 text-xs text-slate-500">Your card appears here with your details and photo, front and back.</p>
+              </div>
             </div>
           )}
           <p className="mt-4 text-sm text-slate-500">
             {imageDesign
               ? 'This is your card with your details and photo. The PDF uses the same positions, colours, sizes and photo crop.'
-              : 'The preview updates as you type. Your PDF is 3.5 × 2 in and ready to print.'}
+              : 'Machine learning places your details on the design you choose.'}
           </p>
         </SectionCard>
       </div>
     </div>
+  );
+}
+
+/** Every order follows the company rule: approval by a system admin, then payment, then the PDF. */
+function ApprovalSteps() {
+  const steps = ['A system admin checks and approves your order', 'You pay', 'Your PDF is ready to download'];
+  return (
+    <ol className="mt-5 space-y-2 rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-600">
+      {steps.map((step, i) => (
+        <li key={step} className="flex items-center gap-2.5">
+          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-white text-[11px] font-semibold text-brand-700 ring-1 ring-slate-200 tabular-nums">{i + 1}</span>
+          {step}
+        </li>
+      ))}
+    </ol>
   );
 }
 

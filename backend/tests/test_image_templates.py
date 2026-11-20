@@ -435,3 +435,28 @@ def test_photo_field_matches_the_real_frame_around_a_face(shape, tmp_path):
     assert photo_field.shape == shape
     for got, want in ((photo_field.x * 1050, cx - r), (photo_field.y * 600, cy - r), (photo_field.w * 1050, 2 * r), (photo_field.h * 600, 2 * r)):
         assert abs(got - want) <= 6, (got, want)
+
+
+def _as_psd(png_path) -> bytes:
+    """A minimal flattened Photoshop file (RGB, 8-bit, raw) of the same picture, built by hand."""
+    import struct
+    from PIL import Image
+    image = Image.open(png_path).convert('RGB')
+    width, height = image.size
+    header = b'8BPS' + struct.pack('>H6xHIIHH', 1, 3, height, width, 8, 3)
+    sections = struct.pack('>III', 0, 0, 0)  # colour mode data, image resources, layers: none
+    planes = b''.join(band.tobytes() for band in image.split())
+    return header + sections + struct.pack('>H', 0) + planes
+
+
+def test_photoshop_psd_design_is_read_like_an_image(company):
+    client, owner, _, tmp = company
+    psd = _as_psd(layout_photo_left(tmp / 'design.png'))
+    response = client.post('/templates/image/analyze', headers=owner,
+                           files={'design': ('card.psd', psd, 'image/vnd.adobe.photoshop')})
+    assert response.status_code == 200, response.text
+    roles = {f['role'] for f in response.json()['fields']}
+    assert {'name', 'title', 'phone', 'email'} <= roles
+    # A file named .psd that is not a Photoshop file is refused.
+    fake = client.post('/templates/image/analyze', headers=owner, files={'design': ('card.psd', b'not a psd', 'application/octet-stream')})
+    assert fake.status_code == 422

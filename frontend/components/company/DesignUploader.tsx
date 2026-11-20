@@ -20,6 +20,9 @@ const ROLE_LABELS: Record<TemplateFieldRole, string> = {
 const ROLE_ORDER: TemplateFieldRole[] = ['name', 'title', 'department', 'phone', 'email', 'website', 'address', 'company', 'logo', 'photo', 'qr', 'other'];
 const IMAGE_ROLES: TemplateFieldRole[] = ['photo', 'logo', 'qr'];
 const MAX_BYTES = 10_000_000;
+// Photoshop files carry every layer, so they may be bigger; the server turns them into one picture.
+const MAX_PSD_BYTES = 40_000_000;
+const DESIGN_ACCEPT = 'image/png,image/jpeg,image/webp,.psd,image/vnd.adobe.photoshop';
 
 type Side = 'front' | 'back';
 type BackMode = 'none' | 'auto' | 'upload';
@@ -62,9 +65,10 @@ function StepTitle({ number, title, hint }: { number: number; title: string; hin
 function DropZone({ file, label, onFile }: { file: File | null; label: string; onFile: (file: File | null, error?: string) => void }) {
   return (
     <label className={cx('group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-9 text-center transition-colors', file ? 'border-brand-300 bg-brand-50/50' : 'border-slate-300 bg-white hover:border-brand-400 hover:bg-slate-50')}>
-      <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => {
+      <input type="file" accept={DESIGN_ACCEPT} className="sr-only" onChange={(e) => {
         const chosen = e.target.files?.[0] || null;
-        if (chosen && chosen.size > MAX_BYTES) { onFile(null, 'That file is larger than 10 MB. Export it smaller and try again.'); return; }
+        const psd = Boolean(chosen?.name.toLowerCase().endsWith('.psd'));
+        if (chosen && chosen.size > (psd ? MAX_PSD_BYTES : MAX_BYTES)) { onFile(null, psd ? 'That Photoshop file is larger than 40 MB. Export the card as PNG instead.' : 'That file is larger than 10 MB. Export it smaller and try again.'); return; }
         onFile(chosen);
       }} />
       <span className={cx('grid size-11 place-items-center rounded-full transition-colors', file ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-600 group-hover:bg-brand-100')}>
@@ -73,7 +77,7 @@ function DropZone({ file, label, onFile }: { file: File | null; label: string; o
           : <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" /></svg>}
       </span>
       <span className="mt-3 max-w-full truncate text-sm font-semibold text-navy-900">{file ? file.name : label}</span>
-      <span className="mt-1 text-xs text-slate-500">{file ? 'Click to choose a different file' : 'PNG, JPG or WebP, up to 10 MB, at least 1050 × 600 px'}</span>
+      <span className="mt-1 text-xs text-slate-500">{file ? 'Click to choose a different file' : 'PNG, JPG, WebP (up to 10 MB) or Photoshop PSD (up to 40 MB), at least 1050 × 600 px'}</span>
     </label>
   );
 }

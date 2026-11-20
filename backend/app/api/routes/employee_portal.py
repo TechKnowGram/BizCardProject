@@ -6,11 +6,11 @@ from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 from app.api.deps import require_roles
 from app.db.session import get_db
-from app.models import CardOrder, Company, CardRequest, CardRequestItem, CardTemplate, GeneratedCard, Membership, PaymentRecord, PersonalCard, PersonalTemplate, User
+from app.models import CardOrder, Company, CardRequest, CardRequestItem, CardTemplate, GeneratedCard, Membership, PersonalCard, PersonalTemplate, User
 from app.models.constants import EMPLOYEE
 from app.schemas.domain import CardCheckout, CheckoutResponse, GeneratedCardResponse
-from app.services.activity import add_audit, add_notification
-from app.services.card_generation import generate_cards, render_card_pdf, storage_root
+from app.services.activity import add_audit, add_notification, notify_system_admins
+from app.services.card_generation import render_card_pdf, storage_root
 from app.services.image_template_render import render_image_template, user_owner
 
 router = APIRouter(prefix='/employee', tags=['Employee Portal'])
@@ -63,120 +63,108 @@ def employee_templates(company_id: int, db: Session = Depends(get_db), user: Use
                       or_(CardTemplate.company_id.is_(None), CardTemplate.company_id == company_id)).order_by(CardTemplate.id)).all()
 
 
-@router.post('/cards/{company_id}/{template_id}', response_model=GeneratedCardResponse, status_code=201)
-def create_my_card(company_id: int, template_id: int, db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
+def _company_order(db: Session, user: User, company_id: int, template_id: int | None, quantity: int) -> dict:
+    """An employee's company card order. Same rule as company requests: a system admin approves it first
+    (the card is generated then), the employee pays, and only then can the PDF be downloaded."""
     membership = approved_membership(db, user, company_id)
+    if template_id is None:
+        raise HTTPException(422, 'Choose one of your company designs')
     template = db.scalar(select(CardTemplate).where(CardTemplate.id == template_id, CardTemplate.is_active.is_(True),
                          or_(CardTemplate.company_id.is_(None), CardTemplate.company_id == company_id)))
     if template is None:
         raise HTTPException(404, 'Active template not found')
-    # Same rule as checkout: the card is prepared now, but it can only be downloaded after the order is paid.
-    order = CardOrder(company_id=company_id, user_id=user.id, membership_id=membership.id, quantity=1,
-                      unit_price=INDIVIDUAL_CARD_PRICE, total_amount=INDIVIDUAL_CARD_PRICE,
-                      payer='INDIVIDUAL', status='PENDING_PAYMENT')
-    db.add(order); db.flush()
-    request = CardRequest(company_id=company_id, template_id=template.id, created_by_id=user.id, status='PROCESSING',
+    request = CardRequest(company_id=company_id, template_id=template.id, created_by_id=user.id, status='PENDING',
                           items=[CardRequestItem(employee_id=membership.employee_id)])
-    db.add(request); db.flush()
-    order.request_id = request.id
-    request = db.scalar(select(CardRequest).where(CardRequest.id == request.id).options(
-        selectinload(CardRequest.company), selectinload(CardRequest.template),
-        selectinload(CardRequest.items).selectinload(CardRequestItem.employee),
-        selectinload(CardRequest.items).selectinload(CardRequestItem.generated_card)))
-    try:
-        card = generate_cards(db, request)[0]
-        request.status = 'COMPLETED'
-        add_notification(db, user.id, 'ORDER_CREATED', f'Your card is ready. Pay ৳{order.total_amount} for Order #{order.id} to download it.')
-        add_audit(db, 'EMPLOYEE_CARD_CREATED', 'generated_card', card.id, user.id, company_id, f'{template.name}; order {order.id}')
-        db.commit(); db.refresh(card)
-        return card
-    except Exception:
-        db.rollback()
-        raise HTTPException(500, 'Card generation failed') from None
+    db.add(request)
+    db.flush()
+    order = CardOrder(company_id=company_id, user_id=user.id, membership_id=membership.id, request_id=request.id,
+                      quantity=quantity, unit_price=INDIVIDUAL_CARD_PRICE, total_amount=INDIVIDUAL_CARD_PRICE * quantity,
+                      payer='INDIVIDUAL', status='PENDING_APPROVAL')
+    db.add(order)
+    db.flush()
+    company = db.get(Company, company_id)
+    notify_system_admins(db, 'CARD_REVIEW', f'{user.username} ({company.name}) ordered {quantity} card(s): request #{request.id}.')
+    add_notification(db, user.id, 'ORDER_SUBMITTED', f'Order #{order.id} was sent for approval. You can pay once it is approved.')
+    add_audit(db, 'EMPLOYEE_CARD_ORDER', 'card_order', order.id, user.id, company_id, f'{quantity} card(s); request {request.id}; awaiting approval')
+    db.commit()
+    return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': order.unit_price, 'total_amount': order.total_amount,
+            'payer': order.payer, 'payment_status': order.status, 'card_ids': []}
+
+
+@router.post('/cards/{company_id}/{template_id}', response_model=CheckoutResponse, status_code=201)
+def create_my_card(company_id: int, template_id: int, db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
+    """One company card. Kept for older clients; it follows the same approval and payment rule as checkout."""
+    return _company_order(db, user, company_id, template_id, 1)
 
 
 @router.post('/checkout/company/{company_id}', response_model=CheckoutResponse, status_code=201)
 def checkout_company_cards(company_id: int, body: CardCheckout, db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
-    membership = approved_membership(db, user, company_id)
-    if body.template_id is None:
-        raise HTTPException(422, 'A template is required')
-    template = db.scalar(select(CardTemplate).where(CardTemplate.id == body.template_id, CardTemplate.is_active.is_(True),
-                         or_(CardTemplate.company_id.is_(None), CardTemplate.company_id == company_id)))
-    if template is None:
-        raise HTTPException(404, 'Active template not found')
-
-    unit_price = INDIVIDUAL_CARD_PRICE
-    total_amount = unit_price * body.quantity
-    status = 'PENDING_PAYMENT'
-
-    order = CardOrder(company_id=company_id, user_id=user.id, membership_id=membership.id, quantity=body.quantity,
-                      unit_price=unit_price, total_amount=total_amount, payer='INDIVIDUAL', status=status)
-    db.add(order)
-    db.flush()
-
-    card_ids = []
-    try:
-        request = CardRequest(company_id=company_id, template_id=template.id, created_by_id=user.id, status='PROCESSING',
-            items=[CardRequestItem(employee_id=membership.employee_id)])
-        db.add(request)
-        db.flush()
-        order.request_id = request.id
-        request = db.scalar(select(CardRequest).where(CardRequest.id == request.id).options(
-            selectinload(CardRequest.company), selectinload(CardRequest.template),
-            selectinload(CardRequest.items).selectinload(CardRequestItem.employee),
-            selectinload(CardRequest.items).selectinload(CardRequestItem.generated_card)
-        ))
-        card = generate_cards(db, request)[0]
-        request.status = 'COMPLETED'
-        card_ids.append(card.id)
-        add_audit(db, 'EMPLOYEE_CARD_ORDER', 'card_order', order.id, user.id, company_id, f'{body.quantity} cards; INDIVIDUAL')
-        db.commit()
-        return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': unit_price,
-                'total_amount': order.total_amount, 'payer': order.payer, 'payment_status': status, 'card_ids': card_ids}
-    except Exception:
-        db.rollback()
-        raise HTTPException(500, 'Card generation failed') from None
+    return _company_order(db, user, company_id, body.template_id, body.quantity)
 
 
 @router.post('/checkout/personal', response_model=CheckoutResponse, status_code=201)
 def checkout_personal_cards(body: CardCheckout, db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
-    design = None
-    if body.personal_template_id is not None:
-        chosen = db.scalar(select(PersonalTemplate).where(PersonalTemplate.id == body.personal_template_id, PersonalTemplate.user_id == user.id))
-        if chosen is None:
-            raise HTTPException(404, 'Design not found')
-        design = chosen.design
-    unit_price = INDIVIDUAL_CARD_PRICE
-    total_amount = unit_price * body.quantity
+    """A personal card order on a design the employee uploaded (read by machine learning).
+    Nothing is generated yet: a system admin approves it first, then the employee pays."""
+    if body.personal_template_id is None:
+        raise HTTPException(422, 'Upload or choose your card design first')
+    chosen = db.scalar(select(PersonalTemplate).where(PersonalTemplate.id == body.personal_template_id, PersonalTemplate.user_id == user.id))
+    if chosen is None:
+        raise HTTPException(404, 'Design not found')
+    name = (body.name or user.username or '').strip()
+    if not name:
+        raise HTTPException(422, 'Enter your full name')
+    details = {
+        'name': name, 'designation': (body.designation or '').strip(), 'department': (body.department or '').strip(),
+        'phone': (body.phone or '').strip(), 'personal_template_id': chosen.id, 'design_name': chosen.name,
+        # A copy of the design, so the order prints as ordered even if the design is changed or deleted later.
+        'design': chosen.design,
+    }
     order = CardOrder(company_id=None, user_id=user.id, membership_id=None, quantity=body.quantity,
-                      unit_price=unit_price, total_amount=total_amount, payer='INDIVIDUAL', status='PENDING_PAYMENT')
+                      unit_price=INDIVIDUAL_CARD_PRICE, total_amount=INDIVIDUAL_CARD_PRICE * body.quantity,
+                      payer='INDIVIDUAL', status='PENDING_APPROVAL', details=details)
     db.add(order)
     db.flush()
-    # An uploaded personal design has no company: leave its company boxes empty, as in the preview.
-    company = SimpleNamespace(name='' if design is not None else 'Personal Card', logo_path=None, website=None, address=None)
-    # The profile photo goes into the photo frame of an uploaded design.
-    employee = SimpleNamespace(name=body.name or user.username, designation=body.designation or 'Professional',
-        department=body.department or 'Independent', email=user.email, phone=body.phone or 'Not provided',
-        photo_path=getattr(user, 'avatar_path', None))
-    directory = storage_root() / 'personal' / str(user.id) / f'order_{order.id}'; directory.mkdir(parents=True, exist_ok=True)
-    cards = []
+    notify_system_admins(db, 'PERSONAL_ORDER_REVIEW', f'{user.username} ordered {body.quantity} personal card(s): order #{order.id}.')
+    add_notification(db, user.id, 'ORDER_SUBMITTED', f'Order #{order.id} was sent for approval. You can pay once it is approved.')
+    add_audit(db, 'PERSONAL_CARD_ORDER', 'card_order', order.id, user.id, None, f'{body.quantity} card(s); awaiting approval')
+    db.commit()
+    return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': order.unit_price, 'total_amount': order.total_amount,
+            'payer': 'INDIVIDUAL', 'payment_status': order.status, 'card_ids': []}
+
+
+def render_personal_order(db: Session, order: CardOrder) -> list[int]:
+    """Generate the PDFs of an approved personal order (one per card ordered). Called by the system admin's approval."""
+    details = order.details or {}
+    user = db.get(User, order.user_id)
+    design = details.get('design')
+    # An uploaded personal design has no company: its company boxes stay empty, as in the preview.
+    company = SimpleNamespace(name='' if design else 'Personal Card', logo_path=None, website=None, address=None)
+    # The profile photo goes into the photo frame of the design.
+    employee = SimpleNamespace(name=details.get('name') or user.username, designation=details.get('designation') or '',
+                               department=details.get('department') or '', email=user.email, phone=details.get('phone') or '',
+                               photo_path=getattr(user, 'avatar_path', None))
+    directory = storage_root() / 'personal' / str(user.id) / f'order_{order.id}'
+    directory.mkdir(parents=True, exist_ok=True)
+    ids, paths = [], []
     try:
-        for number in range(1, body.quantity + 1):
+        for number in range(1, order.quantity + 1):
             path = directory / f'personal-card-{number}.pdf'
             token = f'personal-{order.id}-{number}'
-            if design is not None:
+            if design:
                 render_image_template(path, company, employee, token, design, user_owner(user.id))
             else:
                 render_card_pdf(path, company, employee, 'classic', token)
+            paths.append(path)
             card = PersonalCard(user_id=user.id, order_id=order.id, file_path=str(path.resolve()), file_name=path.name)
-            db.add(card); db.flush(); cards.append(card.id)
-        add_audit(db, 'PERSONAL_CARD_ORDER', 'card_order', order.id, user.id, None, f'{body.quantity} cards')
-        db.commit()
-        return {'order_id': order.id, 'quantity': order.quantity, 'unit_price': unit_price,
-                'total_amount': order.total_amount, 'payer': 'INDIVIDUAL', 'payment_status': 'PENDING_PAYMENT', 'card_ids': cards}
+            db.add(card)
+            db.flush()
+            ids.append(card.id)
     except Exception:
-        db.rollback()
-        raise HTTPException(500, 'Personal card generation failed') from None
+        for path in paths:
+            path.unlink(missing_ok=True)
+        raise
+    return ids
 
 
 @router.get('/personal-cards')
@@ -203,10 +191,18 @@ def my_personal_cards(db: Session = Depends(get_db), user: User = Depends(requir
 
 @router.get('/orders')
 def my_orders(db: Session = Depends(get_db), user: User = Depends(require_roles([EMPLOYEE]))):
-    orders = db.scalars(select(CardOrder).where(CardOrder.user_id == user.id).order_by(CardOrder.id.desc())).all()
+    orders = db.scalars(select(CardOrder).where(CardOrder.user_id == user.id).options(selectinload(CardOrder.request))
+                        .order_by(CardOrder.id.desc())).all()
+
+    def reason(order: CardOrder) -> str | None:
+        if order.status != 'REJECTED':
+            return None
+        return (order.details or {}).get('rejection_reason') or (order.request.rejection_reason if order.request else None)
+
     return [{'id': order.id, 'company_id': order.company_id, 'quantity': order.quantity, 'unit_price': order.unit_price,
              'total_amount': order.total_amount, 'payer': order.payer, 'status': order.status,
-             'created_at': order.created_at} for order in orders]
+             'design_name': (order.details or {}).get('design_name') or (order.request.template.name if order.request and order.request.template else None),
+             'rejection_reason': reason(order), 'created_at': order.created_at} for order in orders]
 
 
 @router.get('/personal-cards/{card_id}/download')

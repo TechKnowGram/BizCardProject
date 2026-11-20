@@ -78,7 +78,7 @@ def test_suspended_company_members_cannot_order(context):
     assert order.status_code == 403
 
 
-def test_csv_export_neutralises_formulas_and_personal_cards_hide_paths(context):
+def test_csv_export_neutralises_formulas_and_personal_cards_hide_paths(context, tmp_path, monkeypatch):
     client, _, _ = context
     _, headers, _, _ = prepare_approved_company(client)
     assert client.post('/employees', headers=headers, json={
@@ -91,7 +91,18 @@ def test_csv_export_neutralises_formulas_and_personal_cards_hide_paths(context):
 
     assert client.post('/auth/employee/register', json={'username': 'Solo', 'email': 'solo@example.com', 'password': 'Password@123'}).status_code == 201
     solo = login(client, 'solo@example.com')
-    assert client.post('/employee/checkout/personal', headers=solo, json={'quantity': 1, 'name': 'Solo'}).status_code == 201
+    # A personal card is printed on the employee's own design and exists only after a system admin approves it.
+    from card_fixtures import layout_photo_left
+    monkeypatch.setattr(settings, 'upload_storage', str(tmp_path / 'uploads'))
+    monkeypatch.setattr(settings, 'generated_card_storage', str(tmp_path / 'cards'))
+    analysis = client.post('/employee/designs/analyze', headers=solo,
+                           files={'design': ('d.png', layout_photo_left(tmp_path / 'd.png').read_bytes(), 'image/png')}).json()
+    design = client.post('/employee/designs', headers=solo, json={'name': 'Mine', 'source': analysis['source'], 'background': analysis['background'],
+                         'width': analysis['width'], 'height': analysis['height'], 'fields': analysis['fields']}).json()
+    order = client.post('/employee/checkout/personal', headers=solo, json={'quantity': 1, 'name': 'Solo', 'personal_template_id': design['id']})
+    assert order.status_code == 201, order.text
+    admin = login(client, 'system@example.com')
+    assert client.patch(f"/admin/personal-orders/{order.json()['order_id']}/decision", headers=admin, json={'decision': 'APPROVED'}).status_code == 200
     cards = client.get('/employee/personal-cards', headers=solo).json()
     assert cards and all('file_path' not in card for card in cards)
 

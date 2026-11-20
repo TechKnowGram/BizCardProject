@@ -59,9 +59,25 @@ def test_employee_uploads_design_and_orders_a_paid_two_sided_card(employee):
         'personal_template_id': design['id'],
     })
     assert order.status_code == 201, order.text
-    card_id = order.json()['card_ids'][0]
+    order_id = order.json()['order_id']
+    assert order.json()['payment_status'] == 'PENDING_APPROVAL' and order.json()['card_ids'] == []
+    assert client.get('/employee/personal-cards', headers=headers).json() == []
+    assert client.post(f'/orders/{order_id}/pay', headers=headers, json={'method': 'CARD'}).status_code == 409
+
+    # The system admin sees the order, previews the real card and approves it.
+    admin = login(client, 'system@example.com')
+    listed = client.get('/admin/personal-orders', headers=admin).json()
+    assert listed[0]['id'] == order_id and listed[0]['status'] == 'PENDING_APPROVAL' and listed[0]['design_name'] == 'My card'
+    preview = client.get(f'/admin/personal-orders/{order_id}/preview', headers=admin)
+    assert preview.status_code == 200 and preview.content.startswith(b'%PDF')
+    assert client.get('/admin/personal-orders', headers=headers).status_code == 403  # employees cannot review
+    decided = client.patch(f'/admin/personal-orders/{order_id}/decision', headers=admin, json={'decision': 'APPROVED'})
+    assert decided.status_code == 200 and decided.json()['status'] == 'PENDING_PAYMENT'
+    assert client.patch(f'/admin/personal-orders/{order_id}/decision', headers=admin, json={'decision': 'APPROVED'}).status_code == 409
+
+    card_id = client.get('/employee/personal-cards', headers=headers).json()[0]['id']
     assert client.get(f'/employee/personal-cards/{card_id}/download', headers=headers).status_code == 402
-    assert client.post(f"/orders/{order.json()['order_id']}/pay", headers=headers, json={'method': 'CARD'}).status_code == 200
+    assert client.post(f'/orders/{order_id}/pay', headers=headers, json={'method': 'CARD'}).status_code == 200
     pdf = client.get(f'/employee/personal-cards/{card_id}/download', headers=headers)
     assert pdf.status_code == 200
     reader = PdfReader(BytesIO(pdf.content))
@@ -125,3 +141,18 @@ def test_avatar_frame_endpoint_and_pdf_photo_fallback(employee):
     image = Image.open(BytesIO(framed.content))
     assert abs(image.width - image.height) <= 2
     assert client.get('/auth/me/avatar?frame=nonsense', headers=headers).status_code == 200  # falls back to the original
+
+
+def test_rejected_personal_order_cannot_be_paid(employee):
+    client, headers, tmp = employee
+    analysis = _analyse(client, headers, layout_photo_left(tmp / 'front.png'))
+    design = _save(client, headers, analysis).json()
+    order = client.post('/employee/checkout/personal', headers=headers, json={'quantity': 2, 'name': 'Nadia Islam', 'personal_template_id': design['id']}).json()
+    admin = login(client, 'system@example.com')
+    assert client.patch(f"/admin/personal-orders/{order['order_id']}/decision", headers=admin, json={'decision': 'REJECTED'}).status_code == 422
+    rejected = client.patch(f"/admin/personal-orders/{order['order_id']}/decision", headers=admin, json={'decision': 'REJECTED', 'reason': 'Photo is blurry'})
+    assert rejected.status_code == 200 and rejected.json()['status'] == 'REJECTED'
+    mine = next(o for o in client.get('/employee/orders', headers=headers).json() if o['id'] == order['order_id'])
+    assert mine['status'] == 'REJECTED' and mine['rejection_reason'] == 'Photo is blurry'
+    assert client.post(f"/orders/{order['order_id']}/pay", headers=headers, json={'method': 'CARD'}).status_code == 409
+    assert client.get('/employee/personal-cards', headers=headers).json() == []

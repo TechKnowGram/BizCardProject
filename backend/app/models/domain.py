@@ -178,7 +178,11 @@ class CardOrder(Base):
     unit_price: Mapped[int] = mapped_column(Integer, nullable=False)
     total_amount: Mapped[int] = mapped_column(Integer, nullable=False)
     payer: Mapped[str] = mapped_column(String(20), nullable=False)
+    # PENDING_APPROVAL -> (system admin approves) -> PENDING_PAYMENT -> PAID; or REJECTED.
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='PAID')
+    # Personal orders: what to print (name, title, phone, design, ...) until a system admin approves them;
+    # also the rejection reason.
+    details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     # Read-only link used by the admin payments list; the foreign key above already exists.
     company = relationship('Company')

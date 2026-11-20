@@ -52,7 +52,16 @@ export default function EmployeeOrdersPage() {
       ),
     },
     { key: 'payer', header: 'Payer', render: o => payerText(o.payer) },
-    { key: 'status', header: 'Status', render: o => <StatusBadge value={o.status} /> },
+    {
+      key: 'status',
+      header: 'Status',
+      render: o => (
+        <div className="min-w-0">
+          <StatusBadge value={o.status} />
+          {o.status === 'REJECTED' && o.rejection_reason && <p className="mt-1 max-w-56 text-xs text-red-700" title={o.rejection_reason}>{o.rejection_reason}</p>}
+        </div>
+      ),
+    },
     { key: 'date', header: 'Date', sortValue: o => new Date(o.created_at).getTime(), render: o => <span className="whitespace-nowrap">{formatDate(o.created_at)}</span> },
     {
       key: 'action',
@@ -61,8 +70,12 @@ export default function EmployeeOrdersPage() {
       render: (o) =>
         o.status === 'PENDING_PAYMENT' ? (
           <Button className="px-3 py-1.5 text-xs" onClick={() => setPaymentOrder(o)}>
-            Pay now
+            Pay ৳{o.total_amount}
           </Button>
+        ) : o.status === 'PENDING_APPROVAL' ? (
+          <span className="text-xs text-slate-500">Pay after approval</span>
+        ) : o.status === 'REJECTED' ? (
+          <span className="text-xs text-slate-500">Not charged</span>
         ) : (
           <CardLink onClick={goToSavedCards}>View cards</CardLink>
         ),
@@ -74,7 +87,7 @@ export default function EmployeeOrdersPage() {
       {toast}
       <PageHeader
         title="Orders"
-        description="All card orders you have placed, personal and company."
+        description="Every order is checked by a system admin first. Once approved, pay to download your cards."
         actions={<Button onClick={() => { setTab?.('card'); setCardSubView('order'); }}>New order</Button>}
       />
       <DataTable

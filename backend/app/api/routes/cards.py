@@ -207,7 +207,7 @@ def decide_card_request(
         request.decided_by_id = admin.id
         request.decided_at = datetime.now(timezone.utc)
         order = db.scalar(select(CardOrder).where(CardOrder.request_id == request.id))
-        if order and order.status == 'PENDING_PAYMENT':
+        if order and order.status in ('PENDING_APPROVAL', 'PENDING_PAYMENT'):
             order.status = 'REJECTED'
         add_notification(db, request.created_by_id, 'CARD_REJECTED', f'Card request #{request.id} was rejected. Reason: {request.rejection_reason}')
         add_audit(db, 'CARD_REQUEST_REJECTED', 'card_request', request.id, admin.id, request.company_id, request.rejection_reason)
@@ -228,6 +228,10 @@ def decide_card_request(
     try:
         generate_cards(db, request)
         request.status = 'COMPLETED'
+        # An employee's order waits for this approval before it can be paid.
+        order = db.scalar(select(CardOrder).where(CardOrder.request_id == request.id))
+        if order and order.status == 'PENDING_APPROVAL':
+            order.status = 'PENDING_PAYMENT'
         add_notification(db, request.created_by_id, 'CARDS_APPROVED', f'Card request #{request.id} has been approved by admin. Please complete payment to download your cards.')
         add_audit(db, 'CARD_REQUEST_APPROVED', 'card_request', request.id, admin.id, request.company_id, f'{len(request.items)} card(s) generated; awaiting payment')
         db.commit()
@@ -349,6 +353,11 @@ def pay_order(
     if not (is_owner or is_company_admin or is_system_admin):
         raise HTTPException(status_code=403, detail='Not authorized to pay for this order')
 
+    # Payment comes after approval, never before (same rule for companies and employees).
+    if order.status == 'PENDING_APPROVAL' or (order.request_id and order.status != 'PAID' and order.request and order.request.status != 'COMPLETED'):
+        raise HTTPException(status_code=409, detail='This order is waiting for approval. You can pay once it is approved.')
+    if order.status == 'REJECTED':
+        raise HTTPException(status_code=409, detail='This order was rejected and cannot be paid.')
     if order.status == 'PAID':
         return PayOrderResponse(
             order_id=order.id,

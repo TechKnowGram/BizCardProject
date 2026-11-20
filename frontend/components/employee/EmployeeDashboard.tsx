@@ -208,6 +208,7 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
       } else {
         const nameVal = order.name?.trim() || user?.username || '';
         if (!nameVal) throw new Error('Enter your full name.');
+        if (!order.personal_template_id) throw new Error('Upload or choose your card design first.');
         // template_id is left out on purpose so the backend accepts the personal order.
         const body: Record<string, any> = {
           quantity: Math.max(1, Number(order.quantity) || 1),
@@ -227,7 +228,11 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
       }
       await load();
 
-      if (result && result.total_amount > 0 && result.payment_status === 'PENDING_PAYMENT') {
+      if (result?.payment_status === 'PENDING_APPROVAL') {
+        // Same rule as company requests: a system admin approves first, then the employee pays.
+        setMessage(`Order #${result.order_id} was sent for approval. You can pay ৳${result.total_amount} once a system admin approves it.`);
+        setTab?.('orders');
+      } else if (result && result.total_amount > 0 && result.payment_status === 'PENDING_PAYMENT') {
         setPaymentModalOrder({
           id: result.order_id,
           total_amount: result.total_amount,
