@@ -205,3 +205,15 @@ class PersonalCard(Base):
     file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class PersonalTemplate(Base):
+    """A card design an individual employee uploaded for their own personal cards. Private to that user:
+    kept apart from card_templates so it never appears in company or shared template lists."""
+    __tablename__ = 'personal_templates'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[PythonUUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=False, default='')
+    design: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

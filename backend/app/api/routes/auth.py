@@ -161,11 +161,10 @@ def remove_avatar(db: Session = Depends(get_db), current_user: User = Depends(ge
 
 
 @router.get('/me/avatar')
-def get_avatar(current_user: User = Depends(get_current_user)):
-    path = Path(current_user.avatar_path or '')
-    if not path.is_file():
-        raise HTTPException(status_code=404, detail='No profile picture')
-    return FileResponse(path, headers={'Cache-Control': 'private, max-age=3600'})
+def get_avatar(frame: str | None = None, current_user: User = Depends(get_current_user)):
+    """The profile picture; with ?frame=W:H, cropped around the face like a printed card."""
+    from app.services.photo_crop import photo_response
+    return photo_response(current_user.avatar_path, frame, 'No profile picture')
 
 
 @router.get('/company', response_model=CompanySummary)

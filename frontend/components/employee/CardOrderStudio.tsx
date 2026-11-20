@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { downloadOrReport } from '@/lib/api';
+import { api, downloadOrReport } from '@/lib/api';
 import type { User } from '@/lib/types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import DataTable from '@/components/dashboard/DataTable';
@@ -10,9 +10,10 @@ import { PageHeader, SectionCard } from '@/components/dashboard/Surface';
 import { Button, FieldLabel, buttonClass, cx, inputClass } from '@/components/ui';
 import Icon from '@/components/ui/Icon';
 import LiveCardPreview from '@/components/employee/LiveCardPreview';
-import ImageTemplateCard from '@/components/cards/ImageTemplateCard';
+import { FlipCard } from '@/components/cards/ImageTemplateCard';
+import DesignUploader from '@/components/company/DesignUploader';
 import type { CardValues } from '@/components/cards/ImageTemplateCard';
-import type { ImageTemplateDesign } from '@/lib/types';
+import type { CompanySummary, ImageTemplateDesign } from '@/lib/types';
 import { DetailList, EmptyNote, PRICE, QUANTITY_PRESETS, RadioCard, Segmented, cardDownloadPath, formatDate, formatSize } from '@/components/employee/shared';
 import type { Row } from '@/components/employee/shared';
 
@@ -28,7 +29,20 @@ export interface OrderDraft {
   designation: string;
   department: string;
   phone: string;
+  /** Personal orders: a design the employee uploaded (empty = one of the standard styles). */
+  personal_template_id: string;
 }
+
+/** A card design the employee uploaded for their own personal cards. */
+interface PersonalDesign {
+  id: number;
+  name: string;
+  description: string;
+  design: ImageTemplateDesign;
+}
+
+// The uploader needs a company; personal designs belong to the employee, not a company.
+const NO_COMPANY: CompanySummary = { id: 0, name: '', status: 'APPROVED', selected_template_id: null };
 
 export interface CardOrderStudioProps {
   user?: User | null;
@@ -191,11 +205,20 @@ function DesignAndOrder({
   const total = quantity * PRICE;
   const selectedTemplate = templates.find((t) => String(t.id) === String(order.template_id));
   const companyName = activeMembership?.company?.name || 'your company';
-  const [previewSide, setPreviewSide] = useState<'front' | 'back'>('front');
-  // A company design made from an uploaded card: show the real card, filled with the employee's details.
-  const imageDesign: ImageTemplateDesign | null = isCompany && selectedTemplate?.design?.kind === 'image' ? (selectedTemplate.design as ImageTemplateDesign) : null;
-  const hasBack = Boolean(imageDesign?.back);
-  const cardValues: CardValues = {
+  const [designs, setDesigns] = useState<PersonalDesign[]>([]);
+  const [uploading, setUploading] = useState(false);
+  useEffect(() => {
+    let live = true;
+    api<PersonalDesign[]>('/employee/designs').then((list) => { if (live) setDesigns(list); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+  const personalDesign = !isCompany ? designs.find((d) => String(d.id) === String(order.personal_template_id || '')) : undefined;
+  // A design made from an uploaded card (the company's, or the employee's own): show the real card with their details.
+  const companyDesign: ImageTemplateDesign | null = isCompany && selectedTemplate?.design?.kind === 'image' ? (selectedTemplate.design as ImageTemplateDesign) : null;
+  const imageDesign: ImageTemplateDesign | null = companyDesign || personalDesign?.design || null;
+  const companyId = activeMembership?.company_id;
+  const company = activeMembership?.company;
+  const cardValues: CardValues = isCompany ? {
     name: order.name || user?.username || '',
     title: order.designation,
     department: order.department,
@@ -203,10 +226,28 @@ function DesignAndOrder({
     email: activeMembership?.official_email || user?.email || '',
     website: activeMembership?.company?.website,
     address: activeMembership?.company?.address,
-    company: activeMembership?.company?.name,
-    photoPath: null,
+    company: company?.name,
+    // The photo the company card prints: the company's photo of them, else their own profile picture.
+    photoPath: companyId ? `/employee/companies/${companyId}/photo` : null,
+    logoPath: companyId && company?.has_logo ? `/employee/companies/${companyId}/logo` : null,
+  } : {
+    name: order.name || user?.username || '',
+    title: order.designation,
+    department: order.department,
+    phone: order.phone,
+    email: user?.email || '',
+    website: '',
+    address: '',
+    company: '',
+    photoPath: user?.has_avatar ? `/auth/me/avatar?v=${user.avatar_version ?? 0}` : null,
     logoPath: null,
   };
+  async function designSaved(saved: { id: number }) {
+    setUploading(false);
+    const list = await api<PersonalDesign[]>('/employee/designs').catch(() => designs);
+    setDesigns(list);
+    setOrder({ ...order, personal_template_id: String(saved.id) });
+  }
 
   return (
     <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -262,17 +303,18 @@ function DesignAndOrder({
               </div>
             </SectionCard>
 
-            <SectionCard title="Style">
-              <div role="radiogroup" aria-label="Card colour" className="grid gap-3 sm:grid-cols-3">
+            <SectionCard title="Design" info="Pick a standard style, or upload your own card design. Machine learning reads it and puts your details in the right places.">
+              <p className="mb-2 text-xs font-medium text-slate-500">Standard styles</p>
+              <div role="radiogroup" aria-label="Card style" className="grid gap-3 sm:grid-cols-3">
                 {THEMES.map((t) => {
-                  const active = cardTheme === t.key;
+                  const active = !personalDesign && cardTheme === t.key;
                   return (
                     <button
                       key={t.key}
                       type="button"
                       role="radio"
                       aria-checked={active}
-                      onClick={() => setCardTheme(t.key)}
+                      onClick={() => { setCardTheme(t.key); setOrder({ ...order, personal_template_id: '' }); }}
                       className={cx(
                         'flex items-center gap-3 rounded-lg border px-3.5 py-3 text-left text-sm font-medium transition-colors',
                         active ? 'border-brand-600 bg-brand-50/60 text-brand-700 ring-1 ring-brand-600' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300',
@@ -284,7 +326,46 @@ function DesignAndOrder({
                   );
                 })}
               </div>
+
+              <div className="mt-6 flex items-center justify-between gap-3">
+                <p className="text-xs font-medium text-slate-500">Your designs</p>
+                {!uploading && <Button variant="secondary" className="px-3 py-1.5" onClick={() => setUploading(true)}>Upload your design</Button>}
+              </div>
+              {designs.length > 0 ? (
+                <div role="radiogroup" aria-label="Your designs" className="mt-2 grid gap-3 sm:grid-cols-2">
+                  {designs.map((d) => {
+                    const active = personalDesign?.id === d.id;
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => setOrder({ ...order, personal_template_id: String(d.id) })}
+                        className={cx('flex items-center justify-between gap-3 rounded-lg border px-3.5 py-3 text-left text-sm transition-colors', active ? 'border-brand-600 bg-brand-50/60 ring-1 ring-brand-600' : 'border-slate-200 bg-white hover:border-slate-300')}
+                      >
+                        <span className="min-w-0">
+                          <span className={cx('block truncate font-medium', active ? 'text-brand-700' : 'text-navy-900')}>{d.name}</span>
+                          <span className="mt-0.5 block text-xs text-slate-500">{d.design.back ? 'Front and back' : 'Front only'}</span>
+                        </span>
+                        {active && <Icon name="check" size={16} className="shrink-0 text-brand-600" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : !uploading ? (
+                <p className="mt-2 text-sm text-slate-500">No designs yet. Upload a card made in Photoshop or Canva to use it for your own cards.</p>
+              ) : null}
             </SectionCard>
+
+            {uploading && (
+              <div className="space-y-2">
+                <DesignUploader scope="personal" company={NO_COMPANY} employees={[]} onSaved={designSaved} sample={cardValues} />
+                <div className="text-right">
+                  <button type="button" className="text-sm font-medium text-slate-500 hover:text-navy-900" onClick={() => setUploading(false)}>Cancel upload</button>
+                </div>
+              </div>
+            )}
 
             <SectionCard title="Quantity">
               <QuantityField quantity={order.quantity} onChange={(qty) => setOrder({ ...order, quantity: qty })} />
@@ -368,23 +449,7 @@ function DesignAndOrder({
         <SectionCard title="Preview">
           {imageDesign ? (
             <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
-              {hasBack && (
-                <div className="mx-auto mb-3 flex w-fit rounded-lg border border-slate-200 bg-white p-0.5" role="tablist" aria-label="Side of the card">
-                  {(['front', 'back'] as const).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      role="tab"
-                      aria-selected={previewSide === value}
-                      onClick={() => setPreviewSide(value)}
-                      className={cx('rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors', previewSide === value ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-50')}
-                    >
-                      {value}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <ImageTemplateCard design={imageDesign} values={cardValues} side={hasBack ? previewSide : 'front'} className="mx-auto max-w-md" />
+              <FlipCard key={isCompany ? `t${order.template_id}` : `p${order.personal_template_id}`} design={imageDesign} values={cardValues} className="mx-auto max-w-md" />
             </div>
           ) : (
             <div className="rounded-xl bg-slate-50 px-4 py-6 sm:px-6">
@@ -402,8 +467,8 @@ function DesignAndOrder({
             </div>
           )}
           <p className="mt-4 text-sm text-slate-500">
-            {isCompany
-              ? 'This is your card on the company design, with your details. The PDF uses the same positions, colours and sizes.'
+            {imageDesign
+              ? 'This is your card with your details and photo. The PDF uses the same positions, colours, sizes and photo crop.'
               : 'The preview updates as you type. Your PDF is 3.5 × 2 in and ready to print.'}
           </p>
         </SectionCard>

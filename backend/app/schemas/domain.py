@@ -205,6 +205,9 @@ class CompanyDirectoryResponse(BaseModel):
     name: str
     description: str | None
     website: str | None
+    # Printed on the company's cards, so members see them in the card preview.
+    address: str | None = None
+    has_logo: bool = False
 
 
 class MembershipResponse(BaseModel):
@@ -244,6 +247,8 @@ class CardCheckout(BaseModel):
     model_config = ConfigDict(extra='forbid')
     quantity: int = Field(ge=1, le=1000)
     template_id: int | None = Field(default=None, gt=0)
+    # Personal orders only: a design the employee uploaded themself (see /employee/designs).
+    personal_template_id: int | None = Field(default=None, gt=0)
     payer: Literal['COMPANY', 'INDIVIDUAL'] = 'INDIVIDUAL'
     name: str | None = Field(default=None, max_length=120)
     designation: str | None = Field(default=None, max_length=120)

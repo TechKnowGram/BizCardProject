@@ -29,7 +29,12 @@ def test_employee_membership_and_self_service_card(context):
     card = client.post(f"/employee/cards/{company['company']['id']}/{templates[0]['id']}", headers=employee)
     assert card.status_code == 201, card.text
     card_id = card.json()['id']
-    assert client.get('/employee/cards', headers=employee).status_code == 200
+    listed = client.get('/employee/cards', headers=employee).json()
+    mine = next(c for c in listed if c['id'] == card_id)
+    assert mine['payment_status'] == 'PENDING_PAYMENT'
+    # Creating a card never makes it free: it stays locked until the order is paid.
+    assert client.get(f'/employee/cards/{card_id}/download', headers=employee).status_code == 402
+    assert client.post(f"/orders/{mine['order_id']}/pay", headers=employee, json={'method': 'CARD'}).status_code == 200
     assert client.get(f'/employee/cards/{card_id}/download', headers=employee).content.startswith(b'%PDF')
     assert client.patch(f"/company/memberships/{membership['id']}", headers=owner,
                         json={'decision': 'REVOKED'}).status_code == 200

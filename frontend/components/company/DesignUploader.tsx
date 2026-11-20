@@ -78,11 +78,12 @@ function DropZone({ file, label, onFile }: { file: File | null; label: string; o
   );
 }
 
-function BackChooser({ mode, onMode, file, onFile }: { mode: BackMode; onMode: (mode: BackMode) => void; file: File | null; onFile: (file: File | null, error?: string) => void }) {
+function BackChooser({ mode, onMode, file, onFile, withAuto = true }: { mode: BackMode; onMode: (mode: BackMode) => void; file: File | null; onFile: (file: File | null, error?: string) => void; withAuto?: boolean }) {
+  const options = withAuto ? BACK_OPTIONS : BACK_OPTIONS.filter((o) => o.mode !== 'auto');
   return (
     <div className="space-y-3">
-      <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Back of the card">
-        {BACK_OPTIONS.map((option) => {
+      <div className={cx("grid gap-2", options.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")} role="radiogroup" aria-label="Back of the card">
+        {options.map((option) => {
           const active = mode === option.mode;
           return (
             <button key={option.mode} type="button" role="radio" aria-checked={active} onClick={() => onMode(option.mode)}
@@ -103,7 +104,13 @@ function BackChooser({ mode, onMode, file, onFile }: { mode: BackMode; onMode: (
   );
 }
 
-function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingUsed, onIllustrator }: { company: CompanySummary; employees: Employee[]; onSaved: (template: Template) => void; incoming?: { result: IllustratorAnalysis; fileName: string } | null; onIncomingUsed?: () => void; onIllustrator?: (result: IllustratorAnalysis, fileName: string) => void }) {
+function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingUsed, onIllustrator, scope = 'company', sample: personalSample }: { company: CompanySummary; employees: Employee[]; onSaved: (template: Template) => void; incoming?: { result: IllustratorAnalysis; fileName: string } | null; onIncomingUsed?: () => void; onIllustrator?: (result: IllustratorAnalysis, fileName: string) => void;
+  /** 'personal': an individual employee's own design, saved privately under /employee/designs. Same ML pipeline. */
+  scope?: 'company' | 'personal';
+  /** Personal scope: the employee's own details for the preview. */
+  sample?: Partial<CardValues> }) {
+  const personal = scope === 'personal';
+  const endpoints = personal ? { analyze: '/employee/designs/analyze', save: '/employee/designs' } : { analyze: '/templates/image/analyze', save: '/templates/image' };
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [blankFile, setBlankFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
@@ -130,6 +137,8 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
 
   const sample = employees.find((e) => String(e.id) === sampleId);
   const values: CardValues = useMemo(() => ({
+    ...(personalSample ? { name: 'Farhana Akter', title: 'Head of Finance', department: '', phone: '+880 1711 204 518', email: 'farhana@company.com', website: '', address: '', company: '', photoPath: null, logoPath: null, ...personalSample } : {}),
+    ...(personalSample ? {} : {
     name: sample?.name || 'Farhana Akter',
     title: sample?.designation || 'Head of Finance',
     department: sample?.department || 'Finance',
@@ -140,7 +149,8 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
     company: company.name,
     photoPath: sample?.has_photo ? `/employees/${sample.id}/photo` : null,
     logoPath: company.has_logo ? '/company/logo' : null,
-  }), [sample, company]);
+    }),
+  }), [sample, company, personalSample]);
 
   // The editor works on one side at a time.
   const analysis = side === 'back' ? back : front;
@@ -149,7 +159,7 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
   const aspect = shape ? shape.height / shape.width : 4 / 7;
   const fields = side === 'back' ? backFields : frontFields;
   const setFields = side === 'back' ? setBackFields : setFrontFields;
-  const design = { company_id: company.id };
+  const design = personal ? { company_id: null, owner: 'personal' as const } : { company_id: company.id };
 
   function pickFile(setter: (file: File | null) => void) {
     return (file: File | null, message?: string) => { setter(file); setError(message || ''); };
@@ -161,7 +171,7 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
     if (blank) form.append('background', blank);
     // The front is sent exactly as before; only the back adds side=back.
     if (which === 'back') form.append('side', 'back');
-    return api<TemplateAnalysis>('/templates/image/analyze', { method: 'POST', body: form });
+    return api<TemplateAnalysis>(endpoints.analyze, { method: 'POST', body: form });
   }
 
   async function analyse() {
@@ -226,11 +236,11 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
     if (!front) return;
     setBusy('save'); setError('');
     try {
-      const template = await api<Template>('/templates/image', {
+      const template = await api<Template>(endpoints.save, {
         method: 'POST',
         body: JSON.stringify({ name: name.trim(), description: description.trim(), source: front.source, background: front.background, width: front.width, height: front.height, fields: frontFields, back: backPayload(), ...(front.width_pt && front.height_pt ? { width_pt: front.width_pt, height_pt: front.height_pt } : {}), ...(aiSource ? { ai: aiSource } : {}) }),
       });
-      setSaved(`“${template.name}” is saved and can now be used for card requests.`);
+      setSaved(personal ? `“${template.name}” is saved. Choose it when you order personal cards.` : `“${template.name}” is saved and can now be used for card requests.`);
       reset();
       onSaved(template);
     } catch (e) {
@@ -294,18 +304,18 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
                 <p className="leading-relaxed text-slate-600">If you have it, upload the design with its text layers hidden. Cards will be printed on this clean background instead of one cleaned by machine learning.</p>
                 <input type="file" accept="image/png,image/jpeg,image/webp" className="mt-3 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-navy-900 hover:file:bg-slate-200" onChange={(e) => setBlankFile(e.target.files?.[0] || null)} />
               </Accordion>
-              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
+              {!personal && <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
                 <div className="min-w-0 flex-1 text-sm">
                   <p className="font-medium text-navy-900">Have an Illustrator file?</p>
                   <p className="text-xs text-slate-500">Upload the .ai file. We find its artboards and you choose the front and back.</p>
                 </div>
                 <IllustratorUpload companyId={company.id} onAnalysed={onIllustrator ?? applyIllustrator} onError={setError} />
-              </div>
+              </div>}
             </div>
 
             <div className="space-y-3">
               <StepTitle number={2} title="Back of the card" hint="Optional. You can change this later in the editor." />
-              <BackChooser mode={backMode} onMode={setBackMode} file={backFile} onFile={pickFile(setBackFile)} />
+              <BackChooser mode={backMode} onMode={setBackMode} file={backFile} onFile={pickFile(setBackFile)} withAuto={!personal} />
             </div>
 
             {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
@@ -348,7 +358,7 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
   } else if (analysis) {
     canvasContent = <>
       <ProtectedImage path={assetPath(design, view === 'edit' && showOriginal ? analysis.source : analysis.background)} alt="Your design" className="pointer-events-none absolute inset-0 size-full object-fill" />
-      {view === 'preview' && <SideFields fields={fields} values={values} aspect={aspect} />}
+      {view === 'preview' && <SideFields fields={fields} values={values} aspect={aspect} owner={personal ? 'personal' : company.id} />}
       {/* The text from the design is drawn back in as HTML, same size, colour and weight, so the editor looks like the original card. */}
       {view === 'edit' && !showOriginal && fields.map((f, i) => (
         !['photo', 'qr', 'logo', 'other'].includes(f.role) && f.text ? <div key={`text-${i}`} className="pointer-events-none absolute inset-0"><FieldText field={f} text={f.text} aspect={aspect} /></div> : null
@@ -453,7 +463,7 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
           {side === 'back' && (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-navy-900">Back of the card</p>
-              <BackChooser mode={backMode} onMode={(mode) => { setBackMode(mode); setSelected(null); }} file={backFile} onFile={pickFile(setBackFile)} />
+              <BackChooser mode={backMode} onMode={(mode) => { setBackMode(mode); setSelected(null); }} file={backFile} onFile={pickFile(setBackFile)} withAuto={!personal} />
               {backMode === 'upload' && backFile && (
                 <Button variant="secondary" className="w-full" disabled={busy === 'back'} onClick={analyseBackLater}>
                   {busy === 'back' ? 'Reading the back…' : back ? 'Analyse this file instead' : 'Analyse back design'}
@@ -547,8 +557,8 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
           )}
 
           <div className="space-y-3 border-t border-slate-100 pt-5">
-            <label className="block text-sm font-medium text-slate-700">Template name
-              <input className={cx(inputClass, 'mt-1')} value={name} maxLength={60} onChange={(e) => setName(e.target.value)} placeholder="e.g. Head office card" />
+            <label className="block text-sm font-medium text-slate-700">{personal ? 'Design name' : 'Template name'}
+              <input className={cx(inputClass, 'mt-1')} value={name} maxLength={60} onChange={(e) => setName(e.target.value)} placeholder={personal ? 'e.g. My work card' : 'e.g. Head office card'} />
             </label>
             <label className="block text-sm font-medium text-slate-700">Description <span className="font-normal text-slate-400">(optional)</span>
               <input className={cx(inputClass, 'mt-1')} value={description} maxLength={255} onChange={(e) => setDescription(e.target.value)} />
@@ -557,7 +567,7 @@ function DesignUploaderForm({ company, employees, onSaved, incoming, onIncomingU
             {backWaiting && <p className="text-sm text-amber-700">Analyse the back design, or pick another option for the back.</p>}
             {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
             <Button className="w-full" disabled={!hasName || !name.trim() || backWaiting || busy === 'save'} onClick={save}>
-              {busy === 'save' ? 'Saving…' : 'Save template'}
+              {busy === 'save' ? 'Saving…' : personal ? 'Save design' : 'Save template'}
             </Button>
           </div>
         </div>

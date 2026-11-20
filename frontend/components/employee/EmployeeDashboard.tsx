@@ -65,6 +65,7 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
     designation: '',
     department: '',
     phone: '',
+    personal_template_id: '',
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -216,6 +217,8 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
         if (order.designation?.trim()) body.designation = order.designation.trim();
         if (order.department?.trim()) body.department = order.department.trim();
         if (order.phone?.trim()) body.phone = order.phone.trim();
+        // An uploaded design of their own (machine-learning template) instead of a standard style.
+        if (order.personal_template_id) body.personal_template_id = Number(order.personal_template_id);
 
         result = await api('/employee/checkout/personal', {
           method: 'POST',

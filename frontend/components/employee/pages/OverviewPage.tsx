@@ -9,7 +9,10 @@ import { EmptyNote, cardDownloadPath, formatDate, formatSize } from '@/component
 import { useEmployee } from '@/components/employee/EmployeeDashboard';
 
 export default function EmployeeOverviewPage() {
-  const { setTab, cards, personal, orders, setCardSubView, order, setError, membershipState, cardRows, latestCard, employeeName, goToOrderCompanyCards, goToSavedCards, toast, joinDialog, statusLine, membershipSummary, orderKind } = useEmployee();
+  const { setTab, cards, personal, orders, setCardSubView, order, setError, membershipState, cardRows, latestCard, employeeName, goToOrderCompanyCards, goToSavedCards, toast, joinDialog, statusLine, membershipSummary, orderKind, setPaymentModalOrder } = useEmployee();
+  // A card can only be downloaded once its order is paid; until then the main action is to pay.
+  const latestOrder = latestCard?.order_id ? orders.find(o => o.id === Number(latestCard.order_id)) : undefined;
+  const latestUnpaid = Boolean(latestCard && latestCard.payment_status && latestCard.payment_status !== 'PAID');
 return (
   <div className="space-y-6">
     {toast}
@@ -36,13 +39,19 @@ return (
               <StatusBadge value={latestCard.status} />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={() => downloadOrReport(cardDownloadPath(latestCard), latestCard.file_name, setError)}>Download PDF</Button>
+              {latestUnpaid ? (
+                <Button onClick={() => setPaymentModalOrder(latestOrder || { id: Number(latestCard.order_id), total_amount: 50 })} disabled={!latestCard.order_id}>
+                  Pay {latestOrder ? `৳${latestOrder.total_amount}` : ''} to download
+                </Button>
+              ) : (
+                <Button onClick={() => downloadOrReport(cardDownloadPath(latestCard), latestCard.file_name, setError)}>Download PDF</Button>
+              )}
               {latestCard.kind !== 'personal' && latestCard.verification_token && (
                 <a href={`/verify/${latestCard.verification_token}`} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary')}>
                   Verify card
                 </a>
               )}
-              <span className="text-xs text-slate-500">Vector PDF, 3.5 × 2 in</span>
+              <span className="text-xs text-slate-500">{latestUnpaid ? 'The PDF unlocks as soon as the payment is confirmed.' : 'Vector PDF, 3.5 × 2 in'}</span>
             </div>
           </div>
         ) : (

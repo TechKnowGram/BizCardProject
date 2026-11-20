@@ -69,7 +69,7 @@ async def _read_design(file: UploadFile) -> bytes:
     return content
 
 
-def _analyze_files(company_id: int, design: bytes, blank: bytes | None, side: str = 'front') -> dict:
+def _analyze_files(company_id: int | str | None, design: bytes, blank: bytes | None, side: str = 'front') -> dict:
     """CPU-heavy: runs OCR and image processing. Called in a worker thread."""
     import numpy as np
     from app.services.template_ml import analyze, clean_background, load_image
@@ -135,7 +135,14 @@ def _remove_unsaved_uploads(company_id: int | None) -> None:
         return
     with SessionLocal() as db:
         used: set[str] = set()
-        for design in db.scalars(select(CardTemplate.design).where(CardTemplate.company_id.is_(None) if company_id is None else CardTemplate.company_id == company_id)):
+        if isinstance(company_id, str):  # an individual's private folder
+            from uuid import UUID
+
+            from app.models import PersonalTemplate
+            designs = db.scalars(select(PersonalTemplate.design).where(PersonalTemplate.user_id == UUID(company_id.removeprefix('user_'))))
+        else:
+            designs = db.scalars(select(CardTemplate.design).where(CardTemplate.company_id.is_(None) if company_id is None else CardTemplate.company_id == company_id))
+        for design in designs:
             if design and design.get('kind') == 'image':
                 used.update({design.get('source', ''), design.get('background', '')})
                 used.update(f.get('image', '') for f in design.get('fields', []))
@@ -195,7 +202,7 @@ def _check_layer_images(company_id: int | None, fields) -> None:
             raise HTTPException(422, 'An added text layer is empty; type something or delete it')
 
 
-def _check_assets(company_id: int, *names: str) -> None:
+def _check_assets(company_id: int | str | None, *names: str) -> None:
     for name in names:
         try:
             path = resolve_asset(company_id, name)
