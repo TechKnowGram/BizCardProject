@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { Employee } from '@/lib/types';
 import DataTable, { NameCell, type Column } from '@/components/dashboard/DataTable';
 import { PageHeader, ToolbarSelect } from '@/components/dashboard/Surface';
@@ -29,7 +30,7 @@ export interface EmployeesTabProps {
   onImport: () => void;
   onAdd: () => void;
   onEdit: (employee: Employee) => void;
-  onUploadPhoto: (employee: Employee, file: File | undefined) => void;
+  onUploadPhoto: (employee: Employee, file: File | undefined) => void | Promise<void>;
   onChangeStatus: (employee: Employee) => void;
   onCreateRequest: () => void;
 }
@@ -39,6 +40,10 @@ export default function EmployeesTab(props: EmployeesTabProps) {
     employees, visibleEmployees, departments, search, setSearch, department, setDepartment, statusFilter, setStatusFilter,
     selectedEmployees, setSelectedEmployees, toggleEmployee, busy, onExport, onImport, onAdd, onEdit, onUploadPhoto, onChangeStatus, onCreateRequest,
   } = props;
+
+  // The photo URL never changes when a photo is replaced, so bump a per-employee version after each upload to refetch it.
+  const [photoVersions, setPhotoVersions] = useState<Record<number, number>>({});
+  const bumpPhoto = (id: number) => setPhotoVersions((current) => ({ ...current, [id]: (current[id] ?? 0) + 1 }));
 
   const selectable = visibleEmployees.filter((item) => item.is_active);
   const allSelected = selectable.length > 0 && selectable.every((item) => selectedEmployees.includes(item.id));
@@ -65,7 +70,13 @@ export default function EmployeesTab(props: EmployeesTabProps) {
       key: 'name',
       header: 'Employee',
       sortValue: (employee) => employee.name.toLowerCase(),
-      render: (employee) => <NameCell name={employee.name} sub={`${employee.employee_id}${employee.has_photo ? ' · Photo added' : ''}`} />,
+      render: (employee) => (
+        <NameCell
+          name={employee.name}
+          sub={employee.employee_id}
+          photoPath={employee.has_photo ? `/employees/${employee.id}/photo?v=${photoVersions[employee.id] ?? 0}` : null}
+        />
+      ),
     },
     {
       key: 'role',
@@ -104,7 +115,7 @@ export default function EmployeesTab(props: EmployeesTabProps) {
           <ActionBtn label={`Edit ${employee.name}`} tone="amber" onClick={() => onEdit(employee)}>
             <Icon name="edit" size={14} />
           </ActionBtn>
-          <ActionFile label={employee.has_photo ? 'Change photo' : 'Add photo'} tone="blue" accept="image/png,image/jpeg,image/webp" onFile={(file) => onUploadPhoto(employee, file)}>
+          <ActionFile label={employee.has_photo ? 'Change photo' : 'Add photo'} tone="blue" accept="image/png,image/jpeg,image/webp" onFile={(file) => { void Promise.resolve(onUploadPhoto(employee, file)).then(() => bumpPhoto(employee.id)); }}>
             <Icon name="camera" size={14} />
           </ActionFile>
           <ActionBtn label={employee.is_active ? 'Deactivate' : 'Activate'} tone={employee.is_active ? 'rose' : 'emerald'} disabled={busy} onClick={() => onChangeStatus(employee)}>

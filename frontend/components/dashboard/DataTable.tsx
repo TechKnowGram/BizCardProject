@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { cx } from '@/components/ui';
+import ProtectedImage from '@/components/ui/ProtectedImage';
 
 export interface Column<T> {
   key: string;
@@ -258,16 +259,22 @@ function PageButton({ children, onClick, active, disabled, label }: { children: 
 }
 
 /** Round avatar with initials, used in table name cells. */
-export function Avatar({ name, className }: { name: string; className?: string }) {
+export function Avatar({ name, className, photoPath }: { name: string; className?: string; photoPath?: string | null }) {
   const initials = name.trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-  return <span className={cx('grid size-8 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700', className)}>{initials}</span>;
+  return (
+    <span className={cx('relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-50 text-xs font-semibold text-brand-700', className)}>
+      <span aria-hidden={Boolean(photoPath)}>{initials}</span>
+      {/* The photo sits over the initials, which stay visible while it loads or if it fails. */}
+      {photoPath && <ProtectedImage path={photoPath} alt={`${name} photo`} className="absolute inset-0 size-full object-cover" />}
+    </span>
+  );
 }
 
-/** Name + secondary line, the standard first cell of a row. */
-export function NameCell({ name, sub }: { name: string; sub?: ReactNode }) {
+/** Name + secondary line, the standard first cell of a row. Pass photoPath to show a picture instead of initials. */
+export function NameCell({ name, sub, photoPath }: { name: string; sub?: ReactNode; photoPath?: string | null }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <Avatar name={name} />
+      <Avatar name={name} photoPath={photoPath} />
       <div className="min-w-0">
         <p className="truncate font-medium text-navy-900">{name}</p>
         {sub && <p className="truncate text-xs text-slate-500">{sub}</p>}
