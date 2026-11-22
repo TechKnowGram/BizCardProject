@@ -242,7 +242,7 @@ def test_card_ordering_by_membership_status(context):
     })
     assert alice_order.status_code == 201
     assert alice_order.json()['quantity'] == 2
-    # Employee self-service card checkout charges individual price and awaits payment.
+    # Employee self-service card checkout charges the individual price and first waits for a system admin.
     assert alice_order.json()['payer'] == 'INDIVIDUAL'
     assert alice_order.json()['total_amount'] == 100
-    assert alice_order.json()['payment_status'] == 'PENDING_PAYMENT'
+    assert alice_order.json()['payment_status'] == 'PENDING_APPROVAL'

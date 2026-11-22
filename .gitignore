@@ -32,3 +32,5 @@ docs/design-research/
 scratch/
 .claude/
 
+
+# Local secrets: never commit

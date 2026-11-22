@@ -117,6 +117,8 @@ export interface ImageTemplateDesign {
   background: string;
   source: string;
   company_id: number | null;
+  /** 'personal' for a design an employee uploaded for their own cards (served from /employee/designs/assets). */
+  owner?: 'personal';
   width: number;
   height: number;
   width_pt?: number | null;

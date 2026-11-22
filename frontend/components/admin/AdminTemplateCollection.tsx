@@ -1,5 +1,6 @@
 ﻿'use client';
 import CardPreview from '@/components/cards/CardPreview';
+import { FlipCard } from '@/components/cards/ImageTemplateCard';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -46,7 +47,9 @@ function TemplateCard({
 }) {
   return (
     <article className="flex min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-4">
-      <CardPreview variant="library" design={template.design} style={template.style_key} />
+      {isImageDesign(template.design) && template.design.back
+        ? <FlipCard design={template.design} values={{ name: 'Farhana Akter', title: 'Head of Finance', phone: '+880 1711 204 518', email: 'farhana@company.com', website: 'www.company.com', company: 'Your company' }} />
+        : <CardPreview variant="library" design={template.design} style={template.style_key} />}
       <div className="mt-4 min-w-0 flex-1">
         <p className="truncate text-xs text-slate-500">{label}</p>
         <h3 className="mt-0.5 text-sm font-semibold text-navy-900 [overflow-wrap:anywhere]">{template.name}</h3>

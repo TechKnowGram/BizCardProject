@@ -32,7 +32,7 @@ export default function AdminTemplateUploadPage() {
     <div className="space-y-6">
       <PageHeader
         title="Upload a template"
-        description="Upload a finished card design (PNG, JPG, WebP or Illustrator). Check the fields we found, then save it as a shared template every approved company can use."
+        description="Upload a finished card design (PNG, JPG, WebP, Photoshop PSD or Illustrator). Check the fields we found, then save it as a shared template every approved company can use."
         actions={
           <div className="flex flex-wrap gap-2">
             <IllustratorUpload companyId={0} onAnalysed={openWorkspace} onError={setUploadError} />

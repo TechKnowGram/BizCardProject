@@ -26,10 +26,20 @@ def test_employee_membership_and_self_service_card(context):
                         json={'decision': 'APPROVED'}).status_code == 200
     templates = client.get(f"/employee/templates/{company['company']['id']}", headers=employee).json()
     assert templates
-    card = client.post(f"/employee/cards/{company['company']['id']}/{templates[0]['id']}", headers=employee)
-    assert card.status_code == 201, card.text
-    card_id = card.json()['id']
-    assert client.get('/employee/cards', headers=employee).status_code == 200
+    order = client.post(f"/employee/cards/{company['company']['id']}/{templates[0]['id']}", headers=employee)
+    assert order.status_code == 201, order.text
+    assert order.json()['payment_status'] == 'PENDING_APPROVAL' and order.json()['card_ids'] == []
+    # A system admin approves first; only then is the card generated and payable.
+    assert client.post(f"/orders/{order.json()['order_id']}/pay", headers=employee, json={'method': 'CARD'}).status_code == 409
+    request_id = next(r['id'] for r in client.get('/admin/card-requests', headers=admin).json() if r['status'] == 'PENDING')
+    assert client.patch(f'/admin/card-requests/{request_id}/decision', headers=admin, json={'decision': 'APPROVED'}).status_code == 200
+    listed = client.get('/employee/cards', headers=employee).json()
+    mine = listed[0]
+    card_id = mine['id']
+    assert mine['payment_status'] == 'PENDING_PAYMENT'
+    # Approved but unpaid: still locked.
+    assert client.get(f'/employee/cards/{card_id}/download', headers=employee).status_code == 402
+    assert client.post(f"/orders/{mine['order_id']}/pay", headers=employee, json={'method': 'CARD'}).status_code == 200
     assert client.get(f'/employee/cards/{card_id}/download', headers=employee).content.startswith(b'%PDF')
     assert client.patch(f"/company/memberships/{membership['id']}", headers=owner,
                         json={'decision': 'REVOKED'}).status_code == 200
@@ -81,15 +91,15 @@ def test_imported_existing_employee_is_linked_and_mock_checkout(context):
     checkout = client.post(f"/employee/checkout/company/{company['company']['id']}", headers=employee,
         json={'quantity': 3, 'template_id': templates[0]['id'], 'payer': 'INDIVIDUAL'})
     assert checkout.status_code == 201, checkout.text
-    # Employee self-service company checkout charges individual price and awaits payment
+    # Employee self-service company checkout charges the individual price and first waits for a system admin
     assert checkout.json()['payer'] == 'INDIVIDUAL'
     assert checkout.json()['total_amount'] == 150
-    assert checkout.json()['payment_status'] == 'PENDING_PAYMENT'
-    assert len(checkout.json()['card_ids']) == 1
+    assert checkout.json()['payment_status'] == 'PENDING_APPROVAL'
+    assert checkout.json()['card_ids'] == []
+    # A personal card needs the employee's own uploaded design (see test_personal_designs for the full flow).
     personal = client.post('/employee/checkout/personal', headers=employee,
         json={'quantity': 2, 'name': 'Existing', 'designation': 'Engineer'})
-    assert personal.status_code == 201, personal.text
-    assert personal.json()['total_amount'] == 100
+    assert personal.status_code == 422, personal.text
 
 
 def test_company_checkout_payer_comes_from_membership(context):

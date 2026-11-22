@@ -12,11 +12,11 @@ export default function AdminTemplatesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Templates"
-        description="Shared card designs, and designs companies have made for themselves."
+        description="Shared card designs, and designs companies have made for themselves. Create one from a photo or Photoshop file: machine learning finds where each detail goes."
         actions={
           <div className="flex flex-wrap gap-2">
-            <Link href="/dashboard/templates/create" className={buttonClass('secondary')}>Create template</Link>
-            <Link href="/dashboard/templates/upload" className={buttonClass('primary')}>Upload template</Link>
+            <Link href="/dashboard/templates/create" className={buttonClass('secondary')}>Colour-only template</Link>
+            <Link href="/dashboard/templates/upload" className={buttonClass('primary')}>Create template from a photo or PSD</Link>
           </div>
         }
       />

@@ -12,6 +12,8 @@ from app.api.routes.notifications import router as notifications_router
 from app.api.routes.verification import router as verification_router
 from app.api.routes.memberships import router as memberships_router
 from app.api.routes.employee_portal import router as employee_portal_router
+from app.api.routes.personal_templates import router as personal_templates_router
+from app.api.routes.admin_personal_orders import router as admin_personal_orders_router
 from app.api.routes.illustrator_templates import router as illustrator_templates_router
 from app.api.routes.image_templates import router as image_templates_router
 
@@ -35,6 +37,8 @@ app.include_router(notifications_router)
 app.include_router(verification_router)
 app.include_router(memberships_router)
 app.include_router(employee_portal_router)
+app.include_router(personal_templates_router)
+app.include_router(admin_personal_orders_router)
 
 
 @app.get('/', tags=['Health'])

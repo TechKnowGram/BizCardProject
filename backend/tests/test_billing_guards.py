@@ -143,33 +143,13 @@ def test_card_request_order_lifecycle_and_download_guards(context):
     assert card_dl.content.startswith(b'%PDF')
 
 
-def test_employee_personal_card_payment_guard(context):
+def test_employee_personal_card_needs_an_uploaded_design(context):
     client, _, _ = context
-    # Register an employee
     assert client.post('/auth/employee/register', json={'username': 'Emp1', 'email': 'emp1@gmail.com', 'password': 'Password@123'}).status_code == 201
     emp_token = login(client, 'emp1@gmail.com')
-
-    # Employee orders personal card
+    # The fixed styles are gone: a personal card is always printed on the employee's own (ML-read) design.
     checkout = client.post('/employee/checkout/personal', headers=emp_token, json={'quantity': 1, 'name': 'Emp One', 'designation': 'Consultant'})
-    assert checkout.status_code == 201, checkout.text
-    order_id = checkout.json()['order_id']
-    card_id = checkout.json()['card_ids'][0]
-    assert checkout.json()['payment_status'] == 'PENDING_PAYMENT'
-
-    # Attempt to download before payment -> 402 Payment Required
-    unpaid_dl = client.get(f'/employee/personal-cards/{card_id}/download', headers=emp_token)
-    assert unpaid_dl.status_code == 402, unpaid_dl.text
-    assert 'Payment required' in unpaid_dl.json()['detail']
-
-    # Employee pays via sandbox gateway
-    pay_resp = client.post(f'/orders/{order_id}/pay', headers=emp_token, json={'method': 'NAGAD_SANDBOX'})
-    assert pay_resp.status_code == 200
-    assert pay_resp.json()['status'] == 'PAID'
-
-    # Now download succeeds
-    paid_dl = client.get(f'/employee/personal-cards/{card_id}/download', headers=emp_token)
-    assert paid_dl.status_code == 200
-    assert paid_dl.content.startswith(b'%PDF')
+    assert checkout.status_code == 422, checkout.text
 
 
 def test_unauthorized_user_cannot_pay_foreign_order(context):
@@ -239,9 +219,21 @@ def test_employee_company_card_payment_guard(context):
     })
     assert checkout.status_code == 201, checkout.text
     order_id = checkout.json()['order_id']
-    card_id = checkout.json()['card_ids'][0]
-    assert checkout.json()['payment_status'] == 'PENDING_PAYMENT'
+    assert checkout.json()['payment_status'] == 'PENDING_APPROVAL'
+    assert checkout.json()['card_ids'] == []  # nothing is generated before approval
     assert checkout.json()['total_amount'] == 50
+    assert client.get('/employee/cards', headers=emp_token).json() == []
+
+    # Paying before a system admin approves is refused.
+    early = client.post(f'/orders/{order_id}/pay', headers=emp_token, json={'method': 'BKASH_SANDBOX'})
+    assert early.status_code == 409, early.text
+
+    # The order is in the system admin's card requests, like a company request; approval generates the card.
+    admin = login(client, 'system@example.com')
+    request_id = next(r['id'] for r in client.get('/admin/card-requests', headers=admin).json() if r['status'] == 'PENDING')
+    assert client.patch(f'/admin/card-requests/{request_id}/decision', headers=admin, json={'decision': 'APPROVED'}).status_code == 200
+    assert next(o for o in client.get('/employee/orders', headers=emp_token).json() if o['id'] == order_id)['status'] == 'PENDING_PAYMENT'
+    card_id = client.get('/employee/cards', headers=emp_token).json()[0]['id']
 
     # Cards list reports payment_status PENDING_PAYMENT
     cards_list = client.get('/employee/cards', headers=emp_token).json()

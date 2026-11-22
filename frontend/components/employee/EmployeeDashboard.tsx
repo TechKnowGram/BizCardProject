@@ -65,6 +65,7 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
     designation: '',
     department: '',
     phone: '',
+    personal_template_id: '',
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -207,6 +208,7 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
       } else {
         const nameVal = order.name?.trim() || user?.username || '';
         if (!nameVal) throw new Error('Enter your full name.');
+        if (!order.personal_template_id) throw new Error('Upload or choose your card design first.');
         // template_id is left out on purpose so the backend accepts the personal order.
         const body: Record<string, any> = {
           quantity: Math.max(1, Number(order.quantity) || 1),
@@ -216,6 +218,8 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
         if (order.designation?.trim()) body.designation = order.designation.trim();
         if (order.department?.trim()) body.department = order.department.trim();
         if (order.phone?.trim()) body.phone = order.phone.trim();
+        // An uploaded design of their own (machine-learning template) instead of a standard style.
+        if (order.personal_template_id) body.personal_template_id = Number(order.personal_template_id);
 
         result = await api('/employee/checkout/personal', {
           method: 'POST',
@@ -224,7 +228,11 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
       }
       await load();
 
-      if (result && result.total_amount > 0 && result.payment_status === 'PENDING_PAYMENT') {
+      if (result?.payment_status === 'PENDING_APPROVAL') {
+        // Same rule as company requests: a system admin approves first, then the employee pays.
+        setMessage(`Order #${result.order_id} was sent for approval. You can pay ৳${result.total_amount} once a system admin approves it.`);
+        setTab?.('orders');
+      } else if (result && result.total_amount > 0 && result.payment_status === 'PENDING_PAYMENT') {
         setPaymentModalOrder({
           id: result.order_id,
           total_amount: result.total_amount,
