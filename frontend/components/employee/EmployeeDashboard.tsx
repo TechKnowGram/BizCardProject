@@ -16,6 +16,7 @@ import DataTable, { NameCell } from '@/components/dashboard/DataTable';
 import type { Column } from '@/components/dashboard/DataTable';
 import CardOrderStudio from '@/components/employee/CardOrderStudio';
 import JoinCompanyDialog from '@/components/employee/JoinCompanyDialog';
+import PaymentModal from '@/components/ui/PaymentModal';
 import { CompanyMark, DetailList, EmptyNote, MATCH_HINTS, PRICE, cardDownloadPath, formatDate, formatSize, payerText } from '@/components/employee/shared';
 
 export interface EmployeeDashboardProps {
@@ -64,10 +65,12 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
     designation: '',
     department: '',
     phone: '',
+    personal_template_id: '',
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [paymentModalOrder, setPaymentModalOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -186,6 +189,7 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
     setBusy(true);
     setError('');
     try {
+      let result: any;
       if (isCompany) {
         const companyId = selected || activeMembership?.company_id;
         if (!companyId) throw new Error('No active company selected.');
@@ -197,14 +201,14 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
           // Informational only: the server uses the membership's payer.
           payer: activeMembership?.payer || 'INDIVIDUAL',
         };
-        const result: any = await api(`/employee/checkout/company/${companyId}`, {
+        result = await api(`/employee/checkout/company/${companyId}`, {
           method: 'POST',
           body: JSON.stringify(body),
         });
-        setMessage(`Order placed: ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'}, total ৳${result.total_amount}.`);
       } else {
         const nameVal = order.name?.trim() || user?.username || '';
         if (!nameVal) throw new Error('Enter your full name.');
+        if (!order.personal_template_id) throw new Error('Upload or choose your card design first.');
         // template_id is left out on purpose so the backend accepts the personal order.
         const body: Record<string, any> = {
           quantity: Math.max(1, Number(order.quantity) || 1),
@@ -214,15 +218,31 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
         if (order.designation?.trim()) body.designation = order.designation.trim();
         if (order.department?.trim()) body.department = order.department.trim();
         if (order.phone?.trim()) body.phone = order.phone.trim();
+        // An uploaded design of their own (machine-learning template) instead of a standard style.
+        if (order.personal_template_id) body.personal_template_id = Number(order.personal_template_id);
 
-        const result: any = await api('/employee/checkout/personal', {
+        result = await api('/employee/checkout/personal', {
           method: 'POST',
           body: JSON.stringify(body),
         });
-        setMessage(`Order placed: ${result.quantity} personal ${result.quantity === 1 ? 'card' : 'cards'}, total ৳${result.total_amount}.`);
       }
       await load();
-      setCardSubView('vault');
+
+      if (result?.payment_status === 'PENDING_APPROVAL') {
+        // Same rule as company requests: a system admin approves first, then the employee pays.
+        setMessage(`Order #${result.order_id} was sent for approval. You can pay ৳${result.total_amount} once a system admin approves it.`);
+        setTab?.('orders');
+      } else if (result && result.total_amount > 0 && result.payment_status === 'PENDING_PAYMENT') {
+        setPaymentModalOrder({
+          id: result.order_id,
+          total_amount: result.total_amount,
+          quantity: result.quantity,
+          payer: result.payer,
+        });
+      } else {
+        setMessage(`Order placed: ${result.quantity} ${result.quantity === 1 ? 'card' : 'cards'}.`);
+        setCardSubView('vault');
+      }
     } catch (err: any) {
       setError(err.message || 'The order could not be placed. Please try again.');
     } finally {
@@ -343,7 +363,7 @@ export function useEmployeeController({ tab, setTab, user }: { tab: string; setT
 
   const orderKind = (o: any) => (o.company_id == null ? 'personal' : 'company');
 
-  return { setTab, user, companies, setCompanies, memberships, setMemberships, cards, setCards, personal, setPersonal, orders, setOrders, templates, setTemplates, selected, setSelected, companySearch, setCompanySearch, orderSearch, setOrderSearch, orderType, setOrderType, cardSubView, setCardSubView, cardOrderType, setCardOrderType, cardTheme, setCardTheme, changeCompanyOpen, setChangeCompanyOpen, targetCompany, setTargetCompany, joinForm, setJoinForm, joinErrors, setJoinErrors, modalBusy, setModalBusy, modalApiError, setModalApiError, order, setOrder, message, setMessage, error, setError, busy, setBusy, loading, setLoading, load, activeMembership, pendingMembership, rejectedMembership, membershipState, openJoinModal, closeJoinModal, handleJoinSubmit, selectCompany, checkout, cardRows, latestCard, filteredCompanies, employeeName, companyNameById, goToOrderCompanyCards, goToSavedCards, toast, joinDialog, statusLine, membershipSummary, orderKind };
+  return { setTab, user, companies, setCompanies, memberships, setMemberships, cards, setCards, personal, setPersonal, orders, setOrders, templates, setTemplates, selected, setSelected, companySearch, setCompanySearch, orderSearch, setOrderSearch, orderType, setOrderType, cardSubView, setCardSubView, cardOrderType, setCardOrderType, cardTheme, setCardTheme, changeCompanyOpen, setChangeCompanyOpen, targetCompany, setTargetCompany, joinForm, setJoinForm, joinErrors, setJoinErrors, modalBusy, setModalBusy, modalApiError, setModalApiError, order, setOrder, message, setMessage, error, setError, busy, setBusy, loading, setLoading, load, activeMembership, pendingMembership, rejectedMembership, membershipState, openJoinModal, closeJoinModal, handleJoinSubmit, selectCompany, checkout, cardRows, latestCard, filteredCompanies, employeeName, companyNameById, goToOrderCompanyCards, goToSavedCards, toast, joinDialog, statusLine, membershipSummary, orderKind, paymentModalOrder, setPaymentModalOrder };
 }
 
 type EmployeeController = ReturnType<typeof useEmployeeController>;
@@ -358,7 +378,7 @@ export function useEmployee() {
 
 export default function EmployeeDashboard({ tab, setTab, user, children }: EmployeeDashboardProps) {
   const controller = useEmployeeController({ tab, setTab, user });
-  const { loading } = controller;
+  const { loading, paymentModalOrder, setPaymentModalOrder, setMessage, load, setCardSubView } = controller;
 
   // First load: show the page shape, not a wrong "no company" state.
   const content = loading && tab !== 'help' ? (
@@ -372,5 +392,25 @@ export default function EmployeeDashboard({ tab, setTab, user, children }: Emplo
       </div>
   ) : children;
 
-  return <EmployeeContext.Provider value={controller}>{content}</EmployeeContext.Provider>;
+  return (
+    <EmployeeContext.Provider value={controller}>
+      {content}
+      {paymentModalOrder && (
+        <PaymentModal
+          order={paymentModalOrder}
+          onClose={() => {
+            setPaymentModalOrder(null);
+            load();
+            setCardSubView('vault');
+          }}
+          onSuccess={async () => {
+            setMessage(`Payment for Order #${paymentModalOrder.id} confirmed successfully! Your cards are ready to download.`);
+            setPaymentModalOrder(null);
+            await load();
+            setCardSubView('vault');
+          }}
+        />
+      )}
+    </EmployeeContext.Provider>
+  );
 }

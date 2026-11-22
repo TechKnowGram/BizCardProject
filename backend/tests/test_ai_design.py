@@ -62,6 +62,8 @@ def test_ai_company_isolation_and_pdf(context):
     result = client.patch(decision, headers=admin, json={'decision': 'APPROVED'})
     assert result.status_code == 200, result.text
     assert result.json()['status'] == 'COMPLETED'
+    # Approval-first billing: cards are only downloadable once the order is paid.
+    assert client.post(f"/orders/{result.json()['order']['id']}/pay", headers=owner).status_code == 200
     cards = client.get(f'/card-requests/{request_id}/cards', headers=owner).json()
     assert len(cards) == 1
     assert client.get(f"/cards/{cards[0]['id']}/download", headers=owner).content.startswith(b'%PDF')
@@ -167,7 +169,10 @@ def test_actual_pdf_preview_and_two_sided_generation(context):
     assert client.post('/templates/preview', headers=owner, json={'template_id': template['id'], 'design': design}).status_code == 422
     assert client.post(f"/templates/{template['id']}/select", headers=owner).status_code == 200
     request = client.post('/card-requests', headers=owner, json={'employee_ids': [employee_id], 'template_id': template['id']}).json()
-    assert client.patch(f"/admin/card-requests/{request['id']}/decision", headers=admin, json={'decision': 'APPROVED'}).status_code == 200
+    approved = client.patch(f"/admin/card-requests/{request['id']}/decision", headers=admin, json={'decision': 'APPROVED'})
+    assert approved.status_code == 200
+    # Approval-first billing: cards are only downloadable once the order is paid.
+    assert client.post(f"/orders/{approved.json()['order']['id']}/pay", headers=owner).status_code == 200
     cards = client.get(f"/card-requests/{request['id']}/cards", headers=owner).json()
     data = client.get(f"/cards/{cards[0]['id']}/download", headers=owner).content
     assert len(PdfReader(io.BytesIO(data)).pages) == 2

@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import select, or_
 from sqlalchemy.orm import Session, selectinload
-from app.api.deps import require_approved_company_admin, require_system_admin
+from app.api.deps import get_current_user, require_approved_company_admin, require_system_admin
 from app.db.session import get_db
-from app.models import CardRequest, CardRequestItem, CardTemplate, Employee, GeneratedCard, User
-from app.schemas.domain import CardDecision, CardRequestCreate, CardRequestResponse, GeneratedCardResponse
+from app.models import CardOrder, CardRequest, CardRequestItem, CardTemplate, Employee, GeneratedCard, PaymentRecord, User
+from app.schemas.domain import CardDecision, CardRequestCreate, CardRequestResponse, GeneratedCardResponse, PayOrderRequest, PayOrderResponse
 from app.services.card_generation import generate_cards, safe_file_stem
 from app.services.image_template_render import template_folder
 from app.services.activity import add_audit, add_notification, notify_system_admins
@@ -24,6 +24,7 @@ def request_query():
         selectinload(CardRequest.created_by),
         selectinload(CardRequest.items).selectinload(CardRequestItem.employee),
         selectinload(CardRequest.items).selectinload(CardRequestItem.generated_card),
+        selectinload(CardRequest.order),
     )
 
 
@@ -58,6 +59,24 @@ def create_card_request(
     )
     db.add(request)
     db.flush()
+
+    card_count = len(employee_ids)
+    unit_price = 50
+    total_amount = card_count * unit_price
+    order = CardOrder(
+        company_id=user.company_id,
+        user_id=user.id,
+        membership_id=None,
+        request_id=request.id,
+        quantity=card_count,
+        unit_price=unit_price,
+        total_amount=total_amount,
+        payer='COMPANY',
+        status='PENDING_PAYMENT',
+    )
+    db.add(order)
+    db.flush()
+
     notify_system_admins(db, 'CARD_REVIEW', f'{user.company.name} submitted card request #{request.id}.')
     add_audit(db, 'CARD_REQUEST_CREATED', 'card_request', request.id, user.id, user.company_id, f'{len(employee_ids)} card(s)')
     db.commit()
@@ -113,11 +132,17 @@ def download_card(
     db: Session = Depends(get_db),
     user: User = Depends(require_approved_company_admin),
 ):
-    card = db.scalar(select(GeneratedCard).where(
-        GeneratedCard.id == card_id, GeneratedCard.company_id == user.company_id
-    ))
+    card = db.scalar(
+        select(GeneratedCard)
+        .where(GeneratedCard.id == card_id, GeneratedCard.company_id == user.company_id)
+        .options(selectinload(GeneratedCard.item))
+    )
     if card is None:
         raise HTTPException(status_code=404, detail='Card not found')
+    if card.item and card.item.request_id:
+        order = db.scalar(select(CardOrder).where(CardOrder.request_id == card.item.request_id))
+        if order and order.status != 'PAID':
+            raise HTTPException(status_code=402, detail=f'Payment required: Order #{order.id} is unpaid. Please complete payment to download.')
     path = Path(card.file_path)
     if not path.is_file():
         raise HTTPException(status_code=404, detail='Generated PDF is missing')
@@ -130,6 +155,9 @@ def download_request_cards(
     db: Session = Depends(get_db),
     user: User = Depends(require_approved_company_admin),
 ):
+    order = db.scalar(select(CardOrder).where(CardOrder.request_id == request_id, CardOrder.company_id == user.company_id))
+    if order and order.status != 'PAID':
+        raise HTTPException(status_code=402, detail=f'Payment required: Invoice for Card Request #{request_id} has not been paid yet.')
     cards = db.scalars(
         select(GeneratedCard).join(CardRequestItem).where(
             CardRequestItem.request_id == request_id,
@@ -178,6 +206,9 @@ def decide_card_request(
         request.rejection_reason = body.reason.strip()
         request.decided_by_id = admin.id
         request.decided_at = datetime.now(timezone.utc)
+        order = db.scalar(select(CardOrder).where(CardOrder.request_id == request.id))
+        if order and order.status in ('PENDING_APPROVAL', 'PENDING_PAYMENT'):
+            order.status = 'REJECTED'
         add_notification(db, request.created_by_id, 'CARD_REJECTED', f'Card request #{request.id} was rejected. Reason: {request.rejection_reason}')
         add_audit(db, 'CARD_REQUEST_REJECTED', 'card_request', request.id, admin.id, request.company_id, request.rejection_reason)
         db.commit()
@@ -197,8 +228,12 @@ def decide_card_request(
     try:
         generate_cards(db, request)
         request.status = 'COMPLETED'
-        add_notification(db, request.created_by_id, 'CARDS_READY', f'Card request #{request.id} is complete and ready to download.')
-        add_audit(db, 'CARD_REQUEST_APPROVED', 'card_request', request.id, admin.id, request.company_id, f'{len(request.items)} card(s) generated')
+        # An employee's order waits for this approval before it can be paid.
+        order = db.scalar(select(CardOrder).where(CardOrder.request_id == request.id))
+        if order and order.status == 'PENDING_APPROVAL':
+            order.status = 'PENDING_PAYMENT'
+        add_notification(db, request.created_by_id, 'CARDS_APPROVED', f'Card request #{request.id} has been approved by admin. Please complete payment to download your cards.')
+        add_audit(db, 'CARD_REQUEST_APPROVED', 'card_request', request.id, admin.id, request.company_id, f'{len(request.items)} card(s) generated; awaiting payment')
         db.commit()
     except Exception:
         db.rollback()
@@ -284,13 +319,69 @@ def admin_download_all_ai(request_id: int, db: Session = Depends(get_db), _: Use
 
 @router.get('/card-requests/{request_id}/items/{item_id}/ai')
 def download_ai(request_id: int, item_id: int, db: Session = Depends(get_db), user: User = Depends(require_approved_company_admin)):
+    order = db.scalar(select(CardOrder).where(CardOrder.request_id == request_id, CardOrder.company_id == user.company_id))
+    if order and order.status != 'PAID':
+        raise HTTPException(status_code=402, detail=f'Payment required: Invoice for Card Request #{request_id} has not been paid yet.')
     request, item = _request_item(db, request_id, item_id, user.company_id)
     return _ai_response(*_ai_card(request, item))
 
 
 @router.get('/card-requests/{request_id}/ai')
 def download_all_ai(request_id: int, db: Session = Depends(get_db), user: User = Depends(require_approved_company_admin)):
+    order = db.scalar(select(CardOrder).where(CardOrder.request_id == request_id, CardOrder.company_id == user.company_id))
+    if order and order.status != 'PAID':
+        raise HTTPException(status_code=402, detail=f'Payment required: Invoice for Card Request #{request_id} has not been paid yet.')
     request = db.scalar(request_query().where(CardRequest.id == request_id, CardRequest.company_id == user.company_id))
     if request is None:
         raise HTTPException(status_code=404, detail='Card request not found')
     return _ai_zip_response(request)
+
+
+@router.post('/orders/{order_id}/pay', response_model=PayOrderResponse)
+def pay_order(
+    order_id: int,
+    body: PayOrderRequest = PayOrderRequest(),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    order = db.get(CardOrder, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail='Order not found')
+    is_owner = (order.user_id == user.id)
+    is_company_admin = (user.role == 'COMPANY_ADMIN' and user.company_id == order.company_id)
+    is_system_admin = (user.role == 'SYSTEM_ADMIN')
+    if not (is_owner or is_company_admin or is_system_admin):
+        raise HTTPException(status_code=403, detail='Not authorized to pay for this order')
+
+    # Payment comes after approval, never before (same rule for companies and employees).
+    if order.status == 'PENDING_APPROVAL' or (order.request_id and order.status != 'PAID' and order.request and order.request.status != 'COMPLETED'):
+        raise HTTPException(status_code=409, detail='This order is waiting for approval. You can pay once it is approved.')
+    if order.status == 'REJECTED':
+        raise HTTPException(status_code=409, detail='This order was rejected and cannot be paid.')
+    if order.status == 'PAID':
+        return PayOrderResponse(
+            order_id=order.id,
+            status='PAID',
+            total_amount=order.total_amount,
+            method=body.method,
+            message='Order is already paid.',
+        )
+
+    order.status = 'PAID'
+    record = db.scalar(select(PaymentRecord).where(PaymentRecord.order_id == order.id))
+    if not record:
+        db.add(PaymentRecord(order_id=order.id, amount=order.total_amount, method=body.method, status='PAID'))
+    else:
+        record.status = 'PAID'
+        record.method = body.method
+
+    add_audit(db, 'ORDER_PAID', 'card_order', str(order.id), user.id, order.company_id, f'Paid ৳{order.total_amount} via {body.method}')
+    add_notification(db, order.user_id, 'ORDER_PAID', f'Payment of ৳{order.total_amount} for Order #{order.id} was confirmed.')
+    db.commit()
+    return PayOrderResponse(
+        order_id=order.id,
+        status='PAID',
+        total_amount=order.total_amount,
+        method=body.method,
+        message='Payment confirmed successfully.',
+    )

@@ -15,6 +15,8 @@ import type {
 } from '@/lib/types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import CardPreview from '@/components/cards/CardPreview';
+import { FlipCard } from '@/components/cards/ImageTemplateCard';
+import { isImageDesign } from '@/lib/types';
 import ReviewDialog from '@/components/ui/ReviewDialog';
 import Toast from '@/components/ui/Toast';
 import AdminTemplateCollection from '@/components/admin/AdminTemplateCollection';
@@ -606,13 +608,29 @@ export default function AdminDashboard({ tab, setTab, user, onLogout, children }
                       <p className="mb-2 text-sm font-medium text-navy-900">
                         Template: {review.template?.name || review.template?.style_key}
                       </p>
-                      <CardPreview
-                        design={review.template?.design}
-                        style={review.template?.style_key}
-                        company={review.company?.name}
-                        name={review.items?.[0]?.employee?.name || 'Sample Employee'}
-                        designation={review.items?.[0]?.employee?.designation || 'Staff'}
-                      />
+                      {isImageDesign(review.template?.design) ? (
+                        <FlipCard
+                          design={review.template.design}
+                          values={{
+                            name: review.items?.[0]?.employee?.name || 'Sample Employee',
+                            title: review.items?.[0]?.employee?.designation || 'Staff',
+                            department: review.items?.[0]?.employee?.department,
+                            phone: review.items?.[0]?.employee?.phone,
+                            email: review.items?.[0]?.employee?.email,
+                            website: review.company?.website,
+                            address: review.company?.address,
+                            company: review.company?.name,
+                          }}
+                        />
+                      ) : (
+                        <CardPreview
+                          design={review.template?.design}
+                          style={review.template?.style_key}
+                          company={review.company?.name}
+                          name={review.items?.[0]?.employee?.name || 'Sample Employee'}
+                          designation={review.items?.[0]?.employee?.designation || 'Staff'}
+                        />
+                      )}
                     </div>
 
                     <div>

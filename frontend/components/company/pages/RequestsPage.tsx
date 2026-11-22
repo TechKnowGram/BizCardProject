@@ -5,7 +5,7 @@ import OrdersTab from '@/components/company/OrdersTab';
 import { useCompany } from '@/components/company/CompanyDashboard';
 
 export default function CompanyRequestsPage() {
-  const { requests, orders, ordersSubView, setOrdersSubView, setError, createRequest, openRequest } = useCompany();
+  const { requests, orders, ordersSubView, setOrdersSubView, setError, createRequest, openRequest, setPaymentModalOrder } = useCompany();
   return (
     <OrdersTab
       requests={requests}
@@ -15,6 +15,7 @@ export default function CompanyRequestsPage() {
       onCreateRequest={createRequest}
       onOpenRequest={openRequest}
       onDownload={(path: string, name: string) => downloadOrReport(path, name, setError)}
+      onPay={setPaymentModalOrder}
     />
   );
 }

@@ -117,6 +117,8 @@ export interface ImageTemplateDesign {
   background: string;
   source: string;
   company_id: number | null;
+  /** 'personal' for a design an employee uploaded for their own cards (served from /employee/designs/assets). */
+  owner?: 'personal';
   width: number;
   height: number;
   width_pt?: number | null;
@@ -190,6 +192,26 @@ export interface CardRequest {
   company: CompanySummary;
   template: Template;
   created_by: User;
+  order?: {
+    id: number;
+    quantity: number;
+    unit_price: number;
+    total_amount: number;
+    payer: string;
+    status: string;
+  } | null;
+}
+
+export interface CardOrder {
+  id: number;
+  company_id?: number | null;
+  request_id?: number | null;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  payer: 'COMPANY' | 'INDIVIDUAL';
+  status: string;
+  created_at: string;
 }
 
 export interface GeneratedCard {

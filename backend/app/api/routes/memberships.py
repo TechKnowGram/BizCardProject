@@ -118,7 +118,7 @@ def company_memberships(db: Session = Depends(get_db), user: User = Depends(requ
 @router.get('/company/card-orders')
 def company_card_orders(db: Session = Depends(get_db), user: User = Depends(require_approved_company_admin)):
     orders = db.scalars(select(CardOrder).where(CardOrder.company_id == user.company_id).order_by(CardOrder.id.desc())).all()
-    return [{'id': order.id, 'quantity': order.quantity, 'unit_price': order.unit_price,
+    return [{'id': order.id, 'request_id': order.request_id, 'quantity': order.quantity, 'unit_price': order.unit_price,
              'total_amount': order.total_amount, 'payer': order.payer, 'status': order.status,
              'created_at': order.created_at} for order in orders]
 

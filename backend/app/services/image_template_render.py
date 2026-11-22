@@ -45,7 +45,20 @@ def card_size(design: dict) -> tuple[float, float]:
     return round(LONG_SIDE_PT * px_w / px_h, 2), LONG_SIDE_PT
 
 
-def template_folder(company_id: int | None) -> Path:
+USER_OWNER_RE = re.compile(r'user_[0-9a-f]{32}')
+
+
+def user_owner(user_id) -> str:
+    """Owner key of an individual's private design folder (personal templates)."""
+    return f'user_{user_id.hex}'
+
+
+def template_folder(company_id: int | str | None) -> Path:
+    """Folder of one owner's design files: a company, the shared platform folder, or one user ("user_<hex>")."""
+    if isinstance(company_id, str):
+        if not USER_OWNER_RE.fullmatch(company_id):
+            raise ValueError('Invalid template owner')
+        return upload_root() / 'templates' / company_id
     return upload_root() / 'templates' / (f'company_{company_id}' if company_id else 'shared')
 
 
@@ -164,15 +177,9 @@ def _photo_image(photo_path: str | None, name: str, box_w_px: int, box_h_px: int
     """Crop the employee photo to the frame (portrait bias: keep the upper middle); initials if missing."""
     if photo_path and Path(photo_path).is_file():
         try:
-            photo = ImageOps.exif_transpose(Image.open(photo_path)).convert('RGB')
-            target = box_w_px / box_h_px
-            w, h = photo.size
-            if w / h > target:            # too wide: crop the sides
-                new_w = int(h * target); left = (w - new_w) // 2
-                photo = photo.crop((left, 0, left + new_w, h))
-            else:                          # too tall: keep the top part where the face usually is
-                new_h = int(w / target); top = int((h - new_h) * 0.25)
-                photo = photo.crop((0, top, w, top + new_h))
+            # Face detection centres the crop on the face (same crop as the browser preview).
+            from app.services.photo_crop import framed_photo
+            photo = framed_photo(photo_path, box_w_px / box_h_px, max_px=max(box_w_px, box_h_px) * 2)
             photo = photo.resize((box_w_px, box_h_px), Image.LANCZOS)
         except Exception:
             photo = None

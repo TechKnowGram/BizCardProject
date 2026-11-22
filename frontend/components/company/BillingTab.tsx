@@ -4,7 +4,7 @@ import type { Company } from '@/lib/types';
 import DataTable from '@/components/dashboard/DataTable';
 import { PageHeader, SectionCard, StatTile } from '@/components/dashboard/Surface';
 import { formatTaka } from '@/components/company/CompanyDashboardParts';
-import { orderColumns } from '@/components/company/OrdersTab';
+import { getOrderColumns } from '@/components/company/OrdersTab';
 
 export interface BillingTabProps {
   company: Company;
@@ -14,9 +14,10 @@ export interface BillingTabProps {
   companySponsoredCount: number;
   selfPaidTotal: number;
   selfPaidCount: number;
+  onPay?: (order: any) => void;
 }
 
-export default function BillingTab({ company, orders, totalSpend, companySponsoredTotal, companySponsoredCount, selfPaidTotal, selfPaidCount }: BillingTabProps) {
+export default function BillingTab({ company, orders, totalSpend, companySponsoredTotal, companySponsoredCount, selfPaidTotal, selfPaidCount, onPay }: BillingTabProps) {
   const plan: Array<[string, string, string]> = [
     ['Pricing', 'Pay as you go', '৳50 per card. No subscription fee and no minimum order.'],
     ['Included', 'Print-ready PDF', 'Every approved card is generated as a 3.5 × 2 in vector PDF.'],
@@ -47,7 +48,7 @@ export default function BillingTab({ company, orders, totalSpend, companySponsor
 
       <DataTable
         rows={orders}
-        columns={orderColumns}
+        columns={getOrderColumns(onPay)}
         rowKey={(o) => o.id}
         title="Invoices"
         description="Each card order, who paid for it and its status."

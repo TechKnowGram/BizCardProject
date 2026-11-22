@@ -136,6 +136,16 @@ class CardItemResponse(BaseModel):
     employee: EmployeeResponse
 
 
+class OrderSummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    quantity: int
+    unit_price: int
+    total_amount: int
+    payer: str
+    status: str
+
+
 class CardRequestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -149,6 +159,7 @@ class CardRequestResponse(BaseModel):
     company: CompanySummary
     template: TemplateResponse
     created_by: UserResponse
+    order: OrderSummaryResponse | None = None
 
 
 class CardDecision(BaseModel):
@@ -164,6 +175,8 @@ class GeneratedCardResponse(BaseModel):
     file_size: int
     verification_token: str
     status: str
+    payment_status: str | None = None
+    order_id: int | None = None
     created_at: datetime
 
 
@@ -192,6 +205,9 @@ class CompanyDirectoryResponse(BaseModel):
     name: str
     description: str | None
     website: str | None
+    # Printed on the company's cards, so members see them in the card preview.
+    address: str | None = None
+    has_logo: bool = False
 
 
 class MembershipResponse(BaseModel):
@@ -231,6 +247,8 @@ class CardCheckout(BaseModel):
     model_config = ConfigDict(extra='forbid')
     quantity: int = Field(ge=1, le=1000)
     template_id: int | None = Field(default=None, gt=0)
+    # Personal orders only: a design the employee uploaded themself (see /employee/designs).
+    personal_template_id: int | None = Field(default=None, gt=0)
     payer: Literal['COMPANY', 'INDIVIDUAL'] = 'INDIVIDUAL'
     name: str | None = Field(default=None, max_length=120)
     designation: str | None = Field(default=None, max_length=120)
@@ -246,6 +264,18 @@ class CheckoutResponse(BaseModel):
     payer: str
     payment_status: str
     card_ids: list[int]
+
+
+class PayOrderRequest(BaseModel):
+    method: str = Field(default='GATEWAY_SANDBOX', max_length=50)
+
+
+class PayOrderResponse(BaseModel):
+    order_id: int
+    status: str
+    total_amount: int
+    method: str
+    message: str
 
 
 class AuditLogResponse(BaseModel):

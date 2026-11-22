@@ -54,22 +54,54 @@ IMAGE_SIGNATURES = {
 }
 
 
+# Photoshop files are bigger: they carry every layer, not just the finished picture.
+MAX_PSD_BYTES = 40_000_000
+PSD_TYPES = {'image/vnd.adobe.photoshop', 'image/x-photoshop', 'application/x-photoshop', 'application/photoshop',
+             'application/psd', 'image/psd', 'application/octet-stream', ''}
+
+
+def _psd_to_png(content: bytes) -> bytes:
+    """The finished (flattened) picture of a Photoshop file, as a PNG for the ML pipeline."""
+    import io
+
+    from PIL import Image
+
+    check_pixels(content)
+    try:
+        with Image.open(io.BytesIO(content)) as psd:
+            psd.load()
+            picture = psd.convert('RGB')
+    except Exception:
+        raise HTTPException(422, 'This Photoshop file could not be read. In Photoshop, save it with '
+                                 '"Maximize Compatibility" on, or export it as PNG.') from None
+    out = io.BytesIO()
+    picture.save(out, 'PNG')
+    return out.getvalue()
+
+
 async def _read_design(file: UploadFile) -> bytes:
+    """A card design as image bytes: PNG, JPG, WebP, or a Photoshop .psd (converted to PNG)."""
+    is_psd = (file.filename or '').lower().endswith('.psd') and (file.content_type or '') in PSD_TYPES
     signatures = IMAGE_SIGNATURES.get(file.content_type or '')
-    if signatures is None:
-        raise HTTPException(415, 'Upload the card design as a PNG, JPG or WebP image')
-    content = await file.read(MAX_DESIGN_BYTES + 1)
+    if signatures is None and not is_psd:
+        raise HTTPException(415, 'Upload the card design as a PNG, JPG, WebP or Photoshop (.psd) file')
+    limit = MAX_PSD_BYTES if is_psd else MAX_DESIGN_BYTES
+    content = await file.read(limit + 1)
     if not content:
         raise HTTPException(400, 'The file is empty')
-    if len(content) > MAX_DESIGN_BYTES:
-        raise HTTPException(413, 'The design must be 10 MB or smaller')
+    if len(content) > limit:
+        raise HTTPException(413, f'The design must be {limit // 1_000_000} MB or smaller')
+    if is_psd:
+        if not content.startswith(b'8BPS'):
+            raise HTTPException(422, 'The file content does not match its type')
+        return await anyio.to_thread.run_sync(_psd_to_png, content)
     if not any(content.startswith(s) for s in signatures) or (file.content_type == 'image/webp' and content[8:12] != b'WEBP'):
         raise HTTPException(422, 'The file content does not match its type')
     check_pixels(content)
     return content
 
 
-def _analyze_files(company_id: int, design: bytes, blank: bytes | None, side: str = 'front') -> dict:
+def _analyze_files(company_id: int | str | None, design: bytes, blank: bytes | None, side: str = 'front') -> dict:
     """CPU-heavy: runs OCR and image processing. Called in a worker thread."""
     import numpy as np
     from app.services.template_ml import analyze, clean_background, load_image
@@ -135,7 +167,19 @@ def _remove_unsaved_uploads(company_id: int | None) -> None:
         return
     with SessionLocal() as db:
         used: set[str] = set()
-        for design in db.scalars(select(CardTemplate.design).where(CardTemplate.company_id.is_(None) if company_id is None else CardTemplate.company_id == company_id)):
+        if isinstance(company_id, str):  # an individual's private folder
+            from uuid import UUID
+
+            from app.models import PersonalTemplate
+            from app.models import CardOrder
+            owner_id = UUID(company_id.removeprefix('user_'))
+            designs = list(db.scalars(select(PersonalTemplate.design).where(PersonalTemplate.user_id == owner_id)))
+            # An order keeps its own copy of the design: keep those files too while the order may still print.
+            designs += [o.details.get('design') for o in db.scalars(select(CardOrder).where(CardOrder.user_id == owner_id, CardOrder.details.is_not(None)))
+                        if (o.details or {}).get('design')]
+        else:
+            designs = db.scalars(select(CardTemplate.design).where(CardTemplate.company_id.is_(None) if company_id is None else CardTemplate.company_id == company_id))
+        for design in designs:
             if design and design.get('kind') == 'image':
                 used.update({design.get('source', ''), design.get('background', '')})
                 used.update(f.get('image', '') for f in design.get('fields', []))
@@ -195,7 +239,7 @@ def _check_layer_images(company_id: int | None, fields) -> None:
             raise HTTPException(422, 'An added text layer is empty; type something or delete it')
 
 
-def _check_assets(company_id: int, *names: str) -> None:
+def _check_assets(company_id: int | str | None, *names: str) -> None:
     for name in names:
         try:
             path = resolve_asset(company_id, name)

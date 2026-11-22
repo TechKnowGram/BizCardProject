@@ -82,6 +82,7 @@ class CardRequest(Base):
     created_by = relationship('User', foreign_keys=[created_by_id])
     decided_by = relationship('User', foreign_keys=[decided_by_id])
     items = relationship('CardRequestItem', back_populates='request', cascade='all, delete-orphan')
+    order = relationship('CardOrder', back_populates='request', uselist=False)
     __table_args__ = (
         CheckConstraint(
             "status IN ('PENDING','APPROVED','REJECTED','PROCESSING','COMPLETED','FAILED')",
@@ -172,14 +173,20 @@ class CardOrder(Base):
     company_id: Mapped[int | None] = mapped_column(ForeignKey('companies.id', ondelete='CASCADE'), nullable=True, index=True)
     user_id: Mapped[PythonUUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     membership_id: Mapped[int | None] = mapped_column(ForeignKey('memberships.id', ondelete='SET NULL'), nullable=True)
+    request_id: Mapped[int | None] = mapped_column(ForeignKey('card_requests.id', ondelete='SET NULL'), nullable=True, index=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[int] = mapped_column(Integer, nullable=False)
     total_amount: Mapped[int] = mapped_column(Integer, nullable=False)
     payer: Mapped[str] = mapped_column(String(20), nullable=False)
+    # PENDING_APPROVAL -> (system admin approves) -> PENDING_PAYMENT -> PAID; or REJECTED.
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='PAID')
+    # Personal orders: what to print (name, title, phone, design, ...) until a system admin approves them;
+    # also the rejection reason.
+    details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     # Read-only link used by the admin payments list; the foreign key above already exists.
     company = relationship('Company')
+    request = relationship('CardRequest', back_populates='order')
     __table_args__ = (CheckConstraint('quantity > 0', name='check_order_quantity'),
                       CheckConstraint("payer IN ('COMPANY','INDIVIDUAL')", name='check_order_payer'),)
 
@@ -201,4 +208,16 @@ class PersonalCard(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey('card_orders.id', ondelete='CASCADE'), nullable=False)
     file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class PersonalTemplate(Base):
+    """A card design an individual employee uploaded for their own personal cards. Private to that user:
+    kept apart from card_templates so it never appears in company or shared template lists."""
+    __tablename__ = 'personal_templates'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[PythonUUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=False, default='')
+    design: Mapped[dict] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

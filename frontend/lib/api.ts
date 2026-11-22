@@ -48,7 +48,10 @@ export async function download(path: string, filename: string): Promise<void> {
   const response = await fetch(`/api${path}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
-  if (!response.ok) throw new Error('Download failed.');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.detail || 'Download failed.');
+  }
   const url = URL.createObjectURL(await response.blob());
   const link = document.createElement('a');
   link.href = url;
@@ -61,7 +64,7 @@ export async function download(path: string, filename: string): Promise<void> {
 export async function downloadOrReport(path: string, filename: string, report: (message: string) => void): Promise<void> {
   try {
     await download(path, filename);
-  } catch {
-    report('The file could not be downloaded. Please try again.');
+  } catch (err: any) {
+    report(err?.message || 'The file could not be downloaded. Please try again.');
   }
 }

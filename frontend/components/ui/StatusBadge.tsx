@@ -4,6 +4,9 @@ const tones: Record<string, [string, string]> = {
   ACTIVE: ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'bg-emerald-500'],
   COMPLETED: ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'bg-emerald-500'],
   PAID: ['bg-emerald-50 text-emerald-700 ring-emerald-200', 'bg-emerald-500'],
+  PENDING_PAYMENT: ['bg-amber-50 text-amber-800 ring-amber-200', 'bg-amber-500'],
+  PENDING_APPROVAL: ['bg-sky-50 text-sky-800 ring-sky-200', 'bg-sky-500'],
+  UNPAID: ['bg-rose-50 text-rose-700 ring-rose-200', 'bg-rose-500'],
   PENDING: ['bg-amber-50 text-amber-800 ring-amber-200', 'bg-amber-500'],
   PROCESSING: ['bg-brand-50 text-brand-700 ring-brand-100', 'bg-brand-600'],
   PRE_APPROVED: ['bg-brand-50 text-brand-700 ring-brand-100', 'bg-brand-600'],
@@ -25,7 +28,13 @@ export interface StatusBadgeProps {
 }
 
 /** Turns e.g. PRE_APPROVED into "Pre approved". */
+const labels: Record<string, string> = {
+  PENDING_APPROVAL: 'Awaiting approval',
+  PENDING_PAYMENT: 'Awaiting payment',
+};
+
 function readable(value: string) {
+  if (labels[value]) return labels[value];
   const text = value.replace(/_/g, ' ').toLowerCase();
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

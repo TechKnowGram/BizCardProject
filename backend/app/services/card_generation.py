@@ -113,6 +113,18 @@ def safe_file_stem(value: str) -> str:
     return stem or 'employee'
 
 
+def _card_photo(db: Session, employee) -> str | None:
+    from app.api.routes.employee_portal import card_photo_path  # local import: routes import this module
+    return card_photo_path(db, employee)
+
+
+def _with_photo(employee, photo_path: str | None):
+    """A read-only stand-in for the employee with another photo; the database row is not changed."""
+    from types import SimpleNamespace
+    fields = ('id', 'employee_id', 'name', 'designation', 'department', 'email', 'phone')
+    return SimpleNamespace(**{f: getattr(employee, f, None) for f in fields}, photo_path=photo_path)
+
+
 def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
     output_dir = storage_root() / f'company_{request.company_id}' / f'request_{request.id}'
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -128,6 +140,9 @@ def generate_cards(db: Session, request: CardRequest) -> list[GeneratedCard]:
             filename = f'{safe_file_stem(employee.employee_id)}_card.pdf'
             path = output_dir / filename
             verification_token = token_urlsafe(24)
+            photo = _card_photo(db, employee)
+            if photo != employee.photo_path:
+                employee = _with_photo(employee, photo)
             render_card_pdf(path, request.company, employee, request.template.style_key, verification_token, request.template.design)
             created_paths.append(path)
             card = GeneratedCard(

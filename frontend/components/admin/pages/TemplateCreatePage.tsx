@@ -75,6 +75,13 @@ export default function AdminTemplateCreatePage() {
         description="Design a shared card from colours, layout and decoration. It is available to every approved company once saved."
         actions={<Link href="/dashboard/templates" className={buttonClass('secondary')}>Back to templates</Link>}
       />
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-brand-200 bg-brand-50/60 px-5 py-4">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-navy-900">Have the card as a photo or Photoshop file?</p>
+          <p className="mt-0.5 text-sm text-slate-600">Upload it instead. Machine learning reads the design, finds where the name, title, contacts and photo go, and you check it before saving.</p>
+        </div>
+        <Link href="/dashboard/templates/upload" className={buttonClass('primary')}>Create from a photo or PSD</Link>
+      </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SectionCard title="Design">
           <div className="space-y-4">

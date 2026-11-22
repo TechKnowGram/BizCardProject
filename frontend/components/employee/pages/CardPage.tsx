@@ -4,7 +4,17 @@ import CardOrderStudio from '@/components/employee/CardOrderStudio';
 import { useEmployee } from '@/components/employee/EmployeeDashboard';
 
 export default function EmployeeCardPage() {
-  const { user, setTab, templates, cardSubView, setCardSubView, cardOrderType, setCardOrderType, cardTheme, setCardTheme, order, setOrder, setError, busy, activeMembership, membershipState, checkout, cardRows, toast } = useEmployee();
+  const { user, setTab, templates, cardSubView, setCardSubView, cardOrderType, setCardOrderType, cardTheme, setCardTheme, order, setOrder, setError, busy, activeMembership, membershipState, checkout, cardRows, toast, orders, setPaymentModalOrder } = useEmployee();
+
+  const handlePayOrder = (orderId: number) => {
+    const found = orders.find((o: any) => o.id === orderId);
+    if (found) {
+      setPaymentModalOrder(found);
+    } else {
+      setPaymentModalOrder({ id: orderId, total_amount: 50 });
+    }
+  };
+
   return (
     <>
       {toast}
@@ -26,6 +36,7 @@ export default function EmployeeCardPage() {
         onCheckout={checkout}
         onGoToCompany={() => setTab?.('company')}
         onError={setError}
+        onPayOrder={handlePayOrder}
       />
     </>
   );

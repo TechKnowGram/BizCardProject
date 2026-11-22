@@ -173,11 +173,11 @@ async def upload_employee_photo(
 @router.get('/{employee_id}/photo')
 def get_employee_photo(
     employee_id: int,
+    frame: str | None = None,
     user: User = Depends(require_approved_company_admin),
     db: Session = Depends(get_db),
 ):
+    """The photo; with ?frame=W:H, cropped around the face to a card photo frame of that shape."""
+    from app.services.photo_crop import photo_response
     employee = company_employee(db, employee_id, user.company_id)
-    path = Path(employee.photo_path or '')
-    if not path.is_file():
-        raise HTTPException(status_code=404, detail='Employee photo not found')
-    return FileResponse(path)
+    return photo_response(employee.photo_path, frame, 'Employee photo not found')

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ReviewDialog from '@/components/ui/ReviewDialog';
 import CardPreview from '@/components/cards/CardPreview';
+import { FlipCard } from '@/components/cards/ImageTemplateCard';
 import Icon from '@/components/ui/Icon';
 import { api } from '@/lib/api';
 import { isImageDesign } from '@/lib/types';
@@ -82,6 +83,11 @@ export default function RequestWizard({ company, employees, templates, initialId
           const hasBack = Boolean(design && (isImageDesign(design) ? design.back : design.two_sided));
           const person = selected[0];
           const card = (back: boolean) => <CardPreview back={back} className={template.design ? undefined : 'm-auto max-w-105 min-h-56.25!'} design={template.design} style={template.style_key} company={company.name} name={person?.name} designation={person?.designation} email={person?.email} phone={person?.phone} logoPath={company.has_logo ? '/company/logo' : null} photoPath={person?.has_photo ? `/employees/${person.id}/photo` : null} />;
+          if (design && isImageDesign(design)) {
+            return <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+              <FlipCard key={template.id} design={design} className="mx-auto max-w-md" values={{ name: person?.name || 'Your employee', title: person?.designation, department: person?.department, phone: person?.phone, email: person?.email, website: company.website, address: (company as { address?: string | null }).address, company: company.name, logoPath: company.has_logo ? '/company/logo' : null, photoPath: person?.has_photo ? `/employees/${person.id}/photo` : null }} />
+            </div>;
+          }
           return <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
             {hasBack
               ? <div className="grid items-start gap-6 sm:grid-cols-2">

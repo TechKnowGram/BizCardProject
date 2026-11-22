@@ -265,6 +265,88 @@ def _classify(groups: list[dict], card_w: int, card_h: int) -> None:
             min(near, key=gap)['role'] = 'title'
 
 
+def _inside_ring(image: np.ndarray, cx: float, cy: float, r: float) -> float:
+    """Many photo frames have a plain border ring (white, gold, the brand colour). Step inward from the
+    outer edge while the ring is one even colour; the photo starts where the colour changes."""
+    angles = np.linspace(0, 2 * np.pi, 72, endpoint=False)
+    h, w = image.shape[:2]
+
+    def ring(radius: float) -> tuple[np.ndarray, float]:
+        xs = np.clip((cx + radius * np.cos(angles)).astype(int), 0, w - 1)
+        ys = np.clip((cy + radius * np.sin(angles)).astype(int), 0, h - 1)
+        pixels = image[ys, xs].astype(float)
+        return pixels.mean(axis=0), float(pixels.std(axis=0).mean())
+
+    border, spread = ring(r - 2)
+    if spread > 18:          # not an even ring: the edge found is the photo's own edge
+        return r
+    radius = r - 2
+    while radius > r * 0.82:
+        colour, spread = ring(radius - 1)
+        if spread > 18 or np.abs(colour - border).mean() > 25:
+            return radius
+        radius -= 1
+    return r
+
+
+def _frame_around_face(image: np.ndarray, face: tuple[int, int, int, int]) -> Field | None:
+    """The round or square photo frame that holds a detected face, or None if the photo has no clear frame.
+
+    Round frames are found with a Hough circle transform; square and rectangular frames as the smallest
+    four-cornered outline around the face. Either must contain the whole face and be at most a few times
+    its size, so a card border or a large background panel is never mistaken for the frame.
+    """
+    h, w = image.shape[:2]
+    fx, fy, fw, fh = face
+    size = max(fw, fh)
+    fcx, fcy = fx + fw / 2, fy + fh / 2
+    gray = cv2.medianBlur(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 5)
+    edges = cv2.dilate(cv2.Canny(gray, 50, 150), np.ones((5, 5), np.uint8))
+    angles = np.linspace(0, 2 * np.pi, 120, endpoint=False)
+
+    def edge_support(cx: float, cy: float, r: float) -> float:
+        """Share of the circle's outline that lies on a real edge: a drawn frame scores high, a guess low."""
+        xs = (cx + r * np.cos(angles)).astype(int)
+        ys = (cy + r * np.sin(angles)).astype(int)
+        keep = (xs >= 0) & (xs < w) & (ys >= 0) & (ys < h)
+        if keep.mean() < 0.9:  # mostly off the card: not a frame
+            return 0.0
+        return float((edges[ys[keep], xs[keep]] > 0).mean())
+
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.2, minDist=size, param1=120, param2=40,
+                               minRadius=int(size * 0.75), maxRadius=int(size * 2.6))
+    best = None
+    if circles is not None:
+        for cx, cy, r in circles[0]:
+            # The whole face sits inside the circle.
+            corners = ((fx, fy), (fx + fw, fy), (fx, fy + fh), (fx + fw, fy + fh))
+            inside = sum((x - cx) ** 2 + (y - cy) ** 2 <= (r * 1.08) ** 2 for x, y in corners)
+            if inside >= 3 and abs(cx - fcx) < r * 0.5 and edge_support(cx, cy, r) >= 0.6 and (best is None or r < best[2]):
+                best = (float(cx), float(cy), float(r))
+    if best is not None:
+        cx, cy, r = best
+        r = _inside_ring(image, cx, cy, r)
+        return Field('photo', max(0.0, cx - r) / w, max(0.0, cy - r) / h, min(2 * r, w) / w, min(2 * r, h) / h,
+                     shape='circle', confidence=0.95)
+
+    contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    box = None
+    for contour in contours:
+        x, y, bw, bh = cv2.boundingRect(contour)
+        if not (x <= fx and y <= fy and x + bw >= fx + fw and y + bh >= fy + fh):
+            continue
+        if bw > size * 3.2 or bh > size * 3.6 or bw * bh > 0.45 * w * h:
+            continue
+        approx = cv2.approxPolyDP(contour, 0.02 * cv2.arcLength(contour, True), True)
+        if len(approx) == 4 and (box is None or bw * bh < box[2] * box[3]):
+            box = (x, y, bw, bh)
+    if box is not None:
+        x, y, bw, bh = box
+        x, y, bw, bh = x + 2, y + 2, bw - 4, bh - 4  # the edge map was thickened by 2 px on each side
+        return Field('photo', x / w, y / h, bw / w, bh / h, shape='rect', confidence=0.92)
+    return None
+
+
 def _detect_photo(image: np.ndarray, text_boxes: list[tuple[int, int, int, int]]) -> Field | None:
     h, w = image.shape[:2]
     # 1) Face detector, when its model is installed.
@@ -274,6 +356,11 @@ def _detect_photo(image: np.ndarray, text_boxes: list[tuple[int, int, int, int]]
         _, faces = detector.detect(image)
         if faces is not None and len(faces):
             fx, fy, fw, fh = (int(v) for v in max(faces, key=lambda f: f[2] * f[3])[:4])
+            # The photo frame is usually bigger than the face (hair, shoulders, background):
+            # use the real frame around the face when the design has one, so the new photo covers the sample fully.
+            frame = _frame_around_face(image, (fx, fy, fw, fh))
+            if frame is not None:
+                return frame
             cx, cy = fx + fw / 2, fy + fh * 0.55
             r = max(fw, fh) * 1.05
             return Field('photo', max(0, cx - r) / w, max(0, cy - r) / h, min(2 * r, w) / w, min(2 * r, h) / h, shape='circle', confidence=0.9)

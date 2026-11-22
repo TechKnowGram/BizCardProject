@@ -10,6 +10,7 @@ import EmployeeDialog from '@/components/company/EmployeeDialog';
 import CompanyProfilePanel from '@/components/company/CompanyProfilePanel';
 import ReviewDialog from '@/components/ui/ReviewDialog';
 import Toast from '@/components/ui/Toast';
+import PaymentModal from '@/components/ui/PaymentModal';
 import CardStudio from '@/components/cards/CardStudio';
 import DesignUploader from '@/components/company/DesignUploader';
 import CsvImportDialog from '@/components/company/CsvImportDialog';
@@ -75,6 +76,7 @@ export function useCompanyController({ tab, setTab, user }: { tab: string; setTa
   const [requestViewer, setRequestViewer] = useState<RequestViewerState | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
+  const [paymentModalOrder, setPaymentModalOrder] = useState<any | null>(null);
 
   // Sponsorship policy setting
   const [defaultSponsorship, setDefaultSponsorship] = useState<'COMPANY' | 'INDIVIDUAL'>('COMPANY');
@@ -255,7 +257,7 @@ export function useCompanyController({ tab, setTab, user }: { tab: string; setTa
     [selfPaidOrders]
   );
 
-  return { setTab, user, company, setCompany, employees, setEmployees, templates, setTemplates, requests, setRequests, memberships, setMemberships, orders, setOrders, selectedEmployees, setSelectedEmployees, search, setSearch, department, setDepartment, statusFilter, setStatusFilter, membershipFilter, setMembershipFilter, ordersSubView, setOrdersSubView, error, setError, message, setMessage, busy, setBusy, loading, setLoading, employeeEditor, setEmployeeEditor, employeeError, setEmployeeError, requestViewer, setRequestViewer, wizardOpen, setWizardOpen, csvOpen, setCsvOpen, defaultSponsorship, setDefaultSponsorship, load, saveEmployee, uploadPhoto, changeEmployeeStatus, selectTemplate, decideMembership, toggleEmployee, createRequest, openRequest, departments, visibleEmployees, activeEmployees, pendingMemberships, pendingRequests, completedRequests, selectedTemplate, totalSpend, companySponsoredOrders, companySponsoredTotal, selfPaidOrders, selfPaidTotal };
+  return { setTab, user, company, setCompany, employees, setEmployees, templates, setTemplates, requests, setRequests, memberships, setMemberships, orders, setOrders, selectedEmployees, setSelectedEmployees, search, setSearch, department, setDepartment, statusFilter, setStatusFilter, membershipFilter, setMembershipFilter, ordersSubView, setOrdersSubView, error, setError, message, setMessage, busy, setBusy, loading, setLoading, employeeEditor, setEmployeeEditor, employeeError, setEmployeeError, requestViewer, setRequestViewer, wizardOpen, setWizardOpen, csvOpen, setCsvOpen, paymentModalOrder, setPaymentModalOrder, defaultSponsorship, setDefaultSponsorship, load, saveEmployee, uploadPhoto, changeEmployeeStatus, selectTemplate, decideMembership, toggleEmployee, createRequest, openRequest, departments, visibleEmployees, activeEmployees, pendingMemberships, pendingRequests, completedRequests, selectedTemplate, totalSpend, companySponsoredOrders, companySponsoredTotal, selfPaidOrders, selfPaidTotal };
 }
 
 type CompanyController = ReturnType<typeof useCompanyController>;
@@ -270,7 +272,7 @@ export function useCompany() {
 
 export default function CompanyDashboard({ tab, setTab, user, onLogout, children }: CompanyDashboardProps) {
   const controller = useCompanyController({ tab, setTab, user });
-  const { company, setCompany, employees, setEmployees, templates, setTemplates, requests, setRequests, memberships, setMemberships, orders, setOrders, selectedEmployees, setSelectedEmployees, search, setSearch, department, setDepartment, statusFilter, setStatusFilter, membershipFilter, setMembershipFilter, ordersSubView, setOrdersSubView, error, setError, message, setMessage, busy, setBusy, loading, setLoading, employeeEditor, setEmployeeEditor, employeeError, setEmployeeError, requestViewer, setRequestViewer, wizardOpen, setWizardOpen, csvOpen, setCsvOpen, defaultSponsorship, setDefaultSponsorship, load, saveEmployee, uploadPhoto, changeEmployeeStatus, selectTemplate, decideMembership, toggleEmployee, createRequest, openRequest, departments, visibleEmployees, activeEmployees, pendingMemberships, pendingRequests, completedRequests, selectedTemplate, totalSpend, companySponsoredOrders, companySponsoredTotal, selfPaidOrders, selfPaidTotal } = controller;
+  const { company, setCompany, employees, setEmployees, templates, setTemplates, requests, setRequests, memberships, setMemberships, orders, setOrders, selectedEmployees, setSelectedEmployees, search, setSearch, department, setDepartment, statusFilter, setStatusFilter, membershipFilter, setMembershipFilter, ordersSubView, setOrdersSubView, error, setError, message, setMessage, busy, setBusy, loading, setLoading, employeeEditor, setEmployeeEditor, employeeError, setEmployeeError, requestViewer, setRequestViewer, wizardOpen, setWizardOpen, csvOpen, setCsvOpen, paymentModalOrder, setPaymentModalOrder, defaultSponsorship, setDefaultSponsorship, load, saveEmployee, uploadPhoto, changeEmployeeStatus, selectTemplate, decideMembership, toggleEmployee, createRequest, openRequest, departments, visibleEmployees, activeEmployees, pendingMemberships, pendingRequests, completedRequests, selectedTemplate, totalSpend, companySponsoredOrders, companySponsoredTotal, selfPaidOrders, selfPaidTotal } = controller;
 
   const shellUser = user || { username: 'Admin', role: 'COMPANY_ADMIN' as const };
   const logoutHandler = onLogout || (() => {});
@@ -384,7 +386,23 @@ export default function CompanyDashboard({ tab, setTab, user, onLogout, children
       )}
 
       {requestViewer && (
-        <RequestDetails viewer={requestViewer} onClose={() => setRequestViewer(null)} onDownload={(path: string, name: string) => downloadOrReport(path, name, setError)} />
+        <RequestDetails
+          viewer={requestViewer}
+          onClose={() => setRequestViewer(null)}
+          onDownload={(path: string, name: string) => downloadOrReport(path, name, setError)}
+          onPay={setPaymentModalOrder}
+        />
+      )}
+
+      {paymentModalOrder && (
+        <PaymentModal
+          order={paymentModalOrder}
+          onClose={() => setPaymentModalOrder(null)}
+          onSuccess={async () => {
+            setMessage(`Payment for Order #${paymentModalOrder.id} confirmed successfully.`);
+            await load();
+          }}
+        />
       )}
     </CompanyAdminShell>
     </CompanyContext.Provider>
@@ -395,15 +413,21 @@ interface RequestDetailsProps {
   viewer: RequestViewerState;
   onClose: () => void;
   onDownload: (path: string, filename: string) => void | Promise<void>;
+  onPay?: (order: any) => void;
 }
 
-export function RequestDetails({ viewer, onClose, onDownload }: RequestDetailsProps) {
+export function RequestDetails({ viewer, onClose, onDownload, onPay }: RequestDetailsProps) {
   const { request, cards } = viewer;
+  const isApprovedAwaitingPayment = request.status === 'COMPLETED' && request.order?.status === 'PENDING_PAYMENT';
   const steps: Array<[string, string | null, boolean]> = [
     ['Request submitted', request.created_at, true],
     ['Platform decision', request.decided_at, Boolean(request.decided_at)],
     [
-      request.status === 'REJECTED' ? 'Request rejected' : 'Cards generated',
+      request.status === 'REJECTED'
+        ? 'Request rejected'
+        : request.order?.status === 'PAID'
+        ? 'Payment confirmed'
+        : 'Approved · Awaiting payment',
       request.status === 'COMPLETED' ? request.decided_at : null,
       ['COMPLETED', 'REJECTED'].includes(request.status),
     ],
@@ -412,17 +436,22 @@ export function RequestDetails({ viewer, onClose, onDownload }: RequestDetailsPr
     <ReviewDialog title={`Card request #${request.id}`} eyebrow="Card request" onClose={onClose}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <StatusBadge value={request.status} />
+          <StatusBadge value={isApprovedAwaitingPayment ? 'PENDING_PAYMENT' : request.status} />
           <p className="mt-2 text-sm text-slate-500">
             {request.items.length} employee{request.items.length === 1 ? '' : 's'}
             {request.template?.name ? ` · ${request.template.name}` : ''}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {templateHasAi(request.template) && request.items.length > 1 && (
+          {request.status === 'COMPLETED' && request.order?.status === 'PENDING_PAYMENT' && onPay && (
+            <Button onClick={() => onPay(request.order)}>
+              Pay now (৳{request.order.total_amount})
+            </Button>
+          )}
+          {templateHasAi(request.template) && request.items.length > 1 && (!request.order || request.order.status === 'PAID') && (
             <AiDownloadButton label="Download all (.ai ZIP)" path={`/card-requests/${request.id}/ai`} fileName={`card-request-${request.id}-ai.zip`} onDownload={onDownload} className="py-2" />
           )}
-          {request.status === 'COMPLETED' && (
+          {request.status === 'COMPLETED' && (!request.order || request.order.status === 'PAID') && (
             <Button onClick={() => onDownload(`/card-requests/${request.id}/cards/download`, `card-request-${request.id}.zip`)}>
               Download all (ZIP)
             </Button>
